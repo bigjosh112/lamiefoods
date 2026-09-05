@@ -5,94 +5,239 @@
 @source "../../../../packages/ui/src";
 
 /*
-  PROVISIONAL TOKENS.
+  ARTISANAL CONFECTIONERY SYSTEM — Lamie Foods design tokens.
 
-  The palette below is a placeholder derived from the described logo colours
-  (deep chocolate brown, warm orange, cream/warm gold). It is NOT sampled from
-  the real asset. Replace these values once the logo and the approved Stitch
-  design are supplied — everything downstream reads tokens, so the swap happens
-  here and nowhere else.
+  Source of truth: the approved Stitch design system. Values below are
+  transcribed from it, not invented. Two things are layered on top, both marked
+  where they occur:
+    1. Fluid type — the system specifies fixed px per step; each step keeps that
+       value as its maximum and gains an interpolated mobile floor.
+    2. Elevation — specified in the system's prose but absent from its token
+       export, so transcribed from that prose.
 */
 @theme {
-  /* Brand */
-  --color-cocoa-50: oklch(0.96 0.012 65);
-  --color-cocoa-100: oklch(0.91 0.025 62);
-  --color-cocoa-200: oklch(0.81 0.045 58);
-  --color-cocoa-300: oklch(0.68 0.062 52);
-  --color-cocoa-400: oklch(0.54 0.072 46);
-  --color-cocoa-500: oklch(0.43 0.075 42);
-  --color-cocoa-600: oklch(0.35 0.068 40);
-  --color-cocoa-700: oklch(0.28 0.055 38);
-  --color-cocoa-800: oklch(0.22 0.042 36);
-  --color-cocoa-900: oklch(0.17 0.032 34);
+  /* ── Type families ──────────────────────────────────────────────────────
+     Bodoni Moda: display + headline only (prestige, editorial).
+     Plus Jakarta Sans: body, titles, labels, and all dense UI.
+     Never set Bodoni on long body copy or UI controls. */
+  --font-display:
+    var(--font-bodoni-moda), "Bodoni Moda", Georgia, "Times New Roman", serif;
+  --font-sans:
+    var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui,
+    sans-serif;
 
-  --color-ember-300: oklch(0.82 0.11 62);
-  --color-ember-400: oklch(0.75 0.15 55);
-  --color-ember-500: oklch(0.68 0.19 48);
-  --color-ember-600: oklch(0.6 0.18 44);
+  /* ── Brand swatches ─────────────────────────────────────────────────────
+     The four named colours from the system's palette panel. Only Deep Cocoa
+     also appears in the role tokens below (as primary-container), yet the
+     component specs reference all four by name, so they get real tokens. */
+  --color-brand-cocoa: #4a1b07;
+  --color-brand-ember: #e65b00;
+  --color-brand-amber: #e8c88b;
+  --color-brand-espresso: #24120b;
 
-  --color-cream-50: oklch(0.985 0.008 85);
-  --color-cream-100: oklch(0.96 0.018 82);
-  --color-cream-200: oklch(0.93 0.032 80);
+  /* ── Role tokens ────────────────────────────────────────────────────────
+     Transcribed verbatim from the design system export. Every `on-*` is the
+     intended foreground for its matching surface — always pair them. */
+  --color-surface: #fff8f6;
+  --color-surface-dim: #f6d2c6;
+  --color-surface-bright: #fff8f6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1ec;
+  --color-surface-container: #ffe9e2;
+  --color-surface-container-high: #ffe2d8;
+  --color-surface-container-highest: #ffdbce;
+  --color-surface-variant: #ffdbce;
+  --color-on-surface: #2a1710;
+  --color-on-surface-variant: #53433e;
+  --color-inverse-surface: #412b23;
+  --color-inverse-on-surface: #ffede7;
+  --color-surface-tint: #8b4e36;
 
-  --color-gold-400: oklch(0.83 0.1 88);
-  --color-gold-500: oklch(0.76 0.12 85);
+  --color-background: #fff8f6;
+  --color-on-background: #2a1710;
 
-  /* Semantic aliases — components reference these, never raw ramp steps. */
-  --color-surface: var(--color-cream-50);
-  --color-surface-raised: oklch(1 0 0);
-  --color-ink: var(--color-cocoa-900);
-  --color-ink-muted: var(--color-cocoa-600);
-  --color-accent: var(--color-ember-500);
-  --color-border: var(--color-cocoa-100);
+  --color-outline: #85736d;
+  --color-outline-variant: #d8c2bb;
 
-  /*
-    Fluid type scale. Every step interpolates between a small-phone and a
-    large-desktop size, so text scales continuously instead of jumping at
-    breakpoints. Body sizes bottom out ~2px smaller on mobile than desktop.
-  */
-  --text-fluid-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
-  --text-fluid-sm: clamp(0.8125rem, 0.78rem + 0.18vw, 0.9375rem);
-  --text-fluid-base: clamp(0.9375rem, 0.89rem + 0.24vw, 1.0625rem);
-  --text-fluid-lg: clamp(1.0625rem, 0.99rem + 0.34vw, 1.25rem);
-  --text-fluid-xl: clamp(1.25rem, 1.13rem + 0.6vw, 1.625rem);
-  --text-fluid-2xl: clamp(1.5rem, 1.28rem + 1.1vw, 2.25rem);
-  --text-fluid-3xl: clamp(1.875rem, 1.5rem + 1.9vw, 3.25rem);
-  --text-fluid-4xl: clamp(2.25rem, 1.6rem + 3.2vw, 4.5rem);
-  --text-fluid-5xl: clamp(2.75rem, 1.7rem + 5.2vw, 6.5rem);
+  --color-primary: #2d0900;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #4a1b07;
+  --color-on-primary-container: #c67f63;
+  --color-inverse-primary: #ffb59a;
+  --color-primary-fixed: #ffdbce;
+  --color-primary-fixed-dim: #ffb59a;
+  --color-on-primary-fixed: #380d00;
+  --color-on-primary-fixed-variant: #6f3721;
 
-  /* Fluid spacing for section rhythm, so vertical space breathes with width. */
-  --spacing-fluid-sm: clamp(1rem, 0.85rem + 0.75vw, 1.75rem);
-  --spacing-fluid-md: clamp(1.75rem, 1.35rem + 2vw, 3.5rem);
-  --spacing-fluid-lg: clamp(3rem, 2.2rem + 4vw, 7rem);
-  --spacing-fluid-xl: clamp(4.5rem, 3rem + 7.5vw, 11rem);
+  --color-secondary: #a33e00;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #fd6b1a;
+  --color-on-secondary-container: #581e00;
+  --color-secondary-fixed: #ffdbcd;
+  --color-secondary-fixed-dim: #ffb596;
+  --color-on-secondary-fixed: #360f00;
+  --color-on-secondary-fixed-variant: #7c2e00;
 
-  /* Gutter that grows with the viewport instead of stepping per breakpoint. */
-  --spacing-gutter: clamp(1.125rem, 0.8rem + 1.6vw, 3rem);
+  --color-tertiary: #1e1300;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #382700;
+  --color-on-tertiary-container: #a98d55;
+  --color-tertiary-fixed: #ffdea1;
+  --color-tertiary-fixed-dim: #e2c286;
+  --color-on-tertiary-fixed: #261900;
+  --color-on-tertiary-fixed-variant: #594313;
 
-  --radius-card: clamp(0.75rem, 0.6rem + 0.6vw, 1.25rem);
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Hairline that separates card groups on low-gamma monitors. */
+  --color-hairline: rgb(74 27 7 / 0.08);
+
+  /* ── Type scale ─────────────────────────────────────────────────────────
+     Each step's MAX is the system's specified size exactly. The min is a mobile
+     floor so type scales continuously instead of jumping at breakpoints, per
+     the project's fluid-design standard. `headline-lg` is the one step the
+     system gives a mobile size for (28px), and that value is used as-is — its
+     0.78 ratio sets the pattern the other display/headline floors follow.
+
+     Line heights are unitless ratios (spec px / spec size) so they stay correct
+     at every size a clamp resolves to. Labels and title-md stay fixed: they are
+     UI chrome, where the system's letter-spacing is tuned to an exact size. */
+  --text-display-lg: clamp(2.5rem, 1.71rem + 3.93vw, 3.5rem);
+  --text-display-lg--line-height: 1.143;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 600;
+
+  --text-display-md: clamp(2rem, 1.41rem + 2.95vw, 2.75rem);
+  --text-display-md--line-height: 1.182;
+  --text-display-md--letter-spacing: -0.015em;
+  --text-display-md--font-weight: 600;
+
+  --text-headline-lg: clamp(1.75rem, 1.36rem + 1.96vw, 2.25rem);
+  --text-headline-lg--line-height: 1.222;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-md: clamp(1.5rem, 1.31rem + 0.98vw, 1.75rem);
+  --text-headline-md--line-height: 1.286;
+  --text-headline-md--font-weight: 500;
+
+  --text-headline-sm: clamp(1.25rem, 1.16rem + 0.49vw, 1.375rem);
+  --text-headline-sm--line-height: 1.273;
+  --text-headline-sm--font-weight: 500;
+
+  --text-title-lg: clamp(1.125rem, 1.03rem + 0.49vw, 1.25rem);
+  --text-title-lg--line-height: 1.4;
+  --text-title-lg--font-weight: 700;
+
+  --text-title-md: 1rem;
+  --text-title-md--line-height: 1.5;
+  --text-title-md--font-weight: 600;
+
+  --text-body-lg: clamp(1rem, 0.94rem + 0.29vw, 1.125rem);
+  --text-body-lg--line-height: 1.556;
+  --text-body-lg--font-weight: 400;
+
+  /* Mobile body lands 2px under desktop, per the project standard. */
+  --text-body-md: clamp(0.8125rem, 0.71rem + 0.49vw, 0.9375rem);
+  --text-body-md--line-height: 1.6;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
+  --text-body-sm--line-height: 1.538;
+  --text-body-sm--font-weight: 400;
+
+  --text-label-lg: 0.875rem;
+  --text-label-lg--line-height: 1.429;
+  --text-label-lg--letter-spacing: 0.02em;
+  --text-label-lg--font-weight: 600;
+
+  --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1.333;
+  --text-label-md--letter-spacing: 0.03em;
+  --text-label-md--font-weight: 600;
+
+  --text-label-sm: 0.625rem;
+  --text-label-sm--line-height: 1.4;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 700;
+
+  /* ── Spacing ────────────────────────────────────────────────────────────
+     8px base rhythm from the system. Page gutters and margins are fluid so the
+     mobile/tablet/desktop values the system lists interpolate instead of
+     snapping at a breakpoint; the endpoints are the system's own values. */
+  --spacing-xxs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* mobile 1rem -> desktop 1.5rem */
+  --spacing-gutter: clamp(1rem, 0.84rem + 0.79vw, 1.5rem);
+  /* mobile 1rem -> tablet 2rem -> desktop 3.5rem */
+  --spacing-margin: clamp(1rem, 0.21rem + 3.93vw, 3.5rem);
+
+  /* ── Radii ──────────────────────────────────────────────────────────────
+     Micro-controls 0.5rem | panels + cards 1rem | master wrappers 1.5rem |
+     pills, chips and search bars full. */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Elevation ──────────────────────────────────────────────────────────
+     From the system's prose (absent from its token export). Warm brown tint,
+     never neutral grey — grey shadows read as dirt against this palette. */
+  --shadow-card: 0 2px 8px -2px rgb(74 27 7 / 0.05), 0 1px 3px 0 rgb(74 27 7 / 0.03);
+  --shadow-card-hover:
+    0 10px 24px -4px rgb(74 27 7 / 0.08), 0 4px 8px -2px rgb(74 27 7 / 0.04);
+  --shadow-float:
+    0 18px 36px -6px rgb(36 18 11 / 0.12), 0 6px 12px -3px rgb(36 18 11 / 0.06);
+
+  /* ── Layout ─────────────────────────────────────────────────────────────
+     The system's desktop tier starts at 1200px, between Tailwind's lg and xl,
+     so it gets its own breakpoint. Reading width caps at 1440px. */
+  --breakpoint-desktop: 1200px;
+  --container-page: 1440px;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
     /* Keep in-page anchors clear of the sticky header once it exists. */
-    scroll-padding-block-start: var(--spacing-fluid-md);
+    scroll-padding-block-start: var(--spacing-2xl);
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    background-color: var(--color-surface);
-    color: var(--color-ink);
-    font-size: var(--text-fluid-base);
+    background-color: var(--color-background);
+    color: var(--color-on-background);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-md);
     line-height: 1.6;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* A visible, high-contrast focus ring everywhere, for keyboard users. */
+  /* Display type is Bodoni by default. Override to font-sans where a heading is
+     really UI chrome — a card title in a dense admin table, say. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  /* Ember at full strength: the system's specified focus treatment, and the
+     highest-contrast accent against these warm cream surfaces. */
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-brand-ember);
     outline-offset: 2px;
   }
 

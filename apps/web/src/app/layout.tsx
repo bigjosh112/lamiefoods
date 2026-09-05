@@ -1,16 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Bodoni_Moda, Plus_Jakarta_Sans } from "next/font/google";
 import { MotionProvider } from "@/components/layout/motion-provider";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SITE } from "@/config/site";
 import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import "@/styles/globals.css";
 
-// Provisional typeface. Final brand typography follows the approved design.
-const inter = Inter({
+/*
+ * Typefaces from the approved design system. Both are variable fonts, so one
+ * file per family covers every weight the system uses.
+ *
+ * Bodoni Moda carries display and headline type only; loading it without
+ * `preload` would delay the hero, so it is preloaded alongside the body face.
+ */
+const bodoniModa = Bodoni_Moda({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-sans",
+  variable: "--font-bodoni-moda",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-plus-jakarta-sans",
 });
 
 export const metadata: Metadata = {
@@ -40,14 +52,15 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   // Not capped — pinch-zoom is an accessibility requirement.
-  themeColor: "#2a1a12",
+  // Deep Cocoa, the system's primary brand anchor.
+  themeColor: "#4a1b07",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-NG" className={inter.variable}>
+    <html lang="en-NG" className={`${bodoniModa.variable} ${plusJakartaSans.variable}`}>
       <body className="font-sans antialiased">
         <JsonLd data={organizationSchema()} />
         <JsonLd data={websiteSchema()} />

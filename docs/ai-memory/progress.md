@@ -17,6 +17,41 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-05 — Configured the design system (Artisanal Confectionery System)
+
+- **Done:** Replaced the provisional placeholder palette with the approved Stitch
+  design system. Full role-token set (`surface`/`on-surface`, `primary`, `secondary`,
+  `tertiary`, `error` + containers and fixed variants) transcribed verbatim, plus the
+  four named brand swatches, the 13-step type scale, 8px spacing rhythm, radii, warm
+  elevation shadows and a `desktop:` breakpoint at 1200px. Wired **Bodoni Moda**
+  (display/headline) + **Plus Jakarta Sans** (body/UI) via `next/font/google`.
+  Migrated the three placeholder pages off the old token names.
+- **Files:** `apps/web/src/styles/globals.css` (rewritten `@theme`),
+  `apps/web/src/app/layout.tsx` (fonts, themeColor `#4a1b07`), `page.tsx`,
+  `not-found.tsx`, `error.tsx`; `docs/ai-memory/frontend-conventions.md` filled in.
+- **Decisions:**
+  - Type steps keep the system's px value as each clamp's **max** and gain an
+    interpolated mobile floor, satisfying the fluid-design standard without altering
+    the design at desktop. `headline-lg` uses the system's own 28px mobile value; its
+    0.78 ratio sets the pattern for the other display/headline floors.
+  - Line heights stored as **unitless ratios** (spec px ÷ spec size) so they stay
+    correct at every size a clamp resolves to.
+  - Labels and `title-md` deliberately **not** fluid — UI chrome with letter-spacing
+    tuned to an exact size.
+  - Added `--color-brand-*` for the four named swatches: only Deep Cocoa exists in the
+    role tokens (as `primary-container`), yet the component specs name all four.
+  - Elevation transcribed from the system's **prose** — it is absent from the token
+    export.
+- **Verify:** lint, typecheck, build, format all pass. Confirmed in served CSS: 10
+  `@font-face` blocks across both families, clamp type steps, role colours, warm
+  shadows compiled to `#4a1b070d`/`#24120b1f`, and the 1200px `desktop:` breakpoint.
+- **Gaps:** opened **GAP-003** — the system's spec'd orange CTA (`#E65B00` + white)
+  is 3.58:1 and fails AA; needs an owner decision since the fix deviates from the
+  approved hex.
+- **Next / open threads:** **Landing page** — awaiting the page design. Two conflicts
+  in the design system need the owner to settle before component recipes are written
+  (canvas colour, and which token is "primary" for buttons) — see the handover notes.
+
 ## 2026-09-05 — Fixed GAP-002 (sitemap 404s)
 
 - **Done:** Trimmed `sitemap.ts` to only the home route; `/shop`, `/about`, and product

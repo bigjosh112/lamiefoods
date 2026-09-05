@@ -18,15 +18,15 @@ export default function ErrorBoundary({
   }, [error]);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-(--spacing-gutter) py-(--spacing-fluid-lg)">
-      <h1 className="text-fluid-3xl font-semibold">Something went wrong</h1>
-      <p className="mt-(--spacing-fluid-sm) text-fluid-base text-ink-muted">
+    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-margin py-3xl">
+      <h1 className="text-headline-lg text-primary">Something went wrong</h1>
+      <p className="mt-md text-body-md text-on-surface-variant">
         Please try again. If the problem continues, refresh the page.
       </p>
       <button
         type="button"
         onClick={reset}
-        className="mt-(--spacing-fluid-md) inline-flex min-h-11 w-fit items-center rounded-(--radius-card) bg-cocoa-900 px-6 font-medium text-cream-50"
+        className="mt-xl inline-flex min-h-11 w-fit items-center rounded bg-primary-container px-lg text-label-lg text-on-primary transition-colors hover:bg-primary"
       >
         Try again
       </button>

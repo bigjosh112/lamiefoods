@@ -17,6 +17,31 @@
 
 <!-- Newest gaps at top of their severity group. Keep critical/high at the top of the file. -->
 
+### GAP-003 — Two design-system colour pairs fail WCAG AA for text
+
+- **Category:** accessibility
+- **Severity:** medium
+- **Location:** `apps/web/src/styles/globals.css` — `--color-brand-ember: #e65b00` and
+  `--color-outline: #85736d`, both against `--color-background: #fff8f6`. Ratios
+  computed from the approved design system's own values.
+- **Found:** 2026-09-05 while configuring the design system
+- **Problem:** The design system's prose specifies an **"Accent / CTA"** button as
+  Warm Confectionery Orange `#E65B00` with white text — that is **3.58:1, failing AA
+  (needs 4.5:1)** for normal-size text. It is the spec'd treatment for "key sales
+  conversion actions", i.e. Add to Cart and Checkout, so the least readable control
+  would be the most important one. Separately the prose specifies placeholder text at
+  `#A68677` on `#FDF9F7` (**3.19:1, fails**), and `--color-outline` is 4.28:1 — fine
+  for borders (3:1) but failing if used for text.
+- **Fix:** For an orange CTA carrying white text at body size, use
+  `--color-secondary` (`#a33e00`, **6.47:1**) — same hue family, passes. Keep
+  `--color-brand-ember` for large text (24px+, or 19px bold, where 3:1 applies),
+  icons, focus rings and fills. Placeholders use `--color-on-surface-variant`
+  (8.93:1). Documented in `frontend-conventions.md` under "Contrast rules". Verify by
+  re-running a contrast check on the final button and input components once built.
+- **Status:** open — **needs an owner decision**: fixing this deviates from the
+  approved design system's literal hex, so confirm with the owner before shipping a
+  CTA that is not `#E65B00`.
+
 ### GAP-001 — No test runner or test infrastructure in any workspace
 
 - **Category:** tests
