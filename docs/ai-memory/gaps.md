@@ -17,30 +17,26 @@
 
 <!-- Newest gaps at top of their severity group. Keep critical/high at the top of the file. -->
 
-### GAP-003 — Two design-system colour pairs fail WCAG AA for text
+### GAP-004 — Landing page ships unverified product claims from the design mock
 
-- **Category:** accessibility
-- **Severity:** medium
-- **Location:** `apps/web/src/styles/globals.css` — `--color-brand-ember: #e65b00` and
-  `--color-outline: #85736d`, both against `--color-background: #fff8f6`. Ratios
-  computed from the approved design system's own values.
-- **Found:** 2026-09-05 while configuring the design system
-- **Problem:** The design system's prose specifies an **"Accent / CTA"** button as
-  Warm Confectionery Orange `#E65B00` with white text — that is **3.58:1, failing AA
-  (needs 4.5:1)** for normal-size text. It is the spec'd treatment for "key sales
-  conversion actions", i.e. Add to Cart and Checkout, so the least readable control
-  would be the most important one. Separately the prose specifies placeholder text at
-  `#A68677` on `#FDF9F7` (**3.19:1, fails**), and `--color-outline` is 4.28:1 — fine
-  for borders (3:1) but failing if used for text.
-- **Fix:** For an orange CTA carrying white text at body size, use
-  `--color-secondary` (`#a33e00`, **6.47:1**) — same hue family, passes. Keep
-  `--color-brand-ember` for large text (24px+, or 19px bold, where 3:1 applies),
-  icons, focus rings and fills. Placeholders use `--color-on-surface-variant`
-  (8.93:1). Documented in `frontend-conventions.md` under "Contrast rules". Verify by
-  re-running a contrast check on the final button and input components once built.
-- **Status:** open — **needs an owner decision**: fixing this deviates from the
-  approved design system's literal hex, so confirm with the owner before shipping a
-  CTA that is not `#E65B00`.
+- **Category:** content-risk
+- **Severity:** high
+- **Location:** `apps/web/src/content/landing.ts` — every value marked `UNVERIFIED`,
+  notably `PLACEHOLDER_PRICE_FROM` (lines ~31-35), `HERO.stats`, `MANIFESTO.stats`,
+  `CRUNCH.profile`, `FLAVOURS.items[].body`, and `HORIZON.items`.
+- **Found:** 2026-09-05 while building the landing page
+- **Problem:** The approved design mock was generated with sample copy that invents
+  specifics the brand has never stated: **prices** (₦3,500 / ₦3,800), sensory scores
+  ("9.4 / 10 Crisp Snap"), shelf claims ("Zero Artificial Preservatives", "48 Hrs
+  Kettle To Pack"), ingredient origins, a batch number, and three unannounced future
+  products. CLAUDE.md forbids inventing exactly these. Publishing them would state
+  untrue things about a real food business to real customers — a pricing or
+  preservative claim is a consumer-protection matter, not a copy nit.
+- **Fix:** Owner to confirm or replace every `UNVERIFIED` value. All of them are
+  centralised in one file, so this is an edit pass, not a rebuild. **Do not deploy
+  publicly until this is done.** `Product` structured data is deliberately withheld
+  from `page.tsx` for the same reason — add it once pricing is real.
+- **Status:** open — blocks public launch
 
 ### GAP-001 — No test runner or test infrastructure in any workspace
 
@@ -59,6 +55,19 @@
 ## Closed
 
 <!-- Move entries here when fixed. Keep them — they document why the code is the way it is. -->
+
+### GAP-003 — Two design-system colour pairs failed WCAG AA for text
+
+- **Category:** accessibility · **Severity:** medium · **Found:** 2026-09-05
+- **Was:** The superseded "Artisanal Confectionery System" specified an orange CTA
+  (`#E65B00` + white) at **3.58:1**, failing AA on the most important buttons on the
+  site, plus a placeholder tone at 3.19:1.
+- **Fixed:** 2026-09-05 — resolved by the owner replacing the design system with
+  "Artisanal West African Confectionery", not by a code workaround.
+- **How:** The new palette's primary CTA is linen `#f4ece1` on terracotta `#a84c2c` =
+  **4.80:1 (passes)**. All 17 foreground/background pairs actually used on the landing
+  page were re-checked and every one passes AA; the worst is 4.80:1. Re-run that check
+  whenever the palette changes.
 
 ### GAP-002 — Sitemap advertises routes that don't exist yet (indexable 404s)
 

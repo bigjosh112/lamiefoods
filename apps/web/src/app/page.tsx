@@ -1,20 +1,57 @@
-import { BRAND } from "@lamiefoods/config";
+import type { Metadata } from "next";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { Crunch } from "@/components/landing/crunch";
+import { FinalCta } from "@/components/landing/final-cta";
+import { Flavours } from "@/components/landing/flavours";
+import { Hero } from "@/components/landing/hero";
+import { Horizon } from "@/components/landing/horizon";
+import { Manifesto } from "@/components/landing/manifesto";
+import { Moments } from "@/components/landing/moments";
+import { Pillars } from "@/components/landing/pillars";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildMetadata } from "@/lib/seo";
+import { breadcrumbSchema } from "@/lib/structured-data";
+
+/*
+ * Copy here stays natural and descriptive. The category terms that matter for
+ * search — Nigerian chinchin, premium snacks — appear because they genuinely
+ * describe the product, not because they were stuffed in.
+ */
+export const metadata: Metadata = buildMetadata({
+  title: "Premium Nigerian Chinchin",
+  description:
+    "Lamie Foods makes small-batch Nigerian chinchin in three flavours — Milky Velvet, Coco Velvet and Cinnamon. Crafted for good taste.",
+  path: "/",
+});
 
 /**
- * Setup placeholder, now rendering through the approved design system's tokens.
- * The real homepage replaces this — it exists so the app has a route that
- * proves the type scale, palette and both typefaces actually resolve.
+ * The landing page.
+ *
+ * Every section is a Server Component. Only the header (mobile menu), the hero
+ * sequence and the scroll-reveal wrapper opt into the client, which keeps the
+ * page's JavaScript to the parts that genuinely need interaction.
+ *
+ * No Product structured data yet: prices and availability in the content file
+ * are unconfirmed placeholders, and publishing them as machine-readable offers
+ * would misrepresent the business to search engines. It lands with real pricing.
  */
 export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center px-margin py-3xl">
-      <p className="text-label-md text-on-surface-variant uppercase">Scaffold</p>
-      <h1 className="mt-md text-display-lg text-primary">{BRAND.name}</h1>
-      <p className="mt-md text-body-lg text-on-surface-variant">{BRAND.tagline}</p>
-      <p className="mt-xl max-w-prose text-body-md text-on-surface-variant">
-        Monorepo, frontend foundation and design system are in place. The site itself is
-        built once the page designs are supplied.
-      </p>
-    </main>
+    <>
+      <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }])} />
+      <SiteHeader />
+      <main id="main">
+        <Hero />
+        <Manifesto />
+        <Pillars />
+        <Crunch />
+        <Flavours />
+        <Moments />
+        <Horizon />
+        <FinalCta />
+      </main>
+      <SiteFooter />
+    </>
   );
 }

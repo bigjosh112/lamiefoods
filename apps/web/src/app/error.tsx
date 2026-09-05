@@ -18,7 +18,7 @@ export default function ErrorBoundary({
   }, [error]);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-margin py-3xl">
+    <main className="py-3xl mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-margin">
       <h1 className="text-headline-lg text-primary">Something went wrong</h1>
       <p className="mt-md text-body-md text-on-surface-variant">
         Please try again. If the problem continues, refresh the page.
@@ -26,7 +26,7 @@ export default function ErrorBoundary({
       <button
         type="button"
         onClick={reset}
-        className="mt-xl inline-flex min-h-11 w-fit items-center rounded bg-primary-container px-lg text-label-lg text-on-primary transition-colors hover:bg-primary"
+        className="mt-xl px-lg text-label-lg inline-flex min-h-11 w-fit items-center rounded bg-primary-container text-on-primary transition-colors hover:bg-primary"
       >
         Try again
       </button>

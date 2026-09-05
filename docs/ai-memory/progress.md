@@ -17,6 +17,47 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-05 — Landing page + design system v2
+
+- **Done:** Replaced the design system with **"Artisanal West African Confectionery"**
+  (supersedes the one configured earlier the same day: new palette, three typefaces
+  instead of two, radii down from 16px to 4px, envelope 1360px). Built the full
+  landing page — header with working mobile menu, hero, manifesto, three pillars,
+  crunch/sensory, three flavours, moments, pantry horizon, final CTA, footer.
+- **Files:** `styles/globals.css` (rewritten `@theme` + `lamie-rise` keyframes),
+  `app/layout.tsx` (3 fonts, no-js guard), `app/page.tsx`, new
+  `content/landing.ts`, `components/landing/*` (8), `components/layout/site-header
+  .tsx` + `site-footer.tsx`, `components/ui/{button,section,image-slot,icons}.tsx`,
+  `components/motion/reveal.tsx`.
+- **Decisions:**
+  - **All landing copy lives in one file** (`content/landing.ts`) with a
+    READ-BEFORE-LAUNCH banner. The mock's copy invents prices and product claims; each
+    is tagged `UNVERIFIED` so replacing them is one edit pass. See GAP-004.
+  - **Hero is a Server Component using a CSS keyframe**, not Framer Motion. A
+    JS-driven entrance ships the LCP headline at `opacity: 0`; CSS runs even without
+    hydration and the reduced-motion block collapses it automatically.
+  - Scroll reveals stay Framer (IntersectionObserver, no scroll listener) but the
+    document carries a `no-js` class that an inline script strips, so a scripting
+    failure cannot leave 25 elements invisible.
+  - **Nothing fake ships:** the tasting-access form is `disabled` with an honest note
+    (no endpoint exists), "Add to bag" links to the product page rather than being a
+    button that does nothing, and unconfirmed contact rows render as text, not links.
+  - Departures from the mock where it contradicted a confirmed fact: "1–3 days" ->
+    confirmed 1–5 days; "Lamie Foods Enterprise" -> "Lamie Foods"; no fabricated
+    email; third-party studio credit dropped.
+  - No `Product` structured data yet — publishing placeholder prices as machine-
+    readable offers would misrepresent the business.
+- **Verify:** lint, typecheck, build, format:check all pass from clean; page is fully
+  static. Confirmed in served output: 8 sections, one `h1` + 10 `h2` + 14 `h3`, all
+  three `@font-face` families, the `no-js` rule, and the hero `h1` no longer shipping
+  hidden. **All 17 colour pairs used on the page pass WCAG AA** (worst 4.80:1).
+- **Gaps:** **GAP-003 closed** (the new palette fixes the failing CTA contrast).
+  **GAP-004 opened — high, blocks public launch:** unverified prices and product
+  claims.
+- **Next / open threads:** Owner to (1) supply real photography for `public/images` —
+  every slot is a labelled tonal placeholder today, (2) confirm or replace every
+  `UNVERIFIED` value in `content/landing.ts`. Then: /shop, product pages, cart.
+
 ## 2026-09-05 — Configured the design system (Artisanal Confectionery System)
 
 - **Done:** Replaced the provisional placeholder palette with the approved Stitch
