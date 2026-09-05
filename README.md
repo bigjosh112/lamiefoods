@@ -7,7 +7,7 @@ Monorepo for **LAMIE FOODS** — _Crafted for Good Taste._
 
 ## Stack
 
-pnpm workspaces · Turborepo · Next.js 16 (App Router) · React 19 · TypeScript ·
+npm workspaces · Turborepo · Next.js 16 (App Router) · React 19 · TypeScript ·
 Tailwind CSS v4 · Framer Motion
 
 ## Layout
@@ -27,26 +27,31 @@ packages/
 ## Getting started
 
 ```bash
-pnpm install
+npm install
 cp apps/web/.env.example apps/web/.env.local
-pnpm dev
+npm run dev
 ```
 
 ## Commands
 
 Run from the repo root; Turborepo fans them out across workspaces.
 
-| Command            | Does                                  |
-| ------------------ | ------------------------------------- |
-| `pnpm dev`         | Start the frontend in dev mode        |
-| `pnpm build`       | Production build                      |
-| `pnpm lint`        | ESLint across all workspaces          |
-| `pnpm typecheck`   | `tsc --noEmit` across all workspaces  |
-| `pnpm format`      | Prettier write                        |
-| `pnpm format:check`| Prettier check (use in CI)            |
+| Command                 | Does                                 |
+| ----------------------- | ------------------------------------ |
+| `npm run dev`           | Start the frontend in dev mode       |
+| `npm run build`         | Production build                     |
+| `npm run lint`          | ESLint across all workspaces         |
+| `npm run typecheck`     | `tsc --noEmit` across all workspaces |
+| `npm run format`        | Prettier write                       |
+| `npm run format:check`  | Prettier check (use in CI)           |
 
-Next 16 removed build-time linting, so `pnpm lint` is a **separate** step and
-must run in CI alongside `pnpm build`.
+Next 16 removed build-time linting, so `npm run lint` is a **separate** step and
+must run in CI alongside `npm run build`.
+
+To target a single workspace: `npm run <script> --workspace=@lamiefoods/web`.
+
+Internal packages are versioned `"*"` — npm does not support pnpm's
+`workspace:*` protocol and errors on it.
 
 ## Conventions
 

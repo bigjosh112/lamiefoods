@@ -12,9 +12,9 @@
     "clean": "rimraf .next .turbo"
   },
   "dependencies": {
-    "@lamiefoods/config": "workspace:*",
-    "@lamiefoods/types": "workspace:*",
-    "@lamiefoods/ui": "workspace:*",
+    "@lamiefoods/config": "*",
+    "@lamiefoods/types": "*",
+    "@lamiefoods/ui": "*",
     "framer-motion": "13.2.0",
     "next": "16.3.4",
     "react": "19.2.8",
@@ -22,8 +22,8 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
-    "@lamiefoods/eslint-config": "workspace:*",
-    "@lamiefoods/typescript-config": "workspace:*",
+    "@lamiefoods/eslint-config": "*",
+    "@lamiefoods/typescript-config": "*",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "26.4.1",
     "@types/react": "19.2.18",

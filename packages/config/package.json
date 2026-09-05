@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@lamiefoods/eslint-config": "workspace:*",
-    "@lamiefoods/typescript-config": "workspace:*",
+    "@lamiefoods/eslint-config": "*",
+    "@lamiefoods/typescript-config": "*",
     "eslint": "9.39.5",
     "typescript": "6.0.3"
   }

@@ -17,8 +17,8 @@
     "tailwind-merge": "3.6.0"
   },
   "devDependencies": {
-    "@lamiefoods/eslint-config": "workspace:*",
-    "@lamiefoods/typescript-config": "workspace:*",
+    "@lamiefoods/eslint-config": "*",
+    "@lamiefoods/typescript-config": "*",
     "@types/react": "19.2.18",
     "eslint": "9.39.5",
     "react": "19.2.8",
