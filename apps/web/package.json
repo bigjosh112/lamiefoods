@@ -1,0 +1,36 @@
+{
+  "name": "@lamiefoods/web",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .next .turbo"
+  },
+  "dependencies": {
+    "@lamiefoods/config": "workspace:*",
+    "@lamiefoods/types": "workspace:*",
+    "@lamiefoods/ui": "workspace:*",
+    "framer-motion": "13.2.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@lamiefoods/eslint-config": "workspace:*",
+    "@lamiefoods/typescript-config": "workspace:*",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.4.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "eslint": "9.39.5",
+    "rimraf": "6.1.3",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}

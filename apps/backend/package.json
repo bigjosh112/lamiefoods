@@ -1,0 +1,13 @@
+{
+  "name": "@lamiefoods/backend",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "echo \"[backend] no implementation yet — owned by the backend developer\"",
+    "build": "echo \"[backend] no build step yet\"",
+    "lint": "echo \"[backend] no sources to lint yet\"",
+    "typecheck": "echo \"[backend] no sources to typecheck yet\""
+  }
+}
