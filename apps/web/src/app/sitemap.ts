@@ -3,16 +3,15 @@ import { ROUTES } from "@lamiefoods/config";
 import { absoluteUrl } from "@/lib/seo";
 
 /**
- * Static public routes only. Product URLs join this list once the catalogue is
- * served by the API — listing pages that do not exist yet would hand search
- * engines a page of 404s.
+ * Only routes that actually render today. Advertising a page before it exists
+ * hands search engines a 404, which erodes trust in the whole sitemap. Add each
+ * entry back the moment its route ships:
+ *   - ROUTES.shop  (priority 0.8) — when the catalogue/listing page is built
+ *   - ROUTES.about (priority 0.5) — when the about page is built
+ *   - product URLs — once the catalogue is served by the API
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return [
-    { url: absoluteUrl(ROUTES.home), lastModified, priority: 1 },
-    { url: absoluteUrl(ROUTES.shop), lastModified, priority: 0.8 },
-    { url: absoluteUrl(ROUTES.about), lastModified, priority: 0.5 },
-  ];
+  return [{ url: absoluteUrl(ROUTES.home), lastModified, priority: 1 }];
 }
