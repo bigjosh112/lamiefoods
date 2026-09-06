@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@lamiefoods/config";
+import { DevPreviewLinks } from "@/components/layout/dev-preview-links";
 import { ICONS } from "@/components/ui/icons";
 import { FOOTER } from "@/content/landing";
 import { FOOTER_COLUMNS } from "@/content/shop";
@@ -103,6 +104,8 @@ export function SiteFooter() {
             </nav>
           ))}
         </div>
+
+        <DevPreviewLinks />
 
         <div className="mt-gutter-lg border-t border-rule/70 pt-gutter-md">
           <p className="text-body-sm text-nutmeg">
