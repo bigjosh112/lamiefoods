@@ -5,7 +5,6 @@ import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
 import {
   ADMIN_BEST_SELLERS,
   ADMIN_DISPATCHES,
-  ADMIN_DISPATCH_TOTAL,
   ADMIN_FLEET,
   ADMIN_FLEET_CARD,
   ADMIN_RANGES,
@@ -177,7 +176,7 @@ export function AdminDashboard() {
                 aria-disabled="true"
                 className="inline-flex min-h-11 cursor-not-allowed items-center gap-gutter-xs font-label text-label-sm text-nutmeg/70 uppercase"
               >
-                View all {ADMIN_DISPATCH_TOTAL}
+                View all
                 <ArrowRightIcon className="h-4 w-4" />
               </span>
             </div>

@@ -197,6 +197,27 @@ export const BoardIcon = (p: IconProps) => (
   </svg>
 );
 
+export const BellIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7" />
+    <path d="M10.5 20a1.8 1.8 0 0 0 3 0" />
+  </svg>
+);
+
+export const GearIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <circle cx="12" cy="12" r="3.2" />
+    <path d="M19.4 14.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0-1.2-2.9 2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 2.9-1.2 2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0 1.2 2.9 2 2 0 1 1 0 4 1.7 1.7 0 0 0-1.5 1z" />
+  </svg>
+);
+
+export const SignOutIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <path d="M14 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8" />
+    <path d="M17 15.5 20.5 12 17 8.5M20.5 12H10" />
+  </svg>
+);
+
 /** Icon lookup for content-driven sections, so content stays free of JSX. */
 export const ICONS = {
   award: AwardIcon,
@@ -215,6 +236,9 @@ export const ICONS = {
   leaf: LeafIcon,
   sound: SoundIcon,
   calendar: CalendarIcon,
+  bell: BellIcon,
+  gear: GearIcon,
+  signOut: SignOutIcon,
   board: BoardIcon,
   utensils: UtensilsIcon,
 } as const;

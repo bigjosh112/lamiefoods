@@ -19,13 +19,36 @@ import { naira } from "@/lib/money";
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-export const ADMIN_NAV = [
-  { label: "Dashboard", href: ADMIN_ROUTES.dashboard, icon: "award" as const },
-  { label: "Orders & Payouts", href: ADMIN_ROUTES.orders, icon: "box" as const },
-  { label: "Products & SKUs", href: ADMIN_ROUTES.products, icon: "gift" as const },
-  { label: "Customers", href: ADMIN_ROUTES.customers, icon: "people" as const },
-  { label: "Inventory", href: ADMIN_ROUTES.inventory, icon: "timer" as const },
+/** Sidebar sections, matching the design's grouping. */
+export const ADMIN_NAV_SECTIONS = [
+  {
+    title: "Enterprise ledger",
+    items: [
+      { label: "Dashboard", href: ADMIN_ROUTES.dashboard, icon: "award" as const },
+      { label: "Orders & Payouts", href: ADMIN_ROUTES.orders, icon: "box" as const },
+      { label: "Products & SKUs", href: ADMIN_ROUTES.products, icon: "gift" as const },
+      { label: "Customers", href: ADMIN_ROUTES.customers, icon: "people" as const },
+      {
+        label: "Inventory & Kettles",
+        href: ADMIN_ROUTES.inventory,
+        icon: "timer" as const,
+      },
+    ],
+  },
+  {
+    title: "Configuration",
+    items: [{ label: "Settings", href: "/admin/settings", icon: "gear" as const }],
+  },
 ];
+
+/**
+ * The operator shown in the sidebar and top bar.
+ *
+ * SAMPLE, like everything else here — nobody is signed in, because there is no
+ * authentication. Sign-out is disabled for the same reason: there is no session
+ * to end. Replace with the real session user when auth lands.
+ */
+export const ADMIN_USER = { name: "Operations Lead", location: "Lagos HQ" };
 
 export const ADMIN_RANGES = [
   { label: "Today", icon: null },
@@ -33,9 +56,6 @@ export const ADMIN_RANGES = [
   { label: "30 days", icon: null },
   { label: "Custom", icon: "calendar" as const },
 ];
-
-/** Total dispatches behind the "view all" link. Sample, like everything here. */
-export const ADMIN_DISPATCH_TOTAL = 148;
 
 export const ADMIN_STATS = [
   {
