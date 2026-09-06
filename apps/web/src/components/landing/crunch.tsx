@@ -1,22 +1,32 @@
 import { Reveal } from "@/components/motion/reveal";
 import { StoryLink } from "@/components/ui/button";
 import { ArrowRightIcon, CheckIcon } from "@/components/ui/icons";
-import { Eyebrow, Section } from "@/components/ui/section";
 import { ImageSlot } from "@/components/ui/image-slot";
+import { Eyebrow, Section } from "@/components/ui/section";
 import { CRUNCH } from "@/content/landing";
 
 const SCORE_MAX = 10;
 
+/**
+ * Measured off the approved frame at 1280px: an even 6/6 split, 540px each,
+ * separated by the 40px desktop gutter. The image column is 540 x 540 — square,
+ * and the same height as the column — so the sensory card overlays the image
+ * rather than sitting under it. This section pads 128px vertically, one step
+ * more than the page default.
+ *
+ * As in the manifesto, the card only goes absolute from `lg`; three metric rows
+ * pinned over a phone-width photo would bury the picture entirely.
+ */
 export function Crunch() {
   return (
-    <Section>
-      <div className="grid items-center gap-gutter-xl lg:grid-cols-2">
-        <Reveal>
+    <Section className="lg:py-section-xl">
+      <div className="grid items-center gap-gutter-lg lg:grid-cols-12">
+        <Reveal className="relative lg:col-span-6">
           <div className="relative aspect-square overflow-hidden rounded border border-rule/70">
             <ImageSlot slot={CRUNCH.image} sizes="(min-width: 1024px) 45vw, 100vw" />
           </div>
 
-          <div className="relative mx-gutter-md -mt-gutter-lg rounded border border-rule/70 bg-surface-container-lowest p-gutter-md shadow-earth">
+          <div className="relative mx-gutter-md -mt-gutter-lg rounded border border-rule/70 bg-surface-container-lowest p-gutter-md shadow-earth lg:absolute lg:right-gutter-md lg:bottom-gutter-md lg:left-gutter-md lg:mx-0 lg:mt-0">
             <p className="font-label text-label-caps text-cacao uppercase">
               {CRUNCH.profile.title}
             </p>
@@ -48,7 +58,7 @@ export function Crunch() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1}>
+        <Reveal delay={0.1} className="lg:col-span-6">
           <Eyebrow>{CRUNCH.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">
             <span className="block">{CRUNCH.titleLine1}</span>

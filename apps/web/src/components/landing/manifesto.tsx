@@ -1,22 +1,29 @@
 import { Reveal } from "@/components/motion/reveal";
-import { Eyebrow, Section } from "@/components/ui/section";
 import { ImageSlot } from "@/components/ui/image-slot";
+import { Eyebrow, Section } from "@/components/ui/section";
 import { MANIFESTO } from "@/content/landing";
 
 /**
- * Asymmetric editorial spread: image on the left, narrative on the right.
- * Stacks to a single column below `lg` so the image never gets squeezed into an
- * unreadable sliver on tablets.
+ * Asymmetric editorial spread, measured off the approved frame at 1280px:
+ * a 5-column visual against a 7-column narrative, separated by the 40px desktop
+ * gutter. The image column is 443.33 x 591.09 — exactly 3:4 — and that height
+ * matches the column, which means the philosophy card sits *inside* the image
+ * rather than below it.
+ *
+ * The overlay only goes absolute from `lg`. Below that it stays in flow,
+ * overlapping the image's bottom edge: a card pinned over a narrow phone-width
+ * photo would cover most of the picture.
  */
 export function Manifesto() {
   return (
     <Section className="bg-surface-container-low">
-      <div className="grid items-center gap-gutter-xl lg:grid-cols-2">
-        <Reveal className="relative">
-          <div className="relative aspect-4/5 overflow-hidden rounded border border-rule/70">
-            <ImageSlot slot={MANIFESTO.image} sizes="(min-width: 1024px) 45vw, 100vw" />
+      <div className="grid items-center gap-gutter-lg lg:grid-cols-12">
+        <Reveal className="relative lg:col-span-5">
+          <div className="relative aspect-3/4 overflow-hidden rounded border border-rule/70">
+            <ImageSlot slot={MANIFESTO.image} sizes="(min-width: 1024px) 40vw, 100vw" />
           </div>
-          <div className="relative -mt-gutter-lg ml-gutter-md max-w-xs rounded bg-primary-container p-gutter-md text-linen">
+
+          <div className="relative -mt-gutter-lg ml-gutter-md max-w-xs rounded bg-primary-container p-gutter-md text-linen lg:absolute lg:bottom-gutter-md lg:left-gutter-md lg:mt-0 lg:ml-0">
             <p className="font-label text-label-caps text-tertiary-fixed uppercase">
               {MANIFESTO.overlay.eyebrow}
             </p>
@@ -24,7 +31,7 @@ export function Manifesto() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1}>
+        <Reveal delay={0.1} className="lg:col-span-7">
           <Eyebrow>{MANIFESTO.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{MANIFESTO.title}</h2>
           {MANIFESTO.body.map((paragraph) => (

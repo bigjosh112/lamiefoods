@@ -171,8 +171,11 @@
 
   /* mobile 1.25rem -> tablet 2.5rem -> desktop 5rem */
   --spacing-margin: clamp(1.25rem, -0.304rem + 6.63vw, 5rem);
-  /* section rhythm; the system's hero padding is the 6rem ceiling */
-  --spacing-section: clamp(3.5rem, 2.15rem + 5.75vw, 6rem);
+  /* Section rhythm, measured off the approved frames: the manifesto section
+     pads 112px top and bottom at 1280px, the crunch section 128px. Both are on
+     the 8px cadence. Interpolated down to a comfortable mobile floor. */
+  --spacing-section: clamp(3.5rem, 2.05rem + 6.188vw, 7rem);
+  --spacing-section-xl: clamp(4rem, 2.343rem + 7.072vw, 8rem);
 
   /* ── Radii ──────────────────────────────────────────────────────────────
      Soft Architectural: knife-cut chin-chin edges, never app-like pills.
