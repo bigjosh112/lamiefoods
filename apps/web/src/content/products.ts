@@ -12,6 +12,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
+import type { Kobo } from "@lamiefoods/types";
+
 import type { ImageSlot } from "./image-slot";
 
 export interface Product {
@@ -21,8 +23,6 @@ export interface Product {
   slug: string;
   /** Short flavour descriptor, e.g. "Dairy Reserve". */
   kicker: string;
-  /** UNVERIFIED — placeholder pricing from the mock. */
-  price: string;
   body: string;
   image: ImageSlot;
   /** Badge over the image. The two pages label the same product differently. */
@@ -31,8 +31,6 @@ export interface Product {
   crunch: { label: string; score: number };
   /** UNVERIFIED — tasting notes. */
   notes: [string, string];
-  /** UNVERIFIED — pack formats have not been confirmed. */
-  sizes: [string, string];
   /** Everything the product detail page needs. All UNVERIFIED — see below. */
   detail: ProductDetail;
 }
@@ -60,7 +58,12 @@ export interface ProductDetail {
   description: string;
   /** Extra gallery slots beyond `image`, which is always first. */
   gallery: ImageSlot[];
-  packaging: { name: string; note: string }[];
+  /**
+   * Pack options and their prices. Price is an integer in KOBO, never naira
+   * floats: cart arithmetic on 0.01 units silently drifts, and this is money.
+   * UNVERIFIED — the owner has not supplied real pricing.
+   */
+  packaging: { name: string; note: string; price: Kobo }[];
   proof: { title: string; body: string; cta: string };
   provenance: {
     title: string;
@@ -89,7 +92,6 @@ export const PRODUCTS: Product[] = [
     name: "Milky Velvet Chinchin",
     slug: "milky-velvet-chinchin",
     kicker: "Dairy Reserve",
-    price: "From ₦3,500",
     body: "Rich velvety milk indulgence, tender melt-in-the-mouth golden crumb, and gentle undertones of vanilla and stone-grated nutmeg.",
     image: {
       src: null,
@@ -99,7 +101,6 @@ export const PRODUCTS: Product[] = [
     badges: { landing: "House Classic", shop: "Original Heritage" },
     crunch: { label: "Tender Crisp", score: 8 },
     notes: ["100% Churned Dairy", "Subtle Sweetness"],
-    sizes: ["250g Pouch", "500g Jar"],
     detail: {
       heroBadge: "Signature Recipe · 100% Churned Butter",
       batchSeries: { label: "Batch Series", value: "N° 84" },
@@ -109,8 +110,16 @@ export const PRODUCTS: Product[] = [
         "Our quintessential confectionery. Crafted with unbleached flour, pure churned butter, and fragrant whole spice to achieve a delicate acoustic crunch that gives way to a velvety, buttery melt.",
       gallery: extraGallery("Milky Velvet Chinchin"),
       packaging: [
-        { name: "250g Pouch", note: "Resealable craft aroma-lock" },
-        { name: "500g Gourmet Jar", note: "Display pantry glass canister" },
+        {
+          name: "250g Pouch",
+          note: "Resealable craft aroma-lock",
+          price: 360000,
+        },
+        {
+          name: "500g Gourmet Jar",
+          note: "Display pantry glass canister",
+          price: 560000,
+        },
       ],
       proof: {
         title: "Pure Dairy Commitment",
@@ -160,7 +169,6 @@ export const PRODUCTS: Product[] = [
     name: "Coco Velvet Chinchin",
     slug: "coco-velvet-chinchin",
     kicker: "Tropical Warmth",
-    price: "From ₦3,800",
     body: "Toasted coastal coconut flakes folded into buttery dough for a warm tropical snap with balanced sweetness.",
     image: {
       src: "/images/chinchin10.png",
@@ -170,7 +178,6 @@ export const PRODUCTS: Product[] = [
     badges: { landing: "Coastal Batch", shop: "Tropical Infusion" },
     crunch: { label: "Toasted Snap", score: 8 },
     notes: ["Fresh Coconut", "Rich Nutty Aroma"],
-    sizes: ["250g Pouch", "500g Jar"],
     detail: {
       heroBadge: "Coastal Batch · Toasted Coconut",
       batchSeries: { label: "Batch Series", value: "N° 61" },
@@ -180,8 +187,16 @@ export const PRODUCTS: Product[] = [
         "Toasted coconut flakes folded through a sweet-cream butter dough, then flash-fried so the coconut caramelises into the crumb rather than sitting on it. Tropical warmth with a clean, dry snap.",
       gallery: extraGallery("Coco Velvet Chinchin"),
       packaging: [
-        { name: "250g Pouch", note: "Resealable craft aroma-lock" },
-        { name: "500g Gourmet Jar", note: "Display pantry glass canister" },
+        {
+          name: "250g Pouch",
+          note: "Resealable craft aroma-lock",
+          price: 380000,
+        },
+        {
+          name: "500g Gourmet Jar",
+          note: "Display pantry glass canister",
+          price: 580000,
+        },
       ],
       proof: {
         title: "Coconut, Folded Not Dusted",
@@ -231,7 +246,6 @@ export const PRODUCTS: Product[] = [
     name: "Cinnamon Chinchin",
     slug: "cinnamon-chinchin",
     kicker: "Hearth Spiced",
-    price: "From ₦3,800",
     body: "Freshly milled cinnamon bark and warm whole nutmeg toasted deeply into a crisp, acoustic crunch.",
     image: {
       src: "/images/chinchin11.png",
@@ -241,7 +255,6 @@ export const PRODUCTS: Product[] = [
     badges: { landing: "Aromatic Hearth", shop: "Spiced Signature" },
     crunch: { label: "Acoustic Crunch", score: 9.5 },
     notes: ["Cinnamon Bark & Nutmeg", "Warming Spiced Finish"],
-    sizes: ["250g Pouch", "500g Jar"],
     detail: {
       heroBadge: "Hearth Spiced · Freshly Milled Bark",
       batchSeries: { label: "Batch Series", value: "N° 47" },
@@ -251,8 +264,16 @@ export const PRODUCTS: Product[] = [
         "Cinnamon bark milled to order and whole nutmeg grated in the same hour, folded through the dough so the spice blooms in the fry rather than fading. A long, warming aromatic finish.",
       gallery: extraGallery("Cinnamon Chinchin"),
       packaging: [
-        { name: "250g Pouch", note: "Resealable craft aroma-lock" },
-        { name: "500g Gourmet Jar", note: "Display pantry glass canister" },
+        {
+          name: "250g Pouch",
+          note: "Resealable craft aroma-lock",
+          price: 380000,
+        },
+        {
+          name: "500g Gourmet Jar",
+          note: "Display pantry glass canister",
+          price: 580000,
+        },
       ],
       proof: {
         title: "Milled To Order",
@@ -298,3 +319,18 @@ export const PRODUCTS: Product[] = [
     },
   },
 ];
+
+/** Cheapest pack for a product — what the "from" price on a card refers to. */
+export function lowestPrice(product: Product): Kobo {
+  return Math.min(...product.detail.packaging.map((pack) => pack.price));
+}
+
+/** Look up one pack option by its display name. */
+export function findPack(product: Product, name: string) {
+  return product.detail.packaging.find((pack) => pack.name === name);
+}
+
+/** Find a product by slug, or undefined. */
+export function findProduct(slug: string): Product | undefined {
+  return PRODUCTS.find((product) => product.slug === slug);
+}

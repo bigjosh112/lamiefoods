@@ -1,10 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
 import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon, CheckIcon } from "@/components/ui/icons";
 import type { Product } from "@/content/products";
+import { formatKobo } from "@/lib/money";
+import { addLine } from "@/lib/cart/use-cart";
 
 const MAX_QUANTITY = 20;
 
@@ -14,13 +18,14 @@ const MAX_QUANTITY = 20;
  * Selection and quantity are genuine client state — they are UI concerns that
  * work perfectly well before a cart exists, so they are live.
  *
- * The two actions are disabled: there is no cart and no checkout, and a button
- * that silently does nothing is worse than one that is honestly unavailable.
- * One note below explains it rather than each control repeating itself.
+ * "Add to bag" is live — the bag is browser state, so it works today. "Instant
+ * checkout" stays disabled: payments are not connected, and a button that
+ * silently does nothing is worse than one honestly unavailable.
  */
 export function ProductPurchase({ product }: { product: Product }) {
   const [pack, setPack] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
   const selected = product.detail.packaging[pack];
 
   return (
@@ -65,6 +70,9 @@ export function ProductPurchase({ product }: { product: Product }) {
               <span className="mt-1 block text-body-sm text-on-surface-variant">
                 {option.note}
               </span>
+              <span className="mt-1 block font-label text-label-md text-terracotta">
+                {formatKobo(option.price)}
+              </span>
             </button>
           );
         })}
@@ -103,8 +111,11 @@ export function ProductPurchase({ product }: { product: Product }) {
 
       <div className="mt-gutter-md grid gap-gutter-xs sm:grid-cols-2">
         <Button
-          disabled
-          aria-describedby="purchase-note"
+          onClick={() => {
+            if (!selected) return;
+            addLine(product.slug, selected.name, quantity);
+            setAdded(true);
+          }}
           aria-label={`Add ${quantity} ${selected?.name} of ${product.name} to bag`}
         >
           <BagIcon className="h-4 w-4" />
@@ -120,8 +131,20 @@ export function ProductPurchase({ product }: { product: Product }) {
         </Button>
       </div>
 
-      <p id="purchase-note" className="mt-gutter-xs text-body-sm text-nutmeg">
-        Ordering opens when our checkout goes live.
+      {/* Announced, not just shown: the button keeps focus, so a screen reader
+          would otherwise get no confirmation that anything happened. */}
+      <p aria-live="polite" className="mt-gutter-xs text-body-sm text-terracotta">
+        {added ? (
+          <Link href={ROUTES.cart} className="underline underline-offset-4">
+            Added to your bag — view bag
+          </Link>
+        ) : (
+          ""
+        )}
+      </p>
+
+      <p id="purchase-note" className="text-body-sm text-nutmeg">
+        Checkout opens once payments are connected.
       </p>
     </div>
   );

@@ -6,7 +6,9 @@ import { cn } from "@lamiefoods/ui";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
-import { CRUNCH_MAX, type Product } from "@/content/products";
+import { CRUNCH_MAX, findPack, type Product } from "@/content/products";
+import { formatKobo } from "@/lib/money";
+import { addLine } from "@/lib/cart/use-cart";
 
 /**
  * Shop product tile.
@@ -15,13 +17,13 @@ import { CRUNCH_MAX, type Product } from "@/content/products";
  * is real local state, not a stand-in for a backend. Everything else about the
  * card is static.
  *
- * "View details" links through to the product page. "Add to bag" stays
- * disabled — there is no cart, and a button that silently does nothing is worse
- * than one that is honestly unavailable. The grid carries one note explaining
- * this rather than each card repeating it.
+ * Both actions work: "View details" opens the product page, "Add to bag" adds
+ * the selected pack to the browser-side bag.
  */
 export function ProductCard({ product }: { product: Product }) {
-  const [size, setSize] = useState(product.sizes[0]);
+  const packs = product.detail.packaging;
+  const [size, setSize] = useState(packs[0]?.name ?? "");
+  const selectedPack = findPack(product, size);
   const groupId = useId();
 
   return (
@@ -43,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="flex items-baseline justify-between gap-gutter-sm">
           <h3 className="text-headline-sm text-cacao">{product.name}</h3>
           <span className="shrink-0 font-label text-label-md text-terracotta">
-            {product.price}
+            {selectedPack ? formatKobo(selectedPack.price) : ""}
           </span>
         </div>
 
@@ -82,7 +84,8 @@ export function ProductCard({ product }: { product: Product }) {
             Select size
           </legend>
           <div className="mt-gutter-xs flex gap-gutter-xs" role="radiogroup">
-            {product.sizes.map((option) => {
+            {packs.map((pack) => {
+              const option = pack.name;
               const selected = option === size;
               return (
                 <button
@@ -108,8 +111,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-gutter-md flex gap-gutter-xs">
           <Button
-            disabled
-            aria-describedby="shop-actions-note"
+            onClick={() => addLine(product.slug, size)}
             className="flex-1"
             aria-label={`Add ${product.name}, ${size}, to bag`}
           >

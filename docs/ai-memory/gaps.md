@@ -17,6 +17,23 @@
 
 <!-- Newest gaps at top of their severity group. Keep critical/high at the top of the file. -->
 
+### GAP-008 — The cart mock's free-delivery figure does not add up
+
+- **Category:** content-risk
+- **Severity:** low
+- **Location:** design mock only; our implementation computes the value.
+- **Found:** 2026-09-06 while building the cart
+- **Problem:** The mock shows a ₦13,000 subtotal against a stated ₦15,000
+  free-delivery threshold, then says "You are **₦4,200** away". ₦15,000 − ₦13,000
+  is ₦2,000. Either the threshold is not ₦15,000 or the figure is wrong; the mock
+  cannot be both. Line items and subtotal in the mock DO reconcile exactly
+  (₦3,600 × 2 + ₦5,800 = ₦13,000), so only this one number is off.
+- **Fix:** Our cart derives the remaining amount from the real subtotal and
+  threshold, so it currently shows ₦2,000 for that basket — correct, but visibly
+  different from the mock. Confirm the real threshold (GAP-007 covers whether the
+  offer exists at all) and the number resolves itself.
+- **Status:** open — no code change expected
+
 ### GAP-007 — Regulated and commercially binding claims need owner sign-off
 
 - **Category:** content-risk / legal
@@ -129,6 +146,11 @@
 - **Found:** 2026-09-05 via audit-gaps
 - **Problem:** There is no way to write or run a test today. The moment money/cart/checkout logic lands (kobo arithmetic in `packages/types/src/common.ts:4-13`, `OrderItem.lineTotal` in `order.ts`, the `apiFetch` gateway, Paystack flow), it will ship with zero automated coverage on paths where a bug means mischarging a customer or losing an order. The priority order (security → **code quality/tests** → …) ranks this above tech debt, and CLAUDE.md already acknowledges it informally ("Test: none configured — logged as a gap") without it living in this ledger.
 - **Fix:** Pick a runner (Vitest fits the Vite/TS + Next 16 stack). Add it as a dev dependency at the root, add a `test` script to each workspace that has logic, and add a `test` task to `turbo.json` (`"test": { "dependsOn": ["^build"] }`). Wire `npm run test` into CI alongside `build` and `lint`. First tests to write when logic exists: kobo `Money` arithmetic and `OrderItem` line-total freezing. Verify: `npm run test` runs and a deliberately broken assertion fails the pipeline.
+- **Update 2026-09-06:** no longer hypothetical. `lib/cart/cart-store.ts` and
+  `lib/money.ts` now do real money arithmetic (kobo integers, line totals,
+  subtotals, free-delivery thresholds) and `sanitise()` guards untrusted
+  localStorage input. These are exactly the paths where a silent bug mischarges
+  a customer, and none of them has a test. Raise to **high** once checkout lands.
 - **Status:** open
 
 <!-- not yet audited (surface does not exist yet — re-run audit-gaps when it lands):

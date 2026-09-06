@@ -17,6 +17,57 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Shopping bag (/cart) + a real cart
+
+- **Done:** Built `/cart` from the frames — free-delivery progress, line items
+  with quantity steppers and remove, gift-packaging panel, assurances, order
+  summary, empty state, and recommendations. Backed it with a genuine cart.
+- **Files:** new `lib/cart/{cart-store.ts,use-cart.ts}`, `lib/money.ts`,
+  `content/cart.ts`, `components/cart/{cart-view,cart-recommendations}.tsx`,
+  `app/cart/page.tsx`; updated `content/products.ts` (kobo pricing),
+  `components/product/{product-purchase,related-products}.tsx`,
+  `components/shop/{product-card,shop-catalogue}.tsx`,
+  `components/landing/flavours.tsx`, `components/layout/site-header.tsx`,
+  `app/robots.ts`, `app/shop/[slug]/page.tsx`.
+- **Decisions:**
+  - **The cart is real, not a stand-in.** A bag is a frontend concern until
+    checkout, so it works today: add, update quantity, remove, persist across
+    reloads and sync across tabs. Only checkout stays disabled.
+  - **`useSyncExternalStore`, not context + effect.** It renders the server
+    snapshot (empty) during hydration and swaps in the persisted bag afterwards,
+    so a restored cart cannot cause a markup mismatch — the same class of bug as
+    the earlier `no-js` hydration error.
+  - **Prices are integer KOBO**, using `Kobo` from `@lamiefoods/types` rather
+    than a local type. Naira never exists as a float: cart arithmetic on 0.01
+    units drifts, and a wrong total is a billing error.
+  - Only `{slug, pack, quantity}` is persisted; names, prices and images are
+    looked up from the catalogue on read, so a price change can never be served
+    from a stale copy in someone's browser. `sanitise()` drops anything that no
+    longer matches the catalogue.
+  - `price: string` and the duplicated `sizes[]` are gone — `detail.packaging`
+    is the single source of pack options and prices.
+  - The mock's "toggle demo view: empty state" is a design-tool affordance; the
+    empty state is now a genuine state instead.
+  - Recommendations use the real catalogue. The mock advertised three products
+    the brand does not sell.
+  - **"Paystack Escrow · Secured CBN Gateway" not shipped** — Paystack is a
+    gateway, not escrow, and "CBN Gateway" implies a central-bank endorsement
+    that does not exist. Reads "Paystack Secured".
+- **Unblocked:** every "Add to bag" across the site now works (product page,
+  shop cards, related products, recommendations), and the header shows a live
+  bag count.
+- **Verify:** lint, typecheck, build, format pass. `/cart` renders, `/cart`
+  excluded in robots, all routes 200, one `h1`. Cart arithmetic reproduces the
+  mock exactly: ₦3,600 × 2 + ₦5,800 = ₦13,000.
+  **Not verified by me:** the interactive add → persist → reload round trip
+  needs a browser click-through — there is still no test runner (GAP-001).
+- **Gaps:** opened **GAP-008** (the mock's ₦4,200 free-delivery figure does not
+  reconcile with ₦15,000 − ₦13,000 = ₦2,000). GAP-001 updated: money code now
+  exists and is untested.
+- **Next / open threads:** checkout — customer details form, Paystack, order
+  confirmation. That needs the backend contract first (GAP-004/007 still block a
+  public launch).
+
 ## 2026-09-06 — Product detail pages (/shop/[slug])
 
 - **Done:** Built the product detail page from the frames: announcement bar,

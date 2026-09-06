@@ -15,6 +15,7 @@ import {
   UserIcon,
 } from "@/components/ui/icons";
 import { NAV_LINKS } from "@/content/landing";
+import { useCart } from "@/lib/cart/use-cart";
 
 /**
  * Site header with a mobile menu that actually works: it opens, closes on
@@ -26,6 +27,7 @@ import { NAV_LINKS } from "@/content/landing";
  */
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { count } = useCart();
   const pathname = usePathname();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -110,9 +112,23 @@ export function SiteHeader() {
               <SearchIcon className="h-5 w-5" />
             </IconButton>
 
-            <IconButton label="Open cart">
+            {/* Real bag count. useSyncExternalStore renders 0 on the server and
+                swaps in the persisted count after hydration, so no mismatch. */}
+            <Link
+              href={ROUTES.cart}
+              aria-label={count > 0 ? `Your bag, ${count} items` : "Your bag, empty"}
+              className="relative inline-flex h-11 w-11 items-center justify-center rounded text-cacao transition-colors hover:bg-surface-container hover:text-terracotta"
+            >
               <BagIcon className="h-5 w-5" />
-            </IconButton>
+              {count > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1 right-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-container px-1 font-label text-[10px] text-linen"
+                >
+                  {count}
+                </span>
+              )}
+            </Link>
 
             <ButtonLink href={ROUTES.shop} className="hidden sm:inline-flex">
               Shop Chinchin

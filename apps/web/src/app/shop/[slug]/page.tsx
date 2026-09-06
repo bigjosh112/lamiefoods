@@ -13,7 +13,8 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
 import { Section } from "@/components/ui/section";
 import { PRODUCT_ASSURANCES } from "@/content/shop";
-import { PRODUCTS } from "@/content/products";
+import { lowestPrice, PRODUCTS } from "@/content/products";
+import { formatKobo } from "@/lib/money";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
 
@@ -140,7 +141,7 @@ export default async function ProductPage({
                     Fresh atelier pricing
                   </p>
                   <p className="mt-1 font-display text-headline-md text-terracotta">
-                    {product.price}
+                    {formatKobo(lowestPrice(product))}
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg">

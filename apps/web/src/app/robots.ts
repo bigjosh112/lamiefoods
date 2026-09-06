@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // Admin is an operator tool; it has no business in search results.
-        disallow: ["/admin", "/admin/", "/checkout", "/order-success"],
+        disallow: ["/admin", "/admin/", "/cart", "/checkout", "/order-success"],
       },
     ],
     sitemap: `${SITE.url}/sitemap.xml`,

@@ -1,17 +1,21 @@
+"use client";
+
 import { ROUTES } from "@lamiefoods/config";
 import { Reveal } from "@/components/motion/reveal";
 import { Button, ButtonLink, StoryLink } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
-import { PRODUCTS, type Product } from "@/content/products";
+import { lowestPrice, PRODUCTS, type Product } from "@/content/products";
+import { formatKobo } from "@/lib/money";
+import { addLine } from "@/lib/cart/use-cart";
 
 /**
  * The rest of the range, drawn from the shared catalogue — so the imagery here
  * is the same as on the landing page and the shop by construction.
  *
- * The whole tile links to the product page; "Add to bag" stays disabled because
- * there is still no cart.
+ * The tile links to the product page and "Add to bag" adds the default pack to
+ * the browser-side bag.
  */
 export function RelatedProducts({ current }: { current: Product }) {
   const others = PRODUCTS.filter((product) => product.slug !== current.slug);
@@ -61,11 +65,13 @@ export function RelatedProducts({ current }: { current: Product }) {
 
                 <div className="mt-gutter-md flex flex-wrap items-center gap-gutter-sm">
                   <span className="font-label text-label-md text-terracotta">
-                    {product.price}
+                    {formatKobo(lowestPrice(product))}
                   </span>
                   <Button
-                    disabled
-                    aria-describedby="related-note"
+                    onClick={() => {
+                      const pack = product.detail.packaging[0];
+                      if (pack) addLine(product.slug, pack.name);
+                    }}
                     aria-label={`Add ${product.name} to bag`}
                     variant="secondary"
                   >
@@ -78,11 +84,6 @@ export function RelatedProducts({ current }: { current: Product }) {
           </Reveal>
         ))}
       </ul>
-
-      <p id="related-note" className="mt-gutter-md text-body-sm text-nutmeg">
-        Ordering opens when our checkout goes live — product names link through to full
-        details.
-      </p>
     </Section>
   );
 }

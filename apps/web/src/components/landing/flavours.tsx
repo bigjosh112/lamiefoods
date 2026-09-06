@@ -5,6 +5,8 @@ import { ArrowRightIcon, BoxIcon, EyeIcon } from "@/components/ui/icons";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { FLAVOURS } from "@/content/landing";
+import { lowestPrice } from "@/content/products";
+import { formatKobo } from "@/lib/money";
 
 /**
  * The three launch flavours.
@@ -47,7 +49,7 @@ export function Flavours() {
                     {item.index} · {item.kicker}
                   </span>
                   <span className="shrink-0 font-label text-label-md text-cacao">
-                    {item.price}
+                    {formatKobo(lowestPrice(item))}
                   </span>
                 </div>
 

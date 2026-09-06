@@ -70,10 +70,6 @@ export function ShopCatalogue() {
           <ProductCard key={product.slug} product={product} />
         ))}
       </ul>
-
-      <p id="shop-actions-note" className="mt-gutter-md text-body-sm text-nutmeg">
-        Ordering opens when our checkout goes live.
-      </p>
     </>
   );
 }
