@@ -41,6 +41,7 @@ const BUILT_ROUTES: string[] = [
   ADMIN_ROUTES.dashboard,
   ADMIN_ROUTES.orders,
   ADMIN_ROUTES.products,
+  ADMIN_ROUTES.customers,
 ];
 
 export function AdminNav() {

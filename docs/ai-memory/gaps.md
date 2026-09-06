@@ -34,6 +34,31 @@
   offer exists at all) and the number resolves itself.
 - **Status:** open — no code change expected
 
+### GAP-010 — No record of who agreed to be contacted
+
+- **Category:** compliance / content-risk
+- **Severity:** high (before any marketing feature ships)
+- **Location:** `apps/web/src/content/admin-customers.ts` (`CUSTOMERS_OUTREACH`)
+  and `apps/web/src/content/admin-order-detail.ts` (`patron.whatsapp`).
+- **Found:** 2026-09-06 while building the customer directory
+- **Problem:** The mock had a "Broadcast" button for a batch announcement and a
+  patron field reading "WhatsApp: Active & verified · opted in for order
+  updates". Nothing anywhere records messaging consent — not the checkout form,
+  not any API. Shipping a screen that asserts someone opted in is an invented
+  permission, and it is exactly how a business ends up messaging people who
+  never agreed. Under the NDPA that is the business's liability, not the
+  frontend's.
+- **Deliberately not shipped:** the opt-in claim (now "Not recorded"), and the
+  broadcast control is disabled with the reason stated on the card.
+- **Fix:** before any outreach feature is built —
+  1. Capture consent explicitly at checkout (separate, unticked, per channel),
+     with a timestamp and the wording the customer agreed to.
+  2. Store it against the customer and expose it on the API, so the admin shows
+     what was actually recorded rather than a default.
+  3. Provide an unsubscribe path, and honour it server-side.
+  4. Do not let a "select all patrons" control exist before 1–3 do.
+- **Status:** open
+
 ### GAP-009 — Admin area has no authentication, and must stay empty until it does
 
 - **Category:** security
@@ -93,6 +118,15 @@
        props from the server (the bundle leak).
   Verification for both: `curl` the route from a production build AND
   `grep -rl <name> .next/static`. A 404 proves nothing about either.
+- **Update 2026-09-06 — `/admin/customers` built, the worst case for this gap.**
+  That screen is nothing but customer PII: names, emails, phone numbers,
+  addresses, spend and order history. Both rules were followed by construction —
+  the gate runs in the page before the dynamic import, and `CustomersDirectory`
+  receives patrons as props rather than importing them. Verified on a production
+  build: the prerendered route is a 404 with zero patron strings in the HTML or
+  the RSC payload, and no patron name, phone or address appears anywhere in
+  `/static`. **This screen must be the last thing un-gated**, and only once the
+  backend rejects unauthenticated requests server-side.
 - **Status:** open
 
 ### GAP-007 — Regulated and commercially binding claims need owner sign-off

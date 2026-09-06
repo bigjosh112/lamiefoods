@@ -19,10 +19,16 @@ import { naira } from "@/lib/money";
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-/** Sidebar sections, matching the design's grouping. */
+/**
+ * Sidebar sections, matching the design's grouping.
+ *
+ * The mock titled the first group "Enterprise ledger". "Enterprise" is not part
+ * of the customer-facing brand and has been kept out of the site everywhere
+ * else, so it does not belong on every admin screen either.
+ */
 export const ADMIN_NAV_SECTIONS = [
   {
-    title: "Enterprise ledger",
+    title: "Operations",
     items: [
       { label: "Dashboard", href: ADMIN_ROUTES.dashboard, icon: "award" as const },
       { label: "Orders & Paystack", href: ADMIN_ROUTES.orders, icon: "box" as const },

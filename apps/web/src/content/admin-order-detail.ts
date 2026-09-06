@@ -1,5 +1,6 @@
-import { naira } from "@/lib/money";
+import { formatKobo, naira } from "@/lib/money";
 import { ORDERS_ROWS, type OrderRow } from "./admin-orders";
+import { findPatron } from "./admin-customers";
 
 /**
  * SAMPLE detail for one order.
@@ -42,6 +43,8 @@ export interface OrderTimelineEntry {
 
 /** Build a detail view for one of the sample rows. */
 export function buildOrderDetail(row: OrderRow) {
+  const patron = findPatron(row.customer);
+
   const lines: OrderLineDetail[] = [
     {
       name: "Milky Velvet Chinchin",
@@ -120,18 +123,31 @@ export function buildOrderDetail(row: OrderRow) {
       ],
     },
 
+    /**
+     * Read from the customer directory rather than restated here, so the two
+     * screens cannot disagree about the same person. The chip, email and
+     * lifetime figure used to be hardcoded and identical for every order.
+     */
     patron: {
       title: "Patron Dossier",
-      chip: "Returning patron",
+      chip: patron?.tier ?? "Patron",
       name: row.customer,
-      email: `${row.customer.split(" ")[0]?.toLowerCase()}@example.com`,
-      lifetime: `Lifetime spend ${"₦54,200"} · 3 orders`,
+      email: patron?.email ?? "",
+      lifetime: patron
+        ? `Lifetime spend ${formatKobo(patron.spend)} · ${patron.orders} orders`
+        : "No order history recorded",
       phoneLabel: "Mobile",
       phone: row.phone,
       phoneNote: "Primary contact",
+      /**
+       * The mock said "Active & verified · opted in for order updates". Nothing
+       * records messaging consent, so claiming someone opted in would be an
+       * invented permission — and acting on it is exactly how a business ends up
+       * messaging people who never agreed.
+       */
       whatsappLabel: "WhatsApp status",
-      whatsapp: "Active & verified",
-      whatsappNote: "Opted in for order updates",
+      whatsapp: "Not recorded",
+      whatsappNote: "No messaging consent is captured anywhere yet",
       cta: "View patron profile",
     },
 

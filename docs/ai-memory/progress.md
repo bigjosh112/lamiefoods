@@ -17,6 +17,53 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Customer directory (/admin/customers), dev-gated
+
+- **Done:** Built the customer directory: stat cards, segment tabs, a patron
+  table and a dossier panel (contact, delivery landmark, order history), plus
+  regional spread, flavour affinity and outreach cards.
+- **Files:** new `app/admin/(portal)/customers/page.tsx`,
+  `components/admin/{customers-view,customers-directory}.tsx`,
+  `content/admin-customers.ts`; updated `content/admin-order-detail.ts`,
+  `content/admin-dashboard.ts`, `components/admin/admin-nav.tsx`.
+- **Decisions:**
+  - **Patrons are derived from `ORDERS_ROWS`.** The same fictional people appear
+    on the orders ledger, so a patron's name, phone, area and landmark cannot
+    say one thing on one screen and something else on another. Ledger orders in
+    the dossier link to the real order detail page.
+  - **Every aggregate is computed from the visible rows** — patron count, repeat
+    rate, average lifetime spend, busiest hub, regional spread, flavour shares.
+    Nothing on the page can contradict anything else, and the same maths runs
+    unchanged against real customers.
+  - **Refused from the mock:** "312 registered patrons", a "68% repeat purchase
+    rate" against a "42% industry benchmark", and "100% verified KYC". Nothing
+    measures any of it, there is no KYC process to be 100% of, and all of it
+    would have disagreed with the six patrons on screen. Also dropped the
+    1·2·3·…·52 pager (there is no second page) and a "Heritage Trio" /
+    "Cinnamon Spice" donut — the chart is built from the shared catalogue, so it
+    can only ever show products that exist.
+  - Export CSV, add-a-patron, search, WhatsApp, create-an-order and the batch
+    broadcast are all disabled. Export and broadcast would move PII.
+  - **Order detail now reads the patron from this module.** Its "Lifetime spend
+    ₦54,200 · 3 orders" was hardcoded and identical for every order; it is now
+    the patron's real derived figure. Its "WhatsApp: Active & verified · opted
+    in for order updates" became "Not recorded" — nothing captures messaging
+    consent, and inventing a permission is how a business ends up messaging
+    people who never agreed.
+  - Sidebar group "Enterprise ledger" → "Operations". "Enterprise" is not part
+    of the customer-facing brand and was showing on every admin screen.
+- **Verified:** dev renders 200 with all sections; the production build
+  prerenders the route as a 404 with **zero PII** in the HTML or RSC payload,
+  and `grep -rl` finds no patron name, phone or address anywhere in `/static`
+  (patrons are passed as props, never imported by the client component). Nav
+  highlights `/admin/customers`. Lint, typecheck, build and `prettier --check`
+  pass. Build and dev checks both ran under `NEXT_DIST_DIR` on a spare port.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** GAP-010 opened (no record of messaging/marketing consent).
+- **Next / open threads:** remaining admin screens — inventory, settings. Still
+  blocked on the owner: GAP-004 (prices), GAP-007 (allergens, delivery offer),
+  GAP-009 (auth), and the API contract. Nothing pushed since `f224261`.
+
 ## 2026-09-06 — Create-product form (/admin/products/new), dev-gated
 
 - **Done:** Built the create-product screen: three numbered sections (identity,
