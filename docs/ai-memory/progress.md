@@ -17,6 +17,43 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Admin products & SKUs (/admin/products), dev-gated
+
+- **Done:** Built the catalogue screen — header actions, four stat cards with a
+  low-stock alert, filter tabs, product rows for the three live flavours and the
+  two pipeline products, and the scalability footer.
+- **Files:** new `app/admin/(portal)/products/page.tsx`,
+  `components/admin/{products-view,products-list}.tsx`,
+  `content/admin-products.ts`; updated `components/admin/admin-nav.tsx`.
+- **Consistency:** the three live products are derived from `content/products.ts`
+  — the same source the storefront uses — so names, images and prices cannot
+  disagree between shop and admin. Only operational fields (SKU, stock, status)
+  are added here. Verified: all three names appear on both `/shop` and
+  `/admin/products`, and the admin prices are the catalogue's two tiers of the
+  same figures the shop shows as "from".
+  The mock quoted different prices (₦3,800/₦5,800 etc.); the catalogue wins.
+- **Nav:** adding `ADMIN_ROUTES.products` to `BUILT_ROUTES` was the only change
+  needed to enable and highlight it — the one-edit design holds. Three routes
+  are now links; the rest stay disabled.
+- **Decisions:**
+  - SKUs use an `LF-` prefix, not the mock's `LFE-`. "Enterprise" is not the
+    customer-facing name and does not belong baked into product codes.
+  - Filter tabs are real client state (filtering a loaded list needs no
+    backend); search, add, export, edit, mark-sold-out and configure-launch are
+    disabled.
+  - Low-stock status is derived from a threshold rather than hardcoded, so the
+    alert card and the row badge cannot disagree.
+  - Products are passed to the client list as props, keeping catalogue
+    internals out of the bundle — same rule as the orders table.
+- **UNVERIFIED:** all stock counts, and both pipeline products ("Spiced
+  Plantain Crisps", "Honey Glazed Chin-Chin") — the landing page carries them
+  under the same caveat.
+- **Verify:** lint, typecheck, build, format pass. Production: every admin route
+  404s, zero internal data in payload or bundle. Dev: renders with the low-stock
+  alert on Coco Velvet and working tab filtering.
+- **Next / open threads:** customers, inventory and settings remain — same
+  pattern, same auth blocker (GAP-009).
+
 ## 2026-09-06 — Admin order detail (/admin/orders/[id]), dev-gated
 
 - **Done:** Built the order dossier — header with status and actions, curated

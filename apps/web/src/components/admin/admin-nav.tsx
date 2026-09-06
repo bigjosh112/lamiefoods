@@ -17,7 +17,11 @@ import { ADMIN_NAV_SECTIONS } from "@/content/admin-dashboard";
  *
  * Routes that do not exist yet render disabled rather than as links to a 404.
  */
-const BUILT_ROUTES: string[] = [ADMIN_ROUTES.dashboard, ADMIN_ROUTES.orders];
+const BUILT_ROUTES: string[] = [
+  ADMIN_ROUTES.dashboard,
+  ADMIN_ROUTES.orders,
+  ADMIN_ROUTES.products,
+];
 
 export function AdminNav() {
   const pathname = usePathname();
