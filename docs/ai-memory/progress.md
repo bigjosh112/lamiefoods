@@ -17,6 +17,45 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Admin orders screen (/admin/orders), dev-gated
+
+- **Done:** Built the orders screen — header with actions, four stats, filter
+  and status tabs, selectable orders table with batch-action bar, pagination,
+  delivery clusters and fulfilment reserves.
+- **Files:** new `app/admin/(portal)/orders/page.tsx`,
+  `components/admin/{orders-view,orders-table,admin-nav}.tsx`,
+  `content/admin-orders.ts`; updated `components/admin/admin-shell.tsx`,
+  `content/admin-dashboard.ts`.
+- **Consistency, made structural.** The owner asked for shared chrome to stay
+  identical. Sidebar, top bar and operator card already came from `AdminShell`
+  in the portal layout; the missing piece was the active nav item, which was
+  hardcoded to Dashboard. Extracted `AdminNav` as a client component deriving
+  the active item from `usePathname`, with a `BUILT_ROUTES` list so adding a
+  screen enables and highlights it everywhere in one edit. Verified: all seven
+  chrome strings appear identically on both pages, and exactly one nav link
+  carries `aria-current="page"` per route.
+- **A SECOND data leak found and closed.** `OrdersTable` is a client component
+  and imported the sample rows directly — and a client component's imports are
+  bundled into client JS, so names, phone numbers and addresses shipped in a
+  downloadable `/static` chunk, entirely past the server-side gate. Fixed by
+  passing rows as props and keeping data server-side. Verified: zero PII in
+  `/static` afterwards. This is a *different* mechanism from the RSC-payload
+  leak found on the dashboard; both are now recorded in GAP-009.
+- **Decisions:**
+  - Row selection is live client state (it makes the batch bar reviewable);
+    every action, filter, search and pagination control is disabled.
+  - Phone numbers use the 0800 000 series so they cannot dial a real person —
+    the mock used plausible live numbers, which should not sit in a repo.
+  - No "Live GPS feed" badge and no map: there is no mapping provider and no
+    feed, so the map is a labelled placeholder and the cluster counts carry the
+    information the card actually has.
+  - Sidebar label matched to the design ("Orders & Paystack").
+- **Verify:** lint, typecheck, build, format pass. Production: `/admin/orders`
+  404s with zero PII in the payload or the bundle. Development: renders with
+  five rows and working selection.
+- **Next / open threads:** remaining admin screens (products, customers,
+  inventory, settings) follow the same pattern. All blocked on real auth.
+
 ## 2026-09-06 — Admin operations dashboard (/admin), dev-gated
 
 - **Done:** Built the dashboard from the frames — sidebar and top bar, four

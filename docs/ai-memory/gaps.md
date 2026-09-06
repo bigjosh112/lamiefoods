@@ -80,6 +80,19 @@
   `/static`.
   When wiring real data, gate *before* the fetch, and re-run that curl check —
   status codes prove nothing about payloads.
+- **Update 2026-09-06 (second leak, different mechanism).** Building `/admin/orders`
+  surfaced a *second* way data escapes the gate: `OrdersTable` is a client
+  component and imported the sample rows directly. **A client component's imports
+  are bundled into client JavaScript**, so every customer name, phone number and
+  address shipped in a downloadable `/static` chunk — completely past the
+  server-side gate. Fixed by passing rows down as props and keeping the data
+  server-side, which is also what real orders will require.
+  Two rules now, both learned the hard way:
+    1. Gate in the **page**, before any data is read (the RSC payload leak).
+    2. Never `import` sensitive data **into a client component** — pass it as
+       props from the server (the bundle leak).
+  Verification for both: `curl` the route from a production build AND
+  `grep -rl <name> .next/static`. A 404 proves nothing about either.
 - **Status:** open
 
 ### GAP-007 — Regulated and commercially binding claims need owner sign-off

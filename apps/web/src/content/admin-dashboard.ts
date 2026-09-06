@@ -25,7 +25,7 @@ export const ADMIN_NAV_SECTIONS = [
     title: "Enterprise ledger",
     items: [
       { label: "Dashboard", href: ADMIN_ROUTES.dashboard, icon: "award" as const },
-      { label: "Orders & Payouts", href: ADMIN_ROUTES.orders, icon: "box" as const },
+      { label: "Orders & Paystack", href: ADMIN_ROUTES.orders, icon: "box" as const },
       { label: "Products & SKUs", href: ADMIN_ROUTES.products, icon: "gift" as const },
       { label: "Customers", href: ADMIN_ROUTES.customers, icon: "people" as const },
       {
