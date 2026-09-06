@@ -37,7 +37,7 @@ export function Flavours() {
                   sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
                 />
                 <span className="absolute top-3 left-3 rounded-sm bg-primary-container px-2 py-1 font-label text-label-sm text-linen uppercase">
-                  {item.badge}
+                  {item.badges.landing}
                 </span>
               </div>
 
@@ -56,19 +56,22 @@ export function Flavours() {
                   {item.body}
                 </p>
 
+                {/* Was linking to /shop/[slug], which does not exist and 404s.
+                    Until product pages ship, the card sends people to the shop,
+                    which is real. */}
                 <div className="mt-gutter-md flex gap-gutter-xs">
                   <ButtonLink
-                    href={ROUTES.product(item.slug)}
+                    href={ROUTES.shop}
                     className="flex-1"
-                    aria-label={`Add ${item.name} to bag`}
+                    aria-label={`See ${item.name} in the shop`}
                   >
-                    Add to bag
+                    View in shop
                   </ButtonLink>
                   <ButtonLink
-                    href={ROUTES.product(item.slug)}
+                    href={ROUTES.shop}
                     variant="secondary"
                     className="w-11 shrink-0 px-0"
-                    aria-label={`View details for ${item.name}`}
+                    aria-label={`See ${item.name} in the shop`}
                   >
                     <EyeIcon className="h-4 w-4" />
                   </ButtonLink>

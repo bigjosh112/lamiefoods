@@ -17,7 +17,7 @@ import { MANIFESTO } from "@/content/landing";
  */
 export function Manifesto() {
   return (
-    <Section className="bg-surface-container-low">
+    <Section className="bg-surface-container-low" id="manifesto">
       <div className="grid items-center gap-gutter-lg lg:grid-cols-12">
         <Reveal className="relative lg:col-span-5">
           <div className="relative aspect-3/4 overflow-hidden rounded border border-rule/70">

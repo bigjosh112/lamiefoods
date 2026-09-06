@@ -17,6 +17,45 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Shop page + shared product catalogue
+
+- **Done:** Built `/shop` from the supplied frames: page header with batch meta,
+  category filters, three product tiles (badge, crunch-factor bar, tasting notes,
+  size selector, actions), the Atelier Lab notify panel, the assurance band, and
+  the fuller four-column footer. Extracted the product catalogue so the landing
+  page and the shop read the same data.
+- **Files:** new `content/products.ts`, `content/image-slot.ts`, `content/shop.ts`,
+  `components/shop/{product-card,shop-catalogue,atelier-lab}.tsx`,
+  `app/shop/page.tsx`; updated `content/landing.ts`, `components/landing/flavours
+  .tsx`, `components/layout/site-footer.tsx`, `app/sitemap.ts`.
+- **Decisions:**
+  - **One catalogue, two pages.** `products.ts` is the single source for names,
+    imagery, pricing and tasting notes — the owner asked for consistency, and
+    sharing the data makes drift impossible rather than merely unlikely. Only the
+    per-page badge text differs (`badges.landing` / `badges.shop`).
+  - Footer replaced with the newer four-column design and is shared, so both
+    pages match.
+  - Footer links with no destination render as plain text, not links — a footer
+    of 404s is worse than one honest about what has shipped.
+  - "Add to bag" and "View details" are disabled with one explanatory note: there
+    is no cart and no `/shop/[slug]`.
+  - Size selection is real client state (a legitimate UI concern), unlike the
+    notify form, which stays disabled because no endpoint exists.
+- **Fixed:** the landing page's product buttons pointed at `/shop/[slug]`, which
+  **404s** — repointed at `/shop`. `/about` is linked from the nav, footer and
+  hero but has no route; those now target the manifesto section (`/#manifesto`),
+  which is the brand story today. Audited every internal link on both pages:
+  all resolve 200, zero 404s.
+- **Verify:** build, lint, typecheck, format pass; `/shop` is static. Confirmed
+  both pages reference the identical product images, one `h1` + eight `h2`, four
+  filter tabs with the unavailable two disabled, three size radiogroups, and
+  `/shop` back in the sitemap.
+- **Gaps:** GAP-004 grows — the shop adds unverified batch numbers, crunch
+  scores, tasting notes and pack sizes, all centralised in `products.ts`/`shop.ts`.
+- **Next / open threads:** `/shop/[slug]` product pages and the cart are the
+  obvious next step (they unlock the disabled actions). `/about` still needs a
+  real page. Milky Velvet still has no photograph.
+
 ## 2026-09-06 — Wired the first supplied photography
 
 - **Done:** Placed all six supplied images into their matching slots after viewing

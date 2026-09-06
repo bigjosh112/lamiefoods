@@ -1,4 +1,6 @@
 import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
+import type { ImageSlot } from "./image-slot";
+import { PRODUCTS } from "./products";
 
 /**
  * Every word and image slot on the landing page, in one file.
@@ -24,32 +26,14 @@ import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
 /** Marks a value that came from the design mock and has NOT been confirmed. */
 type Unverified<T> = T;
 
-/**
- * UNVERIFIED. Placeholder prices from the design mock. The owner has not
- * supplied real pricing — replace before launch.
- */
-const PLACEHOLDER_PRICE_FROM: Unverified<Record<string, string>> = {
-  milky: "From ₦3,500",
-  coco: "From ₦3,800",
-  cinnamon: "From ₦3,800",
-};
-
-/**
- * An image the design calls for but that we have no asset for yet. `src` stays
- * null until real photography lands in `public/images`; the placeholder renders
- * a warm tonal block so layout can still be reviewed.
- */
-export interface ImageSlot {
-  src: string | null;
-  alt: string;
-  /** Shown inside the placeholder block so it is obvious what belongs here. */
-  note: string;
-}
+export type { ImageSlot } from "./image-slot";
 
 export const NAV_LINKS = [
   { label: "Home", href: ROUTES.home },
   { label: "Shop", href: ROUTES.shop },
-  { label: "About", href: ROUTES.about },
+  /* /about has no route yet and would 404. The manifesto section is the brand
+     story for now; swap back to ROUTES.about when that page ships. */
+  { label: "About", href: "/#manifesto" },
   { label: "Contact", href: "#contact" },
 ] as const;
 
@@ -61,7 +45,7 @@ export const HERO = {
   titleLine2: "Good Taste.",
   body: "Elevating Nigeria's quintessential kettle pastry to haute confectionery. Made in small batches with sweet cream dairy butter and whole-milled nutmeg.",
   primaryCta: { label: "Shop Chinchin Collection", href: ROUTES.shop },
-  secondaryCta: { label: "Explore Culinary Story", href: ROUTES.about },
+  secondaryCta: { label: "Explore Culinary Story", href: "/#manifesto" },
   image: {
     src: "/images/chinchin5.jpg.png",
     alt: "A bowl of freshly made Lamie Foods chinchin",
@@ -174,64 +158,15 @@ export const FLAVOURS = {
   eyebrow: "Curated Release",
   title: "Three Flavours. One Lamie Standard.",
   link: { label: "View full pantry", href: ROUTES.shop },
-  /**
-   * Product names are confirmed. Descriptions, prices and badges are UNVERIFIED
-   * mock copy — in particular the ingredient origins, which are invented.
-   */
-  items: [
-    {
-      index: "01",
-      badge: "House Classic",
-      kicker: "Dairy Reserve",
-      name: "Milky Velvet Chinchin",
-      slug: "milky-velvet-chinchin",
-      price: PLACEHOLDER_PRICE_FROM.milky,
-      body: "Rich velvety dairy indulgence, tender melt-in-the-mouth crumb, and gentle undertones of vanilla and stone-grated nutmeg.",
-      image: {
-        src: null,
-        alt: "Milky Velvet Chinchin in a keepsake jar",
-        note: "Product photography",
-      } satisfies ImageSlot,
-    },
-    {
-      index: "02",
-      badge: "Coastal Batch",
-      kicker: "Tropical Warmth",
-      name: "Coco Velvet Chinchin",
-      slug: "coco-velvet-chinchin",
-      price: PLACEHOLDER_PRICE_FROM.coco,
-      body: "Toasted coastal coconut shreds folded intimately into sweet-cream butter dough for a fragrant, tropical acoustic crunch.",
-      image: {
-        src: "/images/chinchin10.png",
-        alt: "Coco Velvet Chinchin with fresh coconut",
-        note: "Product photography",
-      } satisfies ImageSlot,
-    },
-    {
-      index: "03",
-      badge: "Aromatic Hearth",
-      kicker: "Hearth Spiced",
-      name: "Cinnamon Chinchin",
-      slug: "cinnamon-chinchin",
-      price: PLACEHOLDER_PRICE_FROM.cinnamon,
-      body: "Freshly milled cinnamon bark and warm whole nutmeg toasted deeply into crisp, satisfying acoustic fragments with a long aromatic finish.",
-      image: {
-        src: "/images/chinchin11.png",
-        alt: "Cinnamon Chinchin on a wooden board",
-        note: "Product photography",
-      } satisfies ImageSlot,
-    },
-  ],
+  /** Straight from the shared catalogue, so the shop can never show a
+   *  different name, photograph or price for the same product. */
+  items: PRODUCTS,
   /** UNVERIFIED — pack formats have not been confirmed. */
   formats: {
     title: "Available in Two Mindful Formats",
     body: "250g artisanal stand-up wax pouches and 500g embossed airtight keeper jars.",
     cta: { label: "Compare formats", href: ROUTES.shop },
-  } as Unverified<{
-    title: string;
-    body: string;
-    cta: { label: string; href: string };
-  }>,
+  },
 };
 
 export const MOMENTS = {
@@ -332,23 +267,6 @@ export const FINAL_CTA = {
 export const FOOTER = {
   tagline: BRAND.tagline,
   body: "An artisanal West African pastry house dedicated to elevating the time-honoured chin-chin tradition. Prepared in conscientious small batches with golden butter, aromatic spices, and warm hospitality.",
-  columns: [
-    {
-      title: "Explore",
-      links: [
-        { label: "Home", href: ROUTES.home },
-        { label: "Artisan Shop", href: ROUTES.shop },
-        { label: "Our Heritage", href: ROUTES.about },
-      ],
-    },
-    {
-      title: "Assurance",
-      links: [
-        { label: "Freshness Guarantee", href: ROUTES.about },
-        { label: "Shipping & Delivery", href: ROUTES.about },
-      ],
-    },
-  ],
   /**
    * Only Instagram is confirmed. The mock invented an email address and a
    * WhatsApp line — those render as plain text, never as a live link, until
