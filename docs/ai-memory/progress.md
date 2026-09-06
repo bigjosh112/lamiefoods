@@ -17,6 +17,39 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Admin sign-in screen (/admin/login)
+
+- **Done:** Built the admin sign-in page and a bare admin layout. Form uses
+  react-hook-form + zod, matching checkout. **No authentication** — see below.
+- **Files:** new `app/admin/layout.tsx`, `app/admin/login/page.tsx`,
+  `components/admin/admin-login-form.tsx`, `content/admin.ts`,
+  `lib/admin/login-schema.ts`.
+- **The boundary:** there is no auth backend, so nothing can protect an admin
+  page. The form validates and then says plainly that sign-in is not connected;
+  it creates no session and sends nothing anywhere. Only `/admin/login` exists —
+  `/admin` and `/admin/orders` correctly 404, and must keep 404-ing until the
+  backend can reject an unauthenticated request server-side. Logged as GAP-009.
+- **Fabricated security telemetry deliberately not shipped:** the mock's "Node
+  terminal LKI-HQ-04", "Active Operational Handshake", "ENFORCED" badge and
+  "256-Bit Encrypted · Restricted Network" panel. None of it is true, and a
+  badge asserting protection that does not exist trains an operator to read
+  reassurance off the screen instead of the system. Verified: all six strings
+  absent from the built page.
+- **Credential handling:** password lives in form state only — never logged,
+  stored or persisted. `autoComplete="username"` / `"current-password"` so
+  password managers work (blocking them pushes staff toward weaker passwords).
+  No password-complexity rule on *sign-in*: it stops nothing and locks out
+  older valid passwords; complexity belongs where a password is set.
+- **Two layers of search exclusion:** `noindex, nofollow, nocache` on the admin
+  layout plus the existing `Disallow: /admin` in robots.txt — robots.txt is a
+  request to crawlers, not an access control.
+- **Verify:** lint, typecheck, build, format pass. `/admin/login` 200,
+  `/admin` and `/admin/orders` 404, noindex meta present, zero fabricated
+  telemetry, `type="password"`, autocomplete correct, no "Enterprise" in the
+  title.
+- **Next / open threads:** admin dashboards are blocked on real auth (GAP-009).
+  The API contract remains the blocker for everything else.
+
 ## 2026-09-06 — About / heritage page (/about)
 
 - **Done:** Built `/about` from the frames — hero with stat trio and overlapping

@@ -34,6 +34,41 @@
   offer exists at all) and the number resolves itself.
 - **Status:** open — no code change expected
 
+### GAP-009 — Admin area has no authentication, and must stay empty until it does
+
+- **Category:** security
+- **Severity:** critical (if violated)
+- **Location:** `apps/web/src/app/admin/` — only `login/page.tsx` exists.
+  `ADMIN_ROUTES` in `packages/config` names eight more that are unbuilt.
+- **Found:** 2026-09-06 while building the admin sign-in screen
+- **Problem:** There is no auth backend, so nothing can protect an admin page.
+  The sign-in form validates and then states plainly that sign-in is not
+  connected; it creates no session and sends nothing anywhere.
+  **The risk is what gets built next.** Adding `/admin`, `/admin/orders` or
+  `/admin/customers` before authentication exists would put real order and
+  customer data on public URLs — `robots.txt` and `noindex` keep pages out of
+  search results, they do not stop anyone who visits the URL.
+  A client-side guard is not a substitute: anything the browser checks, the
+  browser can be told to skip. Protection has to be server-side.
+- **Fix / rules for whoever continues this:**
+  1. Do not build any admin page that renders real data until the backend
+     provides sessions and the server can reject an unauthenticated request.
+  2. The session belongs in an **httpOnly, Secure, SameSite cookie set by the
+     backend**. If the backend hands back a token for JS-readable storage,
+     record that here as a gap rather than quietly accepting it.
+  3. Authorisation is checked server-side on every admin request, not once at
+     login.
+  4. Rate-limit and log failed sign-ins — the backend's job, but the frontend
+     must surface lockouts rather than retrying silently.
+  5. Keep sign-in errors non-specific; distinguishing "no such account" from
+     "wrong password" lets an attacker enumerate staff addresses.
+- **Deliberately not shipped:** the mock's fabricated security telemetry
+  ("Node terminal LKI-HQ-04", "Active Operational Handshake", an "ENFORCED"
+  badge, "256-Bit Encrypted · Restricted Network"). None of it was true, and a
+  badge asserting protection that does not exist trains an operator to trust the
+  screen over the system — and would keep reassuring after a real compromise.
+- **Status:** open — blocks any further admin work
+
 ### GAP-007 — Regulated and commercially binding claims need owner sign-off
 
 - **Category:** content-risk / legal
