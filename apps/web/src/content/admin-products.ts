@@ -1,4 +1,5 @@
 import { ADMIN_ROUTES } from "@lamiefoods/config";
+import { stockForProduct } from "./admin-inventory";
 import type { ImageSlot } from "./image-slot";
 import { lowestPrice, PRODUCTS } from "./products";
 
@@ -11,7 +12,8 @@ import { lowestPrice, PRODUCTS } from "./products";
  * counts, status) are added here.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * UNVERIFIED: every stock number and the two pipeline products. Neither
+ * UNVERIFIED: the stock figures (which now live in `admin-inventory.ts`, the
+ * single source for them) and the two pipeline products. Neither
  * "Spiced Plantain Crisps" nor "Plateau Honey Glazed" has been confirmed — they
  * come from the mock, and the landing page carries them under the same caveat.
  * Prices are the catalogue's placeholders (GAP-004); the mock quoted different
@@ -37,18 +39,17 @@ export interface AdminProduct {
   pipeline: { chip: string; detail: string; visibility: string } | null;
 }
 
-const LOW_STOCK_THRESHOLD = 25;
-
-/** UNVERIFIED stock counts, keyed by slug. */
-const SAMPLE_STOCK: Record<string, number> = {
-  "milky-velvet-chinchin": 420,
-  "coco-velvet-chinchin": 18,
-  "cinnamon-chinchin": 215,
-};
-
+/**
+ * Stock comes from `admin-inventory.ts`, which holds it per pack size.
+ *
+ * These figures used to be a separate per-product table here, which meant the
+ * two admin screens could report different numbers for the same product. A
+ * product now counts as low stock if ANY of its pack sizes is at or below its
+ * own threshold — which is also what an operator needs to know, since 500g jars
+ * running out is not fixed by a shelf full of 250g pouches.
+ */
 const live: AdminProduct[] = PRODUCTS.map((product, index) => {
-  const stock = SAMPLE_STOCK[product.slug] ?? 0;
-  const low = stock <= LOW_STOCK_THRESHOLD;
+  const { total: stock, low } = stockForProduct(product.slug);
 
   return {
     sku: `LF-CHIN-0${index + 1}`,

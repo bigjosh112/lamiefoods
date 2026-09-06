@@ -17,6 +17,52 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Inventory & kettles (/admin/inventory), dev-gated
+
+- **Done:** Built the stock screen: four derived stat cards, three highlight
+  cards, filter tabs and an eight-line stock table covering every buyable pack
+  size plus packaging materials.
+- **Files:** new `app/admin/(portal)/inventory/page.tsx`,
+  `components/admin/{inventory-view,inventory-table}.tsx`,
+  `content/admin-inventory.ts`; updated `content/admin-products.ts`,
+  `components/admin/admin-nav.tsx`.
+- **Decisions:**
+  - **This module is now the single source of stock.** Rows are generated from
+    `products.ts` × each product's `detail.packaging`, so a pack size cannot
+    appear here that a customer cannot buy, and the imagery is the catalogue's.
+    `admin-products.ts` had its own per-product `SAMPLE_STOCK` table; it now
+    calls `stockForProduct()` instead, so the two screens cannot report
+    different numbers. Products went from 420/18/215 to 420/133/122 (675 total)
+    as a result — the per-pack figures are what the screens now share.
+  - **Low stock is now per pack size**, not per product: a product is flagged if
+    *any* pack is at or below its own threshold. That is what an operator needs
+    — a shelf of 250g pouches does not fix 500g jars running out. Two products
+    are flagged now (Coco Velvet 500g at 18, Cinnamon 500g at 22).
+  - **Quick adjustment is disabled.** It writes authoritative business data;
+    moving the number on screen without saving it would leave the operator
+    believing the count was corrected. The reason is stated under the table.
+  - **Refused from the mock:** "Auto-sync with Paystack orders active" (orders
+    are not connected to stock — same false-capability badge as the rejected
+    "CONNECTED", "LIVE" and "ENFORCED"), "real-time kitchen inventory tracking"
+    (nothing is real-time), "100% SKU fulfilment rate" (nothing measures it),
+    "2 kitchen nodes" (invented infrastructure), and the kettle telemetry
+    "Vessel 03 · Lead Amina · Temp 185°C" — a temperature reads as a live sensor
+    value, and naming an operator beside an invented reading makes it look
+    accountable. Also corrected "Cinnamon Spice Chinchin" to the catalogue's
+    "Cinnamon Chinchin" and the `LFE-` SKU prefix to `LF-`.
+- **Verified:** dev renders 200 with every section; both screens agree (products
+  shows 675 total, 420/133/122, "2 alert"). Production build prerenders the
+  route as a 404 with zero stock strings in the HTML or RSC payload, and no SKU
+  or batch reference anywhere in `/static`. Lint, typecheck, build and
+  `prettier --check` pass. Build and dev checks ran under `NEXT_DIST_DIR` on a
+  spare port.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** last admin screen is settings. Still blocked on the
+  owner: GAP-004 (prices), GAP-007 (allergens, delivery offer), GAP-009 (auth),
+  GAP-010 (messaging consent), and the API contract. Nothing pushed since
+  `f224261`.
+
 ## 2026-09-06 — Customer directory (/admin/customers), dev-gated
 
 - **Done:** Built the customer directory: stat cards, segment tabs, a patron
