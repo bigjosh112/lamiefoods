@@ -17,6 +17,42 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Admin operations dashboard (/admin), dev-gated
+
+- **Done:** Built the dashboard from the frames — sidebar and top bar, four
+  stat cards, a dependency-free SVG revenue chart, best-sellers, stock and
+  ingredients, recent dispatches table, and rider fleet.
+- **Files:** new `app/admin/(portal)/{layout,page}.tsx`,
+  `components/admin/{admin-shell,admin-dashboard,revenue-chart}.tsx`,
+  `content/admin-dashboard.ts`.
+- **Security — the important part.** This page shows revenue, order values,
+  customer names and delivery addresses, and there is still no auth (GAP-009).
+  The route is therefore compiled out of production: the page calls
+  `notFound()` before dynamically importing the dashboard.
+  **A leak was found and closed during verification.** Gating in the layout
+  gave a correct 404, but Next still rendered the page and the whole dashboard
+  tree came back in the **RSC flight payload of that 404** — 39KB, readable
+  with `curl`. Moving the gate into the page ahead of the import fixed it:
+  response now 10KB with zero data strings, and zero admin data in `/static`.
+  Lesson recorded in GAP-009: a status code proves nothing about a payload.
+- **Decisions:**
+  - No charting library — three polylines do not justify a dependency. The
+    chart is inline SVG, `aria-hidden`, with the same numbers in a visually
+    hidden `<table>` so it is not invisible to screen readers.
+  - Controls that would act on real data (date range, CSV export, reorder, log
+    batch) are disabled, not wired to nothing. On an operations screen a button
+    that silently does nothing is worse than one plainly not ready.
+  - Sidebar items other than Dashboard render as disabled — those routes do not
+    exist and would 404.
+  - All data is fictional and the page carries an unmissable banner saying so.
+- **Verify:** lint, typecheck, build, format pass. Production: `/admin` 404s,
+  zero sample data in response or client bundle, other routes unaffected.
+  Development: renders fully — banner, four dispatch rows, stock, fleet, chart
+  and its data table.
+- **Next / open threads:** the remaining admin screens are blocked on real auth.
+  Do not remove the gate except in the same change that adds server-side
+  session checking.
+
 ## 2026-09-06 — Admin sign-in screen (/admin/login)
 
 - **Done:** Built the admin sign-in page and a bare admin layout. Form uses

@@ -67,7 +67,20 @@
   badge, "256-Bit Encrypted · Restricted Network"). None of it was true, and a
   badge asserting protection that does not exist trains an operator to trust the
   screen over the system — and would keep reassuring after a real compromise.
-- **Status:** open — blocks any further admin work
+- **Update 2026-09-06 — dashboard built, gated, and a leak found and closed.**
+  `/admin` now exists but is compiled out of production: the page calls
+  `notFound()` before a dynamic `import()` of the dashboard, so the module is
+  never evaluated when the gate is closed.
+  **The first attempt was not enough and this is the lesson:** gating in the
+  *layout* returned a correct 404, but Next still rendered the page component
+  and the entire dashboard tree — names, addresses, revenue — came back inside
+  the **RSC flight payload of the 404 response** (39KB, greppable with `curl`).
+  A 404 that ships the data anyway is not a gate. Verified after the fix: the
+  response is 10KB with zero data strings, and zero admin data anywhere in
+  `/static`.
+  When wiring real data, gate *before* the fetch, and re-run that curl check —
+  status codes prove nothing about payloads.
+- **Status:** open
 
 ### GAP-007 — Regulated and commercially binding claims need owner sign-off
 
