@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
@@ -23,23 +24,18 @@ export function Manifesto() {
             <ImageSlot slot={MANIFESTO.image} sizes="(min-width: 1024px) 40vw, 100vw" />
           </div>
 
-          {/* Matches card.png: 220x124 (reference 219x124) — max-w-55 plus
-              gutter-md padding lands the height exactly. Anchored to the
-              bottom-right and deliberately breaking the frame, so it overhangs
-              the image's right edge into the column gutter. Stays in flow below
-              lg, right-aligned, so it never buries a phone-width photo. */}
-          <div className="relative -mt-gutter-lg mr-gutter-md ml-auto max-w-55 rounded bg-primary-container p-gutter-md text-linen lg:absolute lg:-right-gutter-xs lg:bottom-gutter-sm lg:mt-0 lg:mr-0">
-            <p className="font-label text-label-caps text-tertiary-fixed uppercase">
-              {MANIFESTO.overlay.eyebrow}
-            </p>
-            <p className="mt-1 font-display text-headline-sm">
-              {MANIFESTO.overlay.lines.map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-            </p>
-          </div>
+          {/* The supplied card artwork, placed as-is rather than rebuilt in
+              markup — its rounded corners are transparent, so it sits cleanly
+              over the photo. Anchored bottom-right and overhanging the image's
+              right edge into the column gutter. Stays in flow below lg,
+              right-aligned, so it never buries a phone-width photo. */}
+          <Image
+            src={MANIFESTO.overlay.src}
+            alt={MANIFESTO.overlay.alt}
+            width={MANIFESTO.overlay.width}
+            height={MANIFESTO.overlay.height}
+            className="relative -mt-gutter-lg mr-gutter-md ml-auto block h-auto w-[13.6875rem] max-w-full lg:absolute lg:-right-gutter-xs lg:bottom-gutter-sm lg:mt-0 lg:mr-0"
+          />
         </Reveal>
 
         <Reveal delay={0.1} className="lg:col-span-7">

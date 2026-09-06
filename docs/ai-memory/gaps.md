@@ -56,6 +56,7 @@
   | `workspace1.png` | Coffee feature | 580px | 612 | 1224 |
   | `chinchin8.png` | Crunch | 616px | 612 | 1224 |
   | `chinchin5.jpg.png` | Hero | 1600px | 1360 | 2720 |
+  | `card.png` | Philosophy card | 219px | 219 | 438 |
 
   Four are short of their slot even at 1x, so they are visibly soft on any
   display; all six are short at 2x, which is most phones and laptops. Verified by
@@ -64,6 +65,12 @@
   feature images, ~1200px for the manifesto portrait, ~2700px for the hero. Source
   format does not matter (`next/image` re-encodes to AVIF; the 2.6MB hero PNG ships
   as 69KB), so favour the largest original available.
+- **Also:** `card.png` is placed as artwork rather than markup at the owner's
+  request, so its wording ("Philosophy — Good food respects the craft.") lives in
+  the pixels. It is carried in `alt`, but it cannot be selected, resized with the
+  browser's text controls, or read as text by search engines, and it will not
+  restyle with the design system. If that matters, rebuild it as markup — the
+  design's line break falls after "respects".
 - **Status:** open
 
 ### GAP-006 — Two supplied images carry baked-in artwork that conflicts with the UI

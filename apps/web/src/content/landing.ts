@@ -87,12 +87,17 @@ export const MANIFESTO = {
     alt: "Lamie Foods chinchin in kraft packaging, held in two hands",
     note: "Packaging photography",
   } satisfies ImageSlot,
-  /* Split across two lines because the design breaks it after "respects".
-     Left to wrap on its own it lands within a pixel of the card's text width
-     and drops to three lines, which is what the local build was doing. */
+  /*
+   * The philosophy card is a supplied image, not markup. Its wording lives in
+   * the artwork, so `alt` has to carry it — that text is invisible to search
+   * engines and to anyone selecting or resizing text. If it should become
+   * real text again, the design's line break falls after "respects".
+   */
   overlay: {
-    eyebrow: "Philosophy",
-    lines: ["Good food respects", "the craft."],
+    src: "/images/card.png",
+    alt: "Philosophy — Good food respects the craft.",
+    width: 219,
+    height: 124,
   },
   /** UNVERIFIED — ingredient and shelf-life claims, not yet confirmed. */
   stats: [
