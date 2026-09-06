@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
 import { Button } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
@@ -198,9 +200,12 @@ export function OrdersTable({
                       />
                     </td>
                     <th scope="row" className="py-3 pr-4 align-top font-normal">
-                      <span className="block font-label text-label-sm text-terracotta">
+                      <Link
+                        href={ADMIN_ROUTES.order(row.id)}
+                        className="block font-label text-label-sm text-terracotta underline-offset-4 hover:underline"
+                      >
                         #{row.id}
-                      </span>
+                      </Link>
                       <span className="block text-body-sm text-nutmeg">{row.kind}</span>
                     </th>
                     <td className="py-3 pr-4 align-top">

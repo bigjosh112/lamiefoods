@@ -17,6 +17,40 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Admin order detail (/admin/orders/[id]), dev-gated
+
+- **Done:** Built the order dossier — header with status and actions, curated
+  line items, totals with payment references, patron dossier, kitchen and
+  dispatch timeline with courier handover, delivery/geolocation panel, and
+  internal notes. Order IDs in the orders table now link through to it.
+- **Files:** new `app/admin/(portal)/orders/[id]/page.tsx`,
+  `components/admin/order-detail-view.tsx`, `content/admin-order-detail.ts`;
+  updated `components/admin/orders-table.tsx`.
+- **Security:** this is the most sensitive screen in the app — one customer's
+  name, email, phone, full delivery address, gate instructions and a courier's
+  number. Same page-level gate before the dynamic import, and detail is built
+  from the sample rows so any of the five opens while an unknown id 404s.
+  Verified in production: all admin routes 404, zero PII in the payload
+  (checked name, email, phone, address, payment refs, courier) and zero in the
+  client bundle. The one "Admiralty" hit in `/static` is the public checkout
+  form's address placeholder, not admin data.
+- **Two changes from the mock, both about not committing realistic secrets:**
+  - It printed a transaction id shaped like a LIVE Paystack reference
+    (`pstk_live_…`). Sample now uses an obviously fake `pstk_sample_` prefix —
+    a live-looking reference in a repo invites someone to treat it as one.
+  - It named a specific bank as the settlement ledger. Which bank the business
+    settles into is real operational detail nobody has told us, so no bank is
+    named.
+  Phones stay in the 0800 000 series and emails use example.com.
+- **Decisions:** every control that would change or send something is disabled
+  — status select, kitchen slip, PDF invoice, message client, call courier,
+  save note. The note renders read-only rather than as a textarea that cannot
+  save. No map: labelled placeholder, since there is no mapping provider.
+- **Verify:** lint, typecheck, build, format pass. Dev: all five sample orders
+  open, `NOT-REAL` 404s.
+- **Next / open threads:** products, customers, inventory and settings remain,
+  all on the same pattern and all blocked on real auth (GAP-009).
+
 ## 2026-09-06 — Admin orders screen (/admin/orders), dev-gated
 
 - **Done:** Built the orders screen — header with actions, four stats, filter
