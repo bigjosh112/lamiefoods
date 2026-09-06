@@ -83,7 +83,7 @@ export const MANIFESTO = {
     "For generations, chin-chin has been relegated to celebratory afterthoughts or cellophane parcels sold on congested expressways. We believe this golden, fragrant pastry deserves the dignity of fine viennoiserie: premium butter, stone-ground nutmeg, and unbleached flour baked with patience.",
   ],
   image: {
-    src: null,
+    src: "/images/chinchin7.png",
     alt: "Lamie Foods chinchin in kraft packaging, held in two hands",
     note: "Packaging photography",
   } satisfies ImageSlot,
@@ -129,7 +129,7 @@ export const CRUNCH = {
   titleLine2: "the crunch.",
   body: "A genuine Lamie chin-chin does not shatter into coarse dry crumbs, nor does it yield to heavy oiliness. The first contact delivers a sharp acoustic snap, quickly giving way to a velvety, sweet-butter crumble infused with warm nutmeg perfume.",
   image: {
-    src: null,
+    src: "/images/chinchin8.png",
     alt: "A piece of chinchin breaking to show its layered interior",
     note: "Macro texture photography",
   } satisfies ImageSlot,
@@ -191,7 +191,7 @@ export const FLAVOURS = {
       price: PLACEHOLDER_PRICE_FROM.coco,
       body: "Toasted coastal coconut shreds folded intimately into sweet-cream butter dough for a fragrant, tropical acoustic crunch.",
       image: {
-        src: null,
+        src: "/images/chinchin10.png",
         alt: "Coco Velvet Chinchin with fresh coconut",
         note: "Product photography",
       } satisfies ImageSlot,
@@ -205,7 +205,7 @@ export const FLAVOURS = {
       price: PLACEHOLDER_PRICE_FROM.cinnamon,
       body: "Freshly milled cinnamon bark and warm whole nutmeg toasted deeply into crisp, satisfying acoustic fragments with a long aromatic finish.",
       image: {
-        src: null,
+        src: "/images/chinchin11.png",
         alt: "Cinnamon Chinchin on a wooden board",
         note: "Product photography",
       } satisfies ImageSlot,
@@ -233,7 +233,7 @@ export const MOMENTS = {
       title: "Quiet tea & coffee companionship",
       body: "A companion to fresh poured pour-over coffee or slow-steeped ginger infusion. The buttery notes dissolve effortlessly into hot drinks without softening prematurely.",
       image: {
-        src: null,
+        src: "/images/workspace1.png",
         alt: "A bowl of chinchin beside a cup of coffee on a table",
         note: "Lifestyle photography",
       } satisfies ImageSlot,

@@ -38,6 +38,55 @@
   from `page.tsx` for the same reason — add it once pricing is real.
 - **Status:** open — blocks public launch
 
+### GAP-005 — Supplied photography is below the resolution its slots need
+
+- **Category:** asset-quality
+- **Severity:** medium
+- **Location:** `apps/web/public/images/` — wired in `apps/web/src/content/landing.ts`.
+- **Found:** 2026-09-06 when the first six images were supplied
+- **Problem:** `next/image` caps output at the source width — it never upscales —
+  so a small source stays small and the browser stretches it. Measured against each
+  slot's desktop CSS width (1360px envelope):
+
+  | image | slot | source | CSS px | needs @2x |
+  |---|---|---|---|---|
+  | `chinchin10.png` | Coco card | 310px | 408 | 816 |
+  | `chinchin11.png` | Cinnamon card | 310px | 408 | 816 |
+  | `chinchin7.png` | Manifesto | 444px | 612 | 1224 |
+  | `workspace1.png` | Coffee feature | 580px | 612 | 1224 |
+  | `chinchin8.png` | Crunch | 616px | 612 | 1224 |
+  | `chinchin5.jpg.png` | Hero | 1600px | 1360 | 2720 |
+
+  Four are short of their slot even at 1x, so they are visibly soft on any
+  display; all six are short at 2x, which is most phones and laptops. Verified by
+  requesting `w=1920` from the optimiser and getting 310px back.
+- **Fix:** Re-export at roughly 2x the CSS width — ~1600px for product cards and
+  feature images, ~1200px for the manifesto portrait, ~2700px for the hero. Source
+  format does not matter (`next/image` re-encodes to AVIF; the 2.6MB hero PNG ships
+  as 69KB), so favour the largest original available.
+- **Status:** open
+
+### GAP-006 — Two supplied images carry baked-in artwork that conflicts with the UI
+
+- **Category:** asset-quality · content-risk
+- **Severity:** medium
+- **Location:** `apps/web/public/images/chinchin11.png`, `chinchin7.png`
+- **Found:** 2026-09-06
+- **Problem:** Two separate issues:
+  1. `chinchin11.png` (Cinnamon card) has an **"AROMATIC HEARTH" badge rendered into
+     the pixels** at top-left, exactly where `flavours.tsx` positions its own badge
+     component — they overlap. It also shows a laptop displaying a mocked-up Lamie
+     Foods website, so it reads as a marketing render rather than product photography.
+  2. `chinchin7.png` (Manifesto) shows packaging labelled **"LAMIE FOODS
+     ENTERPRISE"** — the exact name that must not appear customer-facing. The code
+     avoids that name everywhere, but the photograph reintroduces it.
+- **Fix:** Re-export `chinchin11` without the baked-in badge and laptop; the UI
+  supplies the badge. For `chinchin7`, either photograph current packaging that uses
+  the customer-facing name, or crop so the label is not legible. If the physical
+  packaging genuinely reads "Enterprise", that is an owner decision about brand
+  consistency, not something to solve in code.
+- **Status:** open — needs owner input
+
 ### GAP-001 — No test runner or test infrastructure in any workspace
 
 - **Category:** tests

@@ -17,6 +17,26 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Wired the first supplied photography
+
+- **Done:** Placed all six supplied images into their matching slots after viewing
+  each one (filenames were not reliable — `workspace1.png` is a coffee-and-notebook
+  scene, so it went to the tea & coffee card, not the desk one). Hero, manifesto,
+  crunch, Coco card, Cinnamon card and the coffee feature now use real photography.
+- **Files:** `apps/web/src/content/landing.ts` (six `src` values), images in
+  `apps/web/public/images/`.
+- **Still on placeholders:** Milky Velvet product card, and the desk/laptop
+  lifestyle card — no matching asset supplied.
+- **Verify:** build, lint, typecheck, format all pass; production server confirms all
+  six images render through `next/image` as AVIF and exactly two labelled
+  placeholders remain.
+- **Gaps:** opened **GAP-005** (every image is below its slot's resolution; four are
+  soft even at 1x) and **GAP-006** (`chinchin11` has a badge baked into the pixels
+  that collides with the UI badge; `chinchin7` shows packaging reading "LAMIE FOODS
+  ENTERPRISE").
+- **Next / open threads:** Higher-resolution re-exports, two remaining images, then
+  GAP-004 (confirm the mock's invented prices and claims) before any public deploy.
+
 ## 2026-09-05 — Landing page + design system v2
 
 - **Done:** Replaced the design system with **"Artisanal West African Confectionery"**
