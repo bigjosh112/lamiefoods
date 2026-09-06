@@ -108,19 +108,20 @@ export function SiteFooter() {
         <DevPreviewLinks />
 
         <div className="mt-gutter-lg flex flex-wrap items-center justify-between gap-gutter-sm border-t border-rule/70 pt-gutter-md">
-          <p className="text-body-sm text-nutmeg">
-            © {year} {BRAND.displayName}. All rights reserved.
+          <p className="flex flex-wrap items-center gap-gutter-sm text-body-sm text-nutmeg">
+            <span>
+              © {year} {BRAND.displayName}. All rights reserved.
+            </span>
+            {/* Staff entrance. Kept out of the header's account icon, which on a
+                storefront means "customer account" and will be needed for that. */}
+            <Link
+              href={ADMIN_ROUTES.login}
+              className="transition-colors hover:text-terracotta"
+            >
+              Staff sign-in
+            </Link>
           </p>
-          {/* Staff entrance. Deliberately here and not on the account icon in
-              the header: on a storefront that icon means "customer account",
-              and pointing it at a staff portal would confuse customers and
-              have to be undone once customer accounts exist. */}
-          <Link
-            href={ADMIN_ROUTES.login}
-            className="text-body-sm text-nutmeg transition-colors hover:text-terracotta"
-          >
-            Staff sign-in
-          </Link>
+          <p className="text-body-sm text-nutmeg">{FOOTER.credit}</p>
         </div>
       </div>
     </footer>

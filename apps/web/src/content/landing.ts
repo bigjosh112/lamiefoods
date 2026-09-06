@@ -264,6 +264,8 @@ export const FINAL_CTA = {
 
 export const FOOTER = {
   tagline: BRAND.tagline,
+  /** Build credit, confirmed by the owner. Plain text — no URL supplied. */
+  credit: "Website by Basil Studio",
   body: "An artisanal West African pastry house dedicated to elevating the time-honoured chin-chin tradition. Prepared in conscientious small batches with golden butter, aromatic spices, and warm hospitality.",
   /**
    * Only Instagram is confirmed. The mock invented an email address and a
