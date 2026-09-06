@@ -34,13 +34,26 @@ export function Section({
  */
 export function Eyebrow({
   className,
+  withRule = false,
   children,
 }: {
   className?: string;
+  /** Draws the short terracotta rule the design sets before left-aligned
+   *  eyebrows. Centred eyebrows in the frames do not have it, so it is opt-in. */
+  withRule?: boolean;
   children: ReactNode;
 }) {
   return (
-    <p className={cn("font-label text-label-caps text-terracotta uppercase", className)}>
+    <p
+      className={cn(
+        "font-label text-label-caps text-terracotta uppercase",
+        withRule && "flex items-center gap-gutter-xs",
+        className,
+      )}
+    >
+      {withRule && (
+        <span aria-hidden="true" className="h-px w-6 shrink-0 bg-terracotta" />
+      )}
       {children}
     </p>
   );

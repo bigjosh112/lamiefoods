@@ -23,7 +23,11 @@ export function Manifesto() {
             <ImageSlot slot={MANIFESTO.image} sizes="(min-width: 1024px) 40vw, 100vw" />
           </div>
 
-          <div className="relative -mt-gutter-lg ml-gutter-md max-w-xs rounded bg-primary-container p-gutter-md text-linen lg:absolute lg:bottom-gutter-md lg:left-gutter-md lg:mt-0 lg:ml-0">
+          {/* 194.97 x 100 in the frame, both hugging their content — 0.44 of the
+              image width. Capped at that width so the text wraps to two lines
+              exactly as the design does; without the cap it stretches to 0.72 of
+              the image and reads as a banner rather than a caption. */}
+          <div className="relative -mt-gutter-lg ml-gutter-md max-w-48.75 rounded bg-primary-container p-gutter-sm text-linen lg:absolute lg:bottom-gutter-md lg:left-gutter-md lg:mt-0 lg:ml-0 lg:min-h-25">
             <p className="font-label text-label-caps text-tertiary-fixed uppercase">
               {MANIFESTO.overlay.eyebrow}
             </p>
@@ -32,7 +36,7 @@ export function Manifesto() {
         </Reveal>
 
         <Reveal delay={0.1} className="lg:col-span-7">
-          <Eyebrow>{MANIFESTO.eyebrow}</Eyebrow>
+          <Eyebrow withRule>{MANIFESTO.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{MANIFESTO.title}</h2>
           {MANIFESTO.body.map((paragraph) => (
             <p
@@ -43,7 +47,7 @@ export function Manifesto() {
             </p>
           ))}
 
-          <dl className="mt-gutter-lg grid gap-gutter-md border-t border-rule/70 pt-gutter-md sm:grid-cols-3">
+          <dl className="mt-gutter-lg grid gap-gutter-md rounded bg-surface p-gutter-md sm:grid-cols-3">
             {MANIFESTO.stats.map((stat) => (
               <div key={stat.label}>
                 <dt className="sr-only">{stat.label}</dt>
