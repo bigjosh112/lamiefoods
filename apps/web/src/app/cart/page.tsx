@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { CartRecommendations } from "@/components/cart/cart-recommendations";
+import { ProductSuggestions } from "@/components/product/product-suggestions";
 import { CartView } from "@/components/cart/cart-view";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { CART } from "@/content/cart";
@@ -43,7 +43,13 @@ export default function CartPage() {
           </div>
         </Section>
 
-        <CartRecommendations />
+        <ProductSuggestions
+          className="bg-surface-container-low"
+          excludeInBag
+          eyebrow={CART.recommendations.eyebrow}
+          title={CART.recommendations.title}
+          linkLabel={CART.recommendations.link}
+        />
       </main>
 
       <SiteFooter />

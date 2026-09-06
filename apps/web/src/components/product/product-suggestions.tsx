@@ -6,38 +6,58 @@ import { Button, StoryLink } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
-import { CART } from "@/content/cart";
 import { lowestPrice, PRODUCTS } from "@/content/products";
 import { formatKobo } from "@/lib/money";
 import { useCart, useCartActions } from "@/lib/cart/use-cart";
 
 /**
- * Suggested additions, drawn from the real catalogue.
+ * "You might also like" row, shared by the cart and the order confirmation —
+ * the two places the design asks for it. The only differences are the wording
+ * and which products to leave out, so those are props rather than a second copy
+ * of the component.
  *
- * The mock filled this row with three products the brand does not sell
- * ("Nutmeg Reserve Batch", "Wild Honey Glazed Batch", "Twin Heritage Gift Jar").
- * Advertising items that cannot be bought is worse than showing fewer, so this
- * shows the real range, minus whatever is already in the bag.
+ * Products come from the real catalogue. Both mocks filled this row with items
+ * the brand does not sell ("Nutmeg Reserve Crunch", "Heritage Trio Collection"),
+ * and advertising something unbuyable is worse than showing fewer cards.
  */
-export function CartRecommendations() {
-  const { lines } = useCart();
+export function ProductSuggestions({
+  eyebrow,
+  title,
+  linkLabel,
+  ctaLabel = "Add",
+  exclude = [],
+  excludeInBag = false,
+  className,
+}: {
+  eyebrow: string;
+  title: string;
+  linkLabel: string;
+  ctaLabel?: string;
+  /** Slugs to omit. */
+  exclude?: string[];
+  /** Also hide anything already in the bag — used on the cart page. */
+  excludeInBag?: boolean;
+  className?: string;
+}) {
   const { addLine } = useCartActions();
-  const inBag = new Set(lines.map((line) => line.slug));
-  const suggestions = PRODUCTS.filter((product) => !inBag.has(product.slug));
+  const { lines } = useCart();
+  const hidden = new Set([
+    ...exclude,
+    ...(excludeInBag ? lines.map((line) => line.slug) : []),
+  ]);
+  const suggestions = PRODUCTS.filter((product) => !hidden.has(product.slug));
 
   if (suggestions.length === 0) return null;
 
   return (
-    <Section className="bg-surface-container-low">
+    <Section className={className}>
       <div className="flex flex-wrap items-end justify-between gap-gutter-md">
         <div>
-          <Eyebrow>{CART.recommendations.eyebrow}</Eyebrow>
-          <h2 className="mt-gutter-sm text-headline-lg text-cacao">
-            {CART.recommendations.title}
-          </h2>
+          <Eyebrow>{eyebrow}</Eyebrow>
+          <h2 className="mt-gutter-sm text-headline-lg text-cacao">{title}</h2>
         </div>
         <StoryLink href={ROUTES.shop}>
-          {CART.recommendations.link}
+          {linkLabel}
           <ArrowRightIcon className="h-4 w-4" />
         </StoryLink>
       </div>
@@ -61,10 +81,7 @@ export function CartRecommendations() {
               </div>
 
               <div className="flex flex-1 flex-col p-inset-card">
-                <p className="font-label text-label-sm text-tertiary uppercase">
-                  {product.kicker}
-                </p>
-                <h3 className="mt-1 text-headline-sm text-cacao">
+                <h3 className="text-headline-sm text-cacao">
                   <Link
                     href={ROUTES.product(product.slug)}
                     className="transition-colors hover:text-terracotta"
@@ -84,10 +101,10 @@ export function CartRecommendations() {
                     <Button
                       variant="secondary"
                       onClick={() => addLine(product.slug, pack.name)}
-                      aria-label={`Add ${product.name}, ${pack.name}, to bag`}
+                      aria-label={`${ctaLabel}: ${product.name}, ${pack.name}`}
                     >
                       <BagIcon className="h-4 w-4" />
-                      Add
+                      {ctaLabel}
                     </Button>
                   )}
                 </div>

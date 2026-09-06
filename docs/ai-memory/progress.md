@@ -17,6 +17,44 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Order confirmation (/order-success)
+
+- **Done:** Built the confirmation page from the frames — reference, line items,
+  totals, dispatch details, status progress, tracking panel and pairings row.
+  Extracted `ProductSuggestions` so the cart and this page share one component.
+- **Files:** new `app/order-success/page.tsx`,
+  `components/order/order-confirmation.tsx`,
+  `components/product/product-suggestions.tsx`, `content/order-success.ts`,
+  `lib/orders/sample-order.ts`; updated `app/cart/page.tsx`; deleted
+  `components/cart/cart-recommendations.tsx` (superseded).
+- **The central decision:** there is no real order to show — checkout does not
+  submit, no ordering API exists, Paystack is not integrated. A page reading
+  "Paid via Paystack · Total ₦16,100" is the single most damaging thing to fake
+  on this site, because a customer would reasonably believe it. So:
+  - A normal visit to `/order-success` shows **"No order to show"**, and says
+    plainly that ordering is not live and nothing has been charged.
+  - `?preview=1` renders a sample behind a **loud, non-dismissible banner** so
+    the layout stays reviewable.
+  - Verified: a default visit leaks no total and no "Paid via Paystack".
+- **Ready for real data:** `OrderConfirmation` takes an `Order` from
+  `@lamiefoods/types` as a prop and does not fetch. When the endpoint lands,
+  read the reference from the query, fetch, pass it in — no reshaping. Sample
+  prices come from the catalogue, so the sample cannot contradict the shop.
+  Status progress is derived from `order.status`, never hardcoded.
+- **Not shipped, because the claim would be false:** the payment authorisation
+  token, "SMS & WhatsApp alerts synced" and kitchen photo updates (no
+  notification system), the PDF receipt (nothing generates one — the control is
+  disabled with a note), and "10% off your next batch" for tagging Instagram (a
+  discount the owner has never offered).
+- **Verify:** lint, typecheck, build, format pass. Both states render, one `h1`,
+  robots disallows the route, receipt control disabled, and the sample's totals
+  (₦7,200 + ₦5,800 = ₦13,000) match the catalogue and the cart page.
+  **Not verified by me:** interactive behaviour needs a browser (GAP-001).
+- **Next / open threads:** the customer funnel is now complete end-to-end as far
+  as it can go without a backend. The blocker for everything further is the API
+  contract — see the PENDING section in `api-integration.md`. GAP-004 and
+  GAP-007 still block a public launch.
+
 ## 2026-09-06 — Guest checkout (/checkout) on RHF + zod + zustand
 
 - **Done:** Built `/checkout` from the frames — two numbered steps (contact,
