@@ -17,6 +17,26 @@ import { ADMIN_NAV_SECTIONS } from "@/content/admin-dashboard";
  *
  * Routes that do not exist yet render disabled rather than as links to a 404.
  */
+
+const ALL_HREFS = ADMIN_NAV_SECTIONS.flatMap((section) =>
+  section.items.map((item) => item.href),
+);
+
+/**
+ * Which nav item the current route belongs to.
+ *
+ * Nested routes highlight their section, so `/admin/products/new` and
+ * `/admin/orders/LF-1042` do not leave the sidebar looking as though nothing is
+ * selected. Two details matter: the `/` boundary, or "/admin/orders" would also
+ * match "/admin/orders-archive"; and taking the *longest* match, or the
+ * dashboard at "/admin" — a prefix of every other admin route — would light up
+ * on every page.
+ */
+function activeHref(pathname: string): string | undefined {
+  return ALL_HREFS.filter(
+    (href) => pathname === href || pathname.startsWith(`${href}/`),
+  ).sort((a, b) => b.length - a.length)[0];
+}
 const BUILT_ROUTES: string[] = [
   ADMIN_ROUTES.dashboard,
   ADMIN_ROUTES.orders,
@@ -25,6 +45,7 @@ const BUILT_ROUTES: string[] = [
 
 export function AdminNav() {
   const pathname = usePathname();
+  const current = activeHref(pathname);
 
   return (
     <div className="flex gap-gutter-md lg:block lg:space-y-4">
@@ -37,7 +58,7 @@ export function AdminNav() {
             {section.items.map((item) => {
               const Icon = ICONS[item.icon];
               const built = BUILT_ROUTES.includes(item.href);
-              const active = pathname === item.href;
+              const active = item.href === current;
 
               const shared =
                 "flex min-h-11 items-center gap-gutter-xs rounded px-gutter-sm font-label text-label-md whitespace-nowrap";

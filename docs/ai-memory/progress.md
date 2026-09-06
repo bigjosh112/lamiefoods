@@ -17,6 +17,53 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Create-product form (/admin/products/new), dev-gated
+
+- **Done:** Built the create-product screen: three numbered sections (identity,
+  sensory profile, formulation) plus photography, packaging tiers, stock and
+  visibility panels. react-hook-form + zod + `useFieldArray` for the tiers, so
+  validation, tasting-note chips, the crunch slider, adding/removing pack sizes
+  and every toggle genuinely work.
+- **Files:** new `app/admin/(portal)/products/new/page.tsx`,
+  `components/admin/{new-product-view,product-form}.tsx`,
+  `content/admin-new-product.ts`, `lib/admin/product-schema.ts`; updated
+  `content/admin-products.ts`, `components/admin/{products-view,admin-nav}.tsx`.
+- **Decisions:**
+  - **Allergens are not optional.** The schema refuses to validate unless the
+    operator ticks the allergens that apply *or* explicitly confirms none do.
+    Publishing a food product with no allergen decision recorded is the exact
+    failure GAP-007 describes.
+  - Submit validates and then says plainly that nothing was saved — there is no
+    catalogue service. Consistent with every other admin write control.
+  - **Refused from the mock:** a "Paystack realtime settlement — CONNECTED"
+    badge (Paystack is connected to nothing) and an "Atelier authenticity seal —
+    generating SHA-256 verifiable batch stamp" (nothing generates one). Same
+    category as the already-rejected "ENFORCED" and "LIVE" badges. Verified
+    absent from the rendered page.
+  - Rich-text toolbar is rendered disabled over a working plain textarea rather
+    than adding an editor dependency.
+  - `useWatch` instead of `watch()` — the React Compiler bails out on the
+    function `watch()` returns (lint warning, now clean).
+- **Consistency fix:** `AdminNav` matched routes with `===`, so nested pages
+  (`/admin/products/new`, `/admin/orders/<id>`) highlighted nothing. It now takes
+  the **longest** matching href — a plain prefix match would have lit up the
+  dashboard (`/admin`) on every admin page. Verified: exactly one active item on
+  `/admin`, `/admin/products`, `/admin/products/new`, `/admin/orders`,
+  `/admin/orders/LF-84291`.
+- **Verified:** dev renders 200 with all sections present; production build
+  prerenders the route as a 404 with **zero** form strings in the HTML or RSC
+  payload (the gate runs before the dynamic import). Lint, typecheck, build and
+  `prettier --check` all pass. Build ran under `NEXT_DIST_DIR` so no dev server
+  was disturbed.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** none opened; GAP-007 annotated (this form is where the real allergen
+  declaration gets captured).
+- **Next / open threads:** remaining admin screens — customers, inventory,
+  settings. Still blocked on the owner: GAP-004 (prices), GAP-007 (allergens and
+  the invented free-delivery line), GAP-009 (auth), and the API contract.
+  Nothing has been pushed since `f224261` by the owner's standing instruction;
+  `main` is 10 commits ahead of `origin/main` after this one.
+
 ## 2026-09-06 — Admin products & SKUs (/admin/products), dev-gated
 
 - **Done:** Built the catalogue screen — header actions, four stat cards with a

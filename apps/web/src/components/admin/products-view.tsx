@@ -1,6 +1,6 @@
 import { cn } from "@lamiefoods/ui";
 import { ProductsList } from "@/components/admin/products-list";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
 import {
   ADMIN_PRODUCTS,
@@ -54,12 +54,16 @@ export function ProductsView() {
         <div className="flex flex-wrap justify-end gap-gutter-xs">
           {PRODUCTS_PAGE.actions.map((action) => {
             const Icon = ICONS[action.icon];
-            return (
-              <Button
-                key={action.label}
-                variant={action.primary ? "primary" : "secondary"}
-                disabled
-              >
+
+            // Only the action that leads somewhere real is a link; exporting
+            // needs a catalogue service, so it stays disabled.
+            return action.href ? (
+              <ButtonLink key={action.label} href={action.href}>
+                <Icon className="h-4 w-4" />
+                {action.label}
+              </ButtonLink>
+            ) : (
+              <Button key={action.label} variant="secondary" disabled>
                 <Icon className="h-4 w-4" />
                 {action.label}
               </Button>

@@ -1,3 +1,4 @@
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import type { ImageSlot } from "./image-slot";
 import { lowestPrice, PRODUCTS } from "./products";
 
@@ -113,8 +114,13 @@ export const PRODUCTS_PAGE = {
   title: "Product Catalogue & SKU Management",
   body: "Manage active chinchin flavours, sizes, pricing, and pipeline products.",
   actions: [
-    { label: "Export matrix", icon: "box" as const, primary: false },
-    { label: "Add new product", icon: "gift" as const, primary: true },
+    { label: "Export matrix", icon: "box" as const, primary: false, href: null },
+    {
+      label: "Add new product",
+      icon: "gift" as const,
+      primary: true,
+      href: `${ADMIN_ROUTES.products}/new`,
+    },
   ],
   searchPlaceholder: "Search by product title, SKU or flavour profile",
 };

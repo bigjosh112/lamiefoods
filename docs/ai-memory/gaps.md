@@ -120,6 +120,15 @@
 - **Fix:** Owner supplies the real allergen statement (and confirms whether eggs
   are an ingredient — the landing and product copy disagree), then set
   `allergens` per product. Separately, confirm or delete the delivery offer.
+- **Update 2026-09-06 — the capture point now exists.** `/admin/products/new`
+  has an allergen register, and `lib/admin/product-schema.ts` makes it
+  **non-optional**: the form will not validate unless the operator ticks the
+  allergens that apply or explicitly confirms none do. Silence is not an
+  accepted answer, because a product published with no allergen decision
+  recorded is precisely this gap. When the catalogue API arrives, the backend
+  must enforce the same rule — a browser-side check is a convenience, not a
+  control. This does not close the gap: the three existing products still carry
+  `allergens: null`, and nothing about the invented delivery offer has changed.
 - **Status:** open — blocks public launch alongside GAP-004
 
 ### GAP-004 — Landing page ships unverified product claims from the design mock
