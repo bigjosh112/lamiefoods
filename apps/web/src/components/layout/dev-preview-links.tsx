@@ -16,6 +16,7 @@ import Link from "next/link";
 const PREVIEW_LINKS = [
   { label: "Order confirmation (sample)", href: "/order-success?preview=1" },
   { label: "Order confirmation (empty state)", href: "/order-success" },
+  { label: "Admin sign-in", href: "/admin/login" },
 ];
 
 export function DevPreviewLinks() {

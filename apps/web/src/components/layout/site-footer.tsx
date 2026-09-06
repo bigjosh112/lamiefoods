@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BRAND } from "@lamiefoods/config";
+import { ADMIN_ROUTES, BRAND } from "@lamiefoods/config";
 import { DevPreviewLinks } from "@/components/layout/dev-preview-links";
 import { ICONS } from "@/components/ui/icons";
 import { FOOTER } from "@/content/landing";
@@ -107,10 +107,20 @@ export function SiteFooter() {
 
         <DevPreviewLinks />
 
-        <div className="mt-gutter-lg border-t border-rule/70 pt-gutter-md">
+        <div className="mt-gutter-lg flex flex-wrap items-center justify-between gap-gutter-sm border-t border-rule/70 pt-gutter-md">
           <p className="text-body-sm text-nutmeg">
             © {year} {BRAND.displayName}. All rights reserved.
           </p>
+          {/* Staff entrance. Deliberately here and not on the account icon in
+              the header: on a storefront that icon means "customer account",
+              and pointing it at a staff portal would confuse customers and
+              have to be undone once customer accounts exist. */}
+          <Link
+            href={ADMIN_ROUTES.login}
+            className="text-body-sm text-nutmeg transition-colors hover:text-terracotta"
+          >
+            Staff sign-in
+          </Link>
         </div>
       </div>
     </footer>
