@@ -32,7 +32,8 @@ export const baseConfig = [
       "node_modules/**",
       "dist/**",
       ".next/**",
-      ".next-verify/**",
+      // Any NEXT_DIST_DIR variant, not just the one verification builds use.
+      ".next-*/**",
       ".turbo/**",
       "*.config.js",
     ],

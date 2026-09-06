@@ -39,5 +39,7 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 
-# verification builds (kept out of the dev server's .next)
-.next-verify/
+# verification builds (kept out of the dev server's .next). Glob, not a single
+# name: any NEXT_DIST_DIR used to build or serve without disturbing a running
+# dev server should be covered without editing this file again.
+.next-*/

@@ -14,7 +14,10 @@ export const nextConfig = [
   {
     // .next-verify is the isolated build output (NEXT_DIST_DIR) — generated
     // code, same as .next, and must not be linted.
-    ignores: [".next/**", ".next-verify/**", "next-env.d.ts"],
+    // `.next-*` covers any NEXT_DIST_DIR used for a verification build or a
+    // second dev server; linting a build output produces thousands of errors
+    // from bundled dependencies and drowns out real ones.
+    ignores: [".next/**", ".next-*/**", "next-env.d.ts"],
   },
 ];
 

@@ -17,6 +17,63 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Settings (/admin/settings), dev-gated — designed, no mock
+
+- **Done:** Designed and built the settings screen from the admin's own
+  patterns; there was no mock for this one. Five tabbed panels (Brand,
+  Storefront, Delivery & payment, Environment, Team & access) plus a "Before
+  launch" readiness list.
+- **Files:** new `app/admin/(portal)/settings/page.tsx`,
+  `components/admin/{settings-view,settings-tabs}.tsx`,
+  `content/admin-settings.ts`; updated `packages/config/src/routes.ts`,
+  `content/admin-dashboard.ts`, `components/admin/admin-nav.tsx`,
+  `packages/eslint-config/{base,next}.js`, `.gitignore`.
+- **The central decision:** a settings screen is *entirely* writes, so with no
+  backend every editor would be disabled and the page would be dead. It is
+  instead built as a **truthful read-out of what actually configures the site**
+  — the first admin screen whose data is real, not sample. Brand facts come from
+  `packages/config`, the catalogue from `products.ts`, stock lines from
+  `admin-inventory.ts`, and the environment from the validated `config/env.ts`.
+  A settings page showing invented values would be worse than no page: it would
+  tell the owner the site is configured in ways it is not.
+- **Other decisions:**
+  - Each panel names the **file its values live in**, so "why can't I edit
+    this?" is answered on screen rather than by a disabled input with no
+    explanation.
+  - The environment panel reports **presence, never values**. The only value
+    printed in full is the site URL, which is public by definition and already
+    in every canonical link. It also carries the rule that anything prefixed
+    `NEXT_PUBLIC_` is readable by every visitor.
+  - **"Before launch"** surfaces the open gaps (GAP-004, 007, 009, 010 and the
+    missing API contract) with who can answer each. `gaps.md` stays the record of
+    account — this list must be kept in step with it — but the owner is the only
+    person who can resolve most of them and will never read a file in a repo.
+  - **Not built, all of it invention:** a delivery-fee table (fees are not
+    finalised, and a fee on a settings screen is a fee someone will quote), a
+    tax/VAT rate, a settlement bank account, a roles-and-permissions matrix
+    (there are no accounts, and a permissions grid implies enforcement that
+    exists nowhere), and notification toggles (nothing can send). Each absence
+    is listed on the page as "not configured" rather than hidden.
+  - `SettingsTabs` is the smallest possible client component — it owns the
+    active tab and nothing else; panels are server-rendered and passed in as
+    `content`, so no settings value reaches a client bundle.
+  - Added `ADMIN_ROUTES.settings`; the nav had it hardcoded.
+- **Tooling fix:** ESLint ignored `.next-verify` by exact name, so the
+  `.next-devcheck` dir used for an isolated dev server got linted — 7,024
+  problems from bundled dependencies. Both eslint configs and `.gitignore` now
+  use `.next-*`, covering any `NEXT_DIST_DIR`.
+- **Verified:** dev renders 200 with all five panels mounted and four hidden;
+  nav highlights `/admin/settings`; no "Enterprise" string anywhere. Production
+  build prerenders a 404 with zero settings strings in the HTML or RSC payload
+  (the only match was the site-wide tagline in the meta description, present on
+  every page), and nothing in `/static`. Lint, typecheck, build and
+  `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** every admin screen in `ADMIN_ROUTES` is now built.
+  Still blocked on the owner: GAP-004, GAP-007, GAP-009, GAP-010 and the API
+  contract. Nothing pushed since `f224261`.
+
 ## 2026-09-06 — Inventory & kettles (/admin/inventory), dev-gated
 
 - **Done:** Built the stock screen: four derived stat cards, three highlight
