@@ -23,15 +23,22 @@ export function Manifesto() {
             <ImageSlot slot={MANIFESTO.image} sizes="(min-width: 1024px) 40vw, 100vw" />
           </div>
 
-          {/* 194.97 x 100 in the frame, both hugging their content — 0.44 of the
-              image width. Capped at that width so the text wraps to two lines
-              exactly as the design does; without the cap it stretches to 0.72 of
-              the image and reads as a banner rather than a caption. */}
-          <div className="relative -mt-gutter-lg ml-gutter-md max-w-48.75 rounded bg-primary-container p-gutter-sm text-linen lg:absolute lg:bottom-gutter-md lg:left-gutter-md lg:mt-0 lg:ml-0 lg:min-h-25">
+          {/* Matches card.png: 220x124 (reference 219x124) — max-w-55 plus
+              gutter-md padding lands the height exactly. Anchored to the
+              bottom-right and deliberately breaking the frame, so it overhangs
+              the image's right edge into the column gutter. Stays in flow below
+              lg, right-aligned, so it never buries a phone-width photo. */}
+          <div className="relative -mt-gutter-lg mr-gutter-md ml-auto max-w-55 rounded bg-primary-container p-gutter-md text-linen lg:absolute lg:-right-gutter-xs lg:bottom-gutter-sm lg:mt-0 lg:mr-0">
             <p className="font-label text-label-caps text-tertiary-fixed uppercase">
               {MANIFESTO.overlay.eyebrow}
             </p>
-            <p className="mt-1 font-display text-headline-sm">{MANIFESTO.overlay.text}</p>
+            <p className="mt-1 font-display text-headline-sm">
+              {MANIFESTO.overlay.lines.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+            </p>
           </div>
         </Reveal>
 
