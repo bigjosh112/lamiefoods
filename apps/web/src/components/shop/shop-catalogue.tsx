@@ -72,8 +72,7 @@ export function ShopCatalogue() {
       </ul>
 
       <p id="shop-actions-note" className="mt-gutter-md text-body-sm text-nutmeg">
-        Ordering opens when our checkout goes live. Product pages and the bag are on the
-        way.
+        Ordering opens when our checkout goes live.
       </p>
     </>
   );

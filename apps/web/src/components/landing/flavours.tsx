@@ -56,22 +56,19 @@ export function Flavours() {
                   {item.body}
                 </p>
 
-                {/* Was linking to /shop/[slug], which does not exist and 404s.
-                    Until product pages ship, the card sends people to the shop,
-                    which is real. */}
                 <div className="mt-gutter-md flex gap-gutter-xs">
                   <ButtonLink
-                    href={ROUTES.shop}
+                    href={ROUTES.product(item.slug)}
                     className="flex-1"
-                    aria-label={`See ${item.name} in the shop`}
+                    aria-label={`View details for ${item.name}`}
                   >
-                    View in shop
+                    View details
                   </ButtonLink>
                   <ButtonLink
-                    href={ROUTES.shop}
+                    href={ROUTES.product(item.slug)}
                     variant="secondary"
                     className="w-11 shrink-0 px-0"
-                    aria-label={`See ${item.name} in the shop`}
+                    aria-label={`View details for ${item.name}`}
                   >
                     <EyeIcon className="h-4 w-4" />
                   </ButtonLink>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useId, useState } from "react";
+import { ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { CRUNCH_MAX, type Product } from "@/content/products";
@@ -14,9 +15,9 @@ import { CRUNCH_MAX, type Product } from "@/content/products";
  * is real local state, not a stand-in for a backend. Everything else about the
  * card is static.
  *
- * "Add to bag" and "View details" are deliberately disabled: there is no cart,
- * and `/shop/[slug]` does not exist yet, so enabling them would either do
- * nothing or send the customer to a 404. The grid carries one note explaining
+ * "View details" links through to the product page. "Add to bag" stays
+ * disabled — there is no cart, and a button that silently does nothing is worse
+ * than one that is honestly unavailable. The grid carries one note explaining
  * this rather than each card repeating it.
  */
 export function ProductCard({ product }: { product: Product }) {
@@ -115,14 +116,13 @@ export function ProductCard({ product }: { product: Product }) {
             <BagIcon className="h-4 w-4" />
             Add to bag
           </Button>
-          <Button
+          <ButtonLink
+            href={ROUTES.product(product.slug)}
             variant="secondary"
-            disabled
-            aria-describedby="shop-actions-note"
             aria-label={`View details for ${product.name}`}
           >
             View details
-          </Button>
+          </ButtonLink>
         </div>
       </div>
     </li>

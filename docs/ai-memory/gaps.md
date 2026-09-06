@@ -17,6 +17,33 @@
 
 <!-- Newest gaps at top of their severity group. Keep critical/high at the top of the file. -->
 
+### GAP-007 — Regulated and commercially binding claims need owner sign-off
+
+- **Category:** content-risk / legal
+- **Severity:** high
+- **Location:** `apps/web/src/content/products.ts` (`detail.ingredients.allergens`,
+  set to `null` for all three products) and `apps/web/src/content/shop.ts`
+  (`ANNOUNCEMENT`).
+- **Found:** 2026-09-06 while building the product detail page
+- **Problem:** Two items in the mock go beyond marketing copy into territory that
+  carries legal weight:
+  1. **Allergens.** The mock printed "Contains: Wheat (Gluten), Milk. Free from
+     preservatives, artificial colourants, or trans fats." That contradicts the
+     landing page's own "whole farm eggs", so the mock's allergen data is
+     demonstrably unreliable — and an allergen declaration is a food-safety and
+     labelling matter, not copy. Publishing an invented one could genuinely harm
+     someone with an allergy. **Deliberately not shipped:** `allergens` is `null`
+     and the page renders "Allergen information to be confirmed before
+     publication."
+  2. **A free-delivery offer.** "Free Lagos delivery on orders over ₦15,000" is an
+     invented commercial term the owner has never quoted, and customers could hold
+     the business to it. It IS currently rendered, because it is a visible design
+     element — but it must be confirmed or removed before launch.
+- **Fix:** Owner supplies the real allergen statement (and confirms whether eggs
+  are an ingredient — the landing and product copy disagree), then set
+  `allergens` per product. Separately, confirm or delete the delivery offer.
+- **Status:** open — blocks public launch alongside GAP-004
+
 ### GAP-004 — Landing page ships unverified product claims from the design mock
 
 - **Category:** content-risk

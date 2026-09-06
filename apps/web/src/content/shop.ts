@@ -118,3 +118,36 @@ export const FOOTER_COLUMNS = [
     ],
   },
 ] satisfies { title: string; links: { label: string; href: string | null }[] }[];
+
+/**
+ * Promotional bar above the header on the product page.
+ *
+ * UNVERIFIED and commercially binding: the mock invented a free-delivery
+ * threshold. The owner has never quoted a delivery fee, let alone a waiver, and
+ * publishing an offer customers could hold you to is worse than publishing a
+ * wrong tasting note. Confirm or remove before this page is public.
+ */
+export const ANNOUNCEMENT = {
+  items: ["Free Lagos delivery on orders over ₦15,000", "Freshly made in small batches"],
+};
+
+/**
+ * The three promises beside the buy button.
+ *
+ * Delivery window and Paystack are CONFIRMED facts. The freshness claim is
+ * UNVERIFIED mock copy.
+ */
+export const PRODUCT_ASSURANCES = [
+  {
+    icon: "truck" as const,
+    label: `Fast nationwide delivery (${DELIVERY.minDays}–${DELIVERY.maxDays} business days)`,
+  },
+  {
+    icon: "shield" as const,
+    label: "Secure Paystack checkout with Nigerian debit card, USSD or bank transfer",
+  },
+  {
+    icon: "seal" as const,
+    label: "Freshness guaranteed in airtight double-sealed pouches",
+  },
+];

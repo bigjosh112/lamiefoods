@@ -17,6 +17,44 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Product detail pages (/shop/[slug])
+
+- **Done:** Built the product detail page from the frames: announcement bar,
+  breadcrumb, gallery with thumbnail strip, purchase panel (packaging, quantity,
+  actions), assurances, the "Architecture of..." provenance section, ingredients
+  and shelf-life panels, and related products. Static for all three slugs via
+  `generateStaticParams`; unknown slugs `notFound()`.
+- **Files:** new `app/shop/[slug]/page.tsx`,
+  `components/product/{product-gallery,product-purchase,provenance,related-products}.tsx`,
+  `components/layout/announcement-bar.tsx`; extended `content/products.ts` with
+  `ProductDetail`; updated `content/shop.ts`, `components/shop/product-card.tsx`,
+  `components/landing/flavours.tsx`, `components/ui/icons.tsx`, `app/sitemap.ts`.
+- **Decisions:**
+  - Detail content lives on the shared catalogue, so imagery stays identical
+    across landing / shop / product pages by construction. Verified: chinchin10
+    (Coco) and chinchin11 (Cinnamon) resolve to the same file on all three.
+  - The mock only ever showed Milky Velvet's detail page; the other two are
+    adapted to the same structure and marked UNVERIFIED with the rest.
+  - **Allergen line deliberately NOT shipped** — see GAP-007.
+  - Announcement bar is used only on this page, not site-wide: the landing and
+    shop frames do not show it, and adding it silently would change approved
+    pages.
+  - Packaging choice and quantity are live client state; "Add to bag" and
+    "Instant checkout" stay disabled (no cart, no checkout).
+  - Still no `Product` structured data — price is a placeholder and availability
+    unknown, so an Offer would misrepresent the business.
+- **Enabled by this work:** "View details" on the shop cards and the landing
+  flavour cards are now real links (they were disabled/redirected because
+  `/shop/[slug]` did not exist). Product URLs added to the sitemap.
+- **Verify:** lint, typecheck, build, format pass. All three pages prerender
+  (SSG); `/shop/not-a-product` 404s; one `h1` per page; every internal link on
+  the product page resolves 200; the mock's "Contains: Wheat" string is absent.
+- **Gaps:** opened **GAP-007** (allergens + the invented free-delivery offer);
+  GAP-004 grows with the detail copy.
+- **Next / open threads:** the cart and checkout are what remain before ordering
+  can work. Milky Velvet still has no photograph, and each product has three
+  empty gallery slots.
+
 ## 2026-09-06 — Stopped verification builds from breaking the dev server
 
 - **Done:** Made the Next build directory configurable (`NEXT_DIST_DIR`, default

@@ -162,6 +162,27 @@ export const CloseIcon = (p: IconProps) => (
   </svg>
 );
 
+export const LeafIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <path d="M20 4c0 8-4.5 13-11 13H5c0-7 4-11 10-11 2 0 4-1 5-2z" />
+    <path d="M4 21c2-5 5.5-8.5 10-10.5" />
+  </svg>
+);
+
+export const SoundIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <path d="M4 9v6h3.5L13 20V4L7.5 9z" />
+    <path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13" />
+  </svg>
+);
+
+export const UtensilsIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <path d="M6 2v8a2.5 2.5 0 0 0 5 0V2M8.5 12.5V22" />
+    <path d="M17.5 2c-1.5 2-2 4-2 6.5s.7 3.5 2 3.5V22" />
+  </svg>
+);
+
 /** Icon lookup for content-driven sections, so content stays free of JSX. */
 export const ICONS = {
   award: AwardIcon,
