@@ -1,12 +1,18 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV"],
+  "globalEnv": ["NODE_ENV", "NEXT_DIST_DIR"],
   "globalDependencies": [".env", "package-lock.json"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        ".next-verify/**",
+        "!.next-verify/cache/**",
+        "dist/**"
+      ]
     },
     "dev": {
       "cache": false,

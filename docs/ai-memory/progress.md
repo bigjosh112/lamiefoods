@@ -17,6 +17,32 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Stopped verification builds from breaking the dev server
+
+- **Done:** Made the Next build directory configurable (`NEXT_DIST_DIR`, default
+  `.next`) so a verification build can write to `.next-verify` and leave a running
+  dev server alone. Documented the rule in CLAUDE.md.
+- **Files:** `apps/web/next.config.ts`, `turbo.json` (outputs + `globalEnv`),
+  `.gitignore`, `packages/eslint-config/{base,next}.js`, `CLAUDE.md`.
+- **The bug:** the site rendered completely unstyled on localhost:3000. Cause was
+  **not** the CSS source — I had run `npm run build` several times while the dev
+  server was live, and `next build`/`next dev` share `.next`. The dev server kept
+  serving, but its stylesheet came back 16KB with an **empty `@layer utilities`**;
+  theme vars and `@layer base` survived, which is why headings were still Bodoni
+  while every layout utility was missing.
+- **Evidence:** same commit, three results — clean `npx @tailwindcss/cli` compile
+  42KB *with* utilities, production build 38KB *with* utilities, the running dev
+  server 16KB *without*. Source was never at fault.
+- **Follow-on I caused and fixed:** `.next-verify` is generated code, so ESLint
+  started linting it (6187 problems from Next's generated types) — added to the
+  ignore lists in both shared configs. Turbo also flagged `NEXT_DIST_DIR` as an
+  undeclared env var — added to `globalEnv`.
+- **Verify:** lint, typecheck, build and format all pass; confirmed the isolated
+  build leaves `.next/BUILD_ID` mtime unchanged. The user's dev server, restarted,
+  now serves 50KB of CSS with every layout utility present.
+- **Next / open threads:** unchanged — GAP-004 (unverified prices/claims) still
+  blocks a public deploy; `/shop/[slug]` and the cart are the next build.
+
 ## 2026-09-06 — Shop page + shared product catalogue
 
 - **Done:** Built `/shop` from the supplied frames: page header with batch meta,

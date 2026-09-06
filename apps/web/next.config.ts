@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
   // separately and must stay part of CI.
   typescript: { ignoreBuildErrors: false },
 
+  // `next build` and `next dev` share `.next` by default, so running a build
+  // while a dev server is live corrupts that server's state — it carries on
+  // serving, but with a stale, effectively empty stylesheet. Setting
+  // NEXT_DIST_DIR lets a verification build write somewhere else and leave a
+  // running dev server alone.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+
   poweredByHeader: false,
 };
 

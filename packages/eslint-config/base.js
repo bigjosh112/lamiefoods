@@ -28,7 +28,14 @@ export const baseConfig = [
     },
   },
   {
-    ignores: ["node_modules/**", "dist/**", ".next/**", ".turbo/**", "*.config.js"],
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      ".next/**",
+      ".next-verify/**",
+      ".turbo/**",
+      "*.config.js",
+    ],
   },
 ];
 

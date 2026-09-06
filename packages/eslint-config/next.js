@@ -12,7 +12,9 @@ export const nextConfig = [
   ...coreWebVitals,
   ...nextTypescript,
   {
-    ignores: [".next/**", "next-env.d.ts"],
+    // .next-verify is the isolated build output (NEXT_DIST_DIR) — generated
+    // code, same as .next, and must not be linted.
+    ignores: [".next/**", ".next-verify/**", "next-env.d.ts"],
   },
 ];
 

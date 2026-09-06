@@ -14,6 +14,11 @@ Monorepo for the Lamie Foods product: a Next.js customer-facing web app plus a n
 
 - Dev server: `npm run dev` (turbo, runs every app)
 - Build: `npm run build`  |  Typecheck: `npm run typecheck`
+- **Build while a dev server is running:** `NEXT_DIST_DIR=.next-verify npm run build`.
+  `next build` and `next dev` share `.next`, so a plain build silently corrupts a
+  live dev server — it keeps serving, but with an empty stylesheet (the page renders
+  completely unstyled). Never run a bare `npm run build` to "just check something"
+  while someone has `npm run dev` open.
 - Test: none configured — no runner in any workspace. Logged as a gap.
 - Lint: `npm run lint`  |  Format: `npm run format` (Prettier + tailwind plugin)
 
