@@ -8,7 +8,7 @@ import { BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { CRUNCH_MAX, findPack, type Product } from "@/content/products";
 import { formatKobo } from "@/lib/money";
-import { addLine } from "@/lib/cart/use-cart";
+import { useCartActions } from "@/lib/cart/use-cart";
 
 /**
  * Shop product tile.
@@ -24,6 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
   const packs = product.detail.packaging;
   const [size, setSize] = useState(packs[0]?.name ?? "");
   const selectedPack = findPack(product, size);
+  const { addLine } = useCartActions();
   const groupId = useId();
 
   return (

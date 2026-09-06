@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, Epilogue, Space_Grotesk } from "next/font/google";
 import { MotionProvider } from "@/components/layout/motion-provider";
+import { CartHydration } from "@/lib/cart/cart-hydration";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SITE } from "@/config/site";
 import { organizationSchema, websiteSchema } from "@/lib/structured-data";
@@ -89,6 +90,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <JsonLd data={organizationSchema()} />
         <JsonLd data={websiteSchema()} />
+        <CartHydration />
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

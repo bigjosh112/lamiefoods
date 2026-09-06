@@ -8,7 +8,7 @@ import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { lowestPrice, PRODUCTS, type Product } from "@/content/products";
 import { formatKobo } from "@/lib/money";
-import { addLine } from "@/lib/cart/use-cart";
+import { useCartActions } from "@/lib/cart/use-cart";
 
 /**
  * The rest of the range, drawn from the shared catalogue — so the imagery here
@@ -19,6 +19,7 @@ import { addLine } from "@/lib/cart/use-cart";
  */
 export function RelatedProducts({ current }: { current: Product }) {
   const others = PRODUCTS.filter((product) => product.slug !== current.slug);
+  const { addLine } = useCartActions();
 
   return (
     <Section>

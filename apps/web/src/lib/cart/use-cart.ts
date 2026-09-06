@@ -1,25 +1,17 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import {
-  cartCount,
-  cartSubtotal,
-  getServerSnapshot,
-  getSnapshot,
-  resolveLines,
-  subscribe,
-} from "./cart-store";
+import { cartCount, cartSubtotal, resolveLines, useCartStore } from "./cart-store";
 
 /**
  * Read the cart.
  *
- * `useSyncExternalStore` is the point: it renders the server snapshot during
- * hydration and only then swaps in the persisted cart, so a bag restored from
- * localStorage cannot cause a markup mismatch. No context provider is needed —
- * the store is a module, so any component can subscribe directly.
+ * Derived values are computed here rather than stored, so there is exactly one
+ * source of truth for what is in the bag and no way for a cached total to drift
+ * from the lines it came from.
  */
 export function useCart() {
-  const lines = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const lines = useCartStore((state) => state.lines);
+  const hydrated = useCartStore((state) => state.hydrated);
   const items = resolveLines(lines);
 
   return {
@@ -28,7 +20,19 @@ export function useCart() {
     count: cartCount(lines),
     subtotal: cartSubtotal(items),
     isEmpty: items.length === 0,
+    /** False until the persisted bag has been read back from localStorage. */
+    hydrated,
   };
 }
 
-export { addLine, clearCart, MAX_QUANTITY, removeLine, setQuantity } from "./cart-store";
+/** Cart actions, for components that only write. */
+export function useCartActions() {
+  return {
+    addLine: useCartStore((state) => state.addLine),
+    setQuantity: useCartStore((state) => state.setQuantity),
+    removeLine: useCartStore((state) => state.removeLine),
+    clearCart: useCartStore((state) => state.clearCart),
+  };
+}
+
+export { MAX_QUANTITY } from "./cart-store";

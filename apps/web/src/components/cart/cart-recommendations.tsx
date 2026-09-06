@@ -9,7 +9,7 @@ import { Eyebrow, Section } from "@/components/ui/section";
 import { CART } from "@/content/cart";
 import { lowestPrice, PRODUCTS } from "@/content/products";
 import { formatKobo } from "@/lib/money";
-import { addLine, useCart } from "@/lib/cart/use-cart";
+import { useCart, useCartActions } from "@/lib/cart/use-cart";
 
 /**
  * Suggested additions, drawn from the real catalogue.
@@ -21,6 +21,7 @@ import { addLine, useCart } from "@/lib/cart/use-cart";
  */
 export function CartRecommendations() {
   const { lines } = useCart();
+  const { addLine } = useCartActions();
   const inBag = new Set(lines.map((line) => line.slug));
   const suggestions = PRODUCTS.filter((product) => !inBag.has(product.slug));
 

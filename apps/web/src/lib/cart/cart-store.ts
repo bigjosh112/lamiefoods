@@ -1,20 +1,24 @@
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Kobo } from "@lamiefoods/types";
 import { findPack, findProduct, type Product } from "@/content/products";
 import { sumKobo } from "@/lib/money";
 
 /**
- * The shopping bag.
+ * The shopping bag, as a zustand store.
  *
  * A cart is genuinely a frontend concern until checkout — the backend only
  * needs to hear about it when an order is placed — so this is real, working
- * state rather than a stand-in. It lives in a small external store read through
- * `useSyncExternalStore`, which is what makes it SSR-safe: React renders the
- * server snapshot (always empty) during hydration and only then swaps in the
- * persisted cart, so there is no markup mismatch.
+ * state rather than a stand-in.
+ *
+ * `skipHydration` is the important bit. With it off, zustand would read
+ * localStorage during the first client render while the server rendered an
+ * empty bag, and React would report a hydration mismatch. Instead the store
+ * starts empty on both sides and `CartHydration` rehydrates it after mount.
  *
  * Only `{slug, pack, quantity}` is persisted. Names, prices and images are
- * looked up from the catalogue on read, so a price or product change can never
- * be served from a stale copy sitting in someone's browser.
+ * looked up from the catalogue on read, so a price change can never be served
+ * from a stale copy sitting in someone's browser.
  */
 export interface CartLine {
   slug: string;
@@ -23,32 +27,25 @@ export interface CartLine {
   quantity: number;
 }
 
+export const MAX_QUANTITY = 20;
 const STORAGE_KEY = "lamie.cart.v1";
-const MAX_QUANTITY = 20;
 
-/** Stable empty reference — getSnapshot must not return a new array each call. */
-const EMPTY: CartLine[] = [];
-
-let state: CartLine[] = EMPTY;
-let hydrated = false;
-const listeners = new Set<() => void>();
-
-function emit() {
-  for (const listener of listeners) listener();
+interface CartState {
+  lines: CartLine[];
+  hydrated: boolean;
+  addLine: (slug: string, pack: string, quantity?: number) => void;
+  setQuantity: (slug: string, pack: string, quantity: number) => void;
+  removeLine: (slug: string, pack: string) => void;
+  clearCart: () => void;
+  setHydrated: () => void;
 }
 
-function persist() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // Private mode, blocked storage, quota. The cart still works for this
-    // session; losing persistence is not worth breaking the page over.
-  }
-}
+const clampQuantity = (value: number) =>
+  Math.min(MAX_QUANTITY, Math.max(1, Math.trunc(value)));
 
-/** Drop anything that no longer matches the catalogue. */
+/** Drop anything that no longer matches the catalogue or is malformed. */
 function sanitise(raw: unknown): CartLine[] {
-  if (!Array.isArray(raw)) return EMPTY;
+  if (!Array.isArray(raw)) return [];
 
   const lines: CartLine[] = [];
   for (const entry of raw) {
@@ -60,95 +57,82 @@ function sanitise(raw: unknown): CartLine[] {
     const product = findProduct(slug);
     if (!product || !findPack(product, pack)) continue;
 
-    lines.push({
-      slug,
-      pack,
-      quantity: Math.min(MAX_QUANTITY, Math.max(1, Math.trunc(quantity))),
-    });
+    lines.push({ slug, pack, quantity: clampQuantity(quantity) });
   }
-  return lines.length > 0 ? lines : EMPTY;
+  return lines;
 }
 
-function hydrate() {
-  if (hydrated || typeof window === "undefined") return;
-  hydrated = true;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = sanitise(JSON.parse(raw));
-  } catch {
-    state = EMPTY;
-  }
-}
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      lines: [],
+      hydrated: false,
 
-export function subscribe(listener: () => void) {
-  hydrate();
-  listeners.add(listener);
-  // A second tab changing the cart should update this one.
-  const onStorage = (event: StorageEvent) => {
-    if (event.key !== STORAGE_KEY) return;
-    state = sanitise(event.newValue ? JSON.parse(event.newValue) : null);
-    emit();
-  };
-  window.addEventListener("storage", onStorage);
+      addLine: (slug, pack, quantity = 1) =>
+        set((state) => {
+          const existing = state.lines.find(
+            (line) => line.slug === slug && line.pack === pack,
+          );
+          if (existing) {
+            return {
+              lines: state.lines.map((line) =>
+                line === existing
+                  ? { ...line, quantity: clampQuantity(line.quantity + quantity) }
+                  : line,
+              ),
+            };
+          }
+          return {
+            lines: [...state.lines, { slug, pack, quantity: clampQuantity(quantity) }],
+          };
+        }),
 
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
+      setQuantity: (slug, pack, quantity) =>
+        set((state) => {
+          if (quantity < 1) {
+            return {
+              lines: state.lines.filter(
+                (line) => !(line.slug === slug && line.pack === pack),
+              ),
+            };
+          }
+          return {
+            lines: state.lines.map((line) =>
+              line.slug === slug && line.pack === pack
+                ? { ...line, quantity: clampQuantity(quantity) }
+                : line,
+            ),
+          };
+        }),
 
-export function getSnapshot(): CartLine[] {
-  hydrate();
-  return state;
-}
+      removeLine: (slug, pack) =>
+        set((state) => ({
+          lines: state.lines.filter(
+            (line) => !(line.slug === slug && line.pack === pack),
+          ),
+        })),
 
-/** Server render always sees an empty bag — nothing else is knowable there. */
-export function getServerSnapshot(): CartLine[] {
-  return EMPTY;
-}
-
-function commit(next: CartLine[]) {
-  state = next;
-  persist();
-  emit();
-}
-
-export function addLine(slug: string, pack: string, quantity = 1) {
-  const existing = state.find((line) => line.slug === slug && line.pack === pack);
-  if (existing) {
-    commit(
-      state.map((line) =>
-        line === existing
-          ? {
-              ...line,
-              quantity: Math.min(MAX_QUANTITY, line.quantity + quantity),
-            }
-          : line,
-      ),
-    );
-    return;
-  }
-  commit([...state, { slug, pack, quantity: Math.min(MAX_QUANTITY, quantity) }]);
-}
-
-export function setQuantity(slug: string, pack: string, quantity: number) {
-  if (quantity < 1) return removeLine(slug, pack);
-  commit(
-    state.map((line) =>
-      line.slug === slug && line.pack === pack
-        ? { ...line, quantity: Math.min(MAX_QUANTITY, quantity) }
-        : line,
-    ),
-  );
-}
-
-export function removeLine(slug: string, pack: string) {
-  commit(state.filter((line) => !(line.slug === slug && line.pack === pack)));
-}
-
-export function clearCart() {
-  commit(EMPTY);
-}
+      clearCart: () => set({ lines: [] }),
+      setHydrated: () => set({ hydrated: true }),
+    }),
+    {
+      name: STORAGE_KEY,
+      storage: createJSONStorage(() => localStorage),
+      // Persist the lines only — `hydrated` is runtime state, and the actions
+      // are functions.
+      partialize: (state) => ({ lines: state.lines }),
+      // Rehydration is driven from CartHydration after mount, not during the
+      // first render, so server and client markup agree.
+      skipHydration: true,
+      version: 1,
+      merge: (persisted, current) => ({
+        ...current,
+        lines: sanitise((persisted as { lines?: unknown } | undefined)?.lines),
+      }),
+      onRehydrateStorage: () => (state) => state?.setHydrated(),
+    },
+  ),
+);
 
 /** A cart line resolved against the catalogue, ready to render. */
 export interface ResolvedLine {
@@ -182,5 +166,3 @@ export const cartSubtotal = (resolved: ResolvedLine[]): Kobo =>
 
 export const cartCount = (lines: CartLine[]): number =>
   lines.reduce((total, line) => total + line.quantity, 0);
-
-export { MAX_QUANTITY };

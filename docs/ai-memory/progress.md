@@ -17,6 +17,48 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — Guest checkout (/checkout) on RHF + zod + zustand
+
+- **Done:** Built `/checkout` from the frames — two numbered steps (contact,
+  delivery), order summary from the live cart, delivery-cost notice, and the
+  provisions guarantee panel. Migrated the cart store to **zustand** and the form
+  to **react-hook-form + zod**, at the owner's request.
+- **Files:** new `app/checkout/page.tsx`,
+  `components/checkout/{checkout-form,checkout-summary}.tsx`,
+  `content/checkout.ts`, `lib/checkout/schema.ts`, `lib/cart/cart-hydration.tsx`;
+  rewrote `lib/cart/{cart-store,use-cart}.ts`; updated `app/layout.tsx`,
+  `components/cart/cart-view.tsx` and every add-to-bag call site.
+- **Dependencies added** (audited first, `npm audit` clean): `react-hook-form`
+  7.87.0 (zero deps), `@hookform/resolvers` 5.9.1, `zustand` 5.0.15.
+- **Decisions:**
+  - **Validation is real; submission is not.** No API contract exists for placing
+    an order and Paystack is not integrated, so a valid submit says exactly that
+    — no fake redirect, no fake success. Inventing the flow would mean guessing
+    request shapes AND implying money had moved.
+  - The schema is pinned to `CustomerDetails` from `@lamiefoods/types` via
+    `satisfies`, so the form cannot drift from the shape the backend implements.
+  - **zustand `persist` uses `skipHydration`**, with `CartHydration` rehydrating
+    after mount. Without it zustand reads localStorage during the first client
+    render while the server rendered an empty bag — the same hydration-mismatch
+    class as the earlier `no-js` bug.
+  - Untrusted localStorage is still sanitised against the catalogue in `merge`.
+  - **Nigeria's 36 states + FCT** replace the mock's two invented "delivery
+    zones", which would have blocked every customer outside Lagos.
+  - **"LIVE" badge on Paystack not shipped** — payments are not connected;
+    badging a dead gateway live is a false claim.
+  - "Direct atelier chat" dropped (no chat exists); "1-3 days" corrected to the
+    confirmed 1–5.
+- **Recorded, not invented:** added a PENDING section to `api-integration.md`
+  with the seven questions checkout needs answered — including **who owns
+  pricing** (client-held prices are tamperable; the server must price the order).
+- **Verify:** lint, typecheck, build, format pass; `npm audit` 0 vulnerabilities.
+  `/checkout` renders, is `noIndex` and disallowed in robots. 7 labels bound to 7
+  controls, 37 states + placeholder offered, no "LIVE" badge in output.
+  **Not verified by me:** interactive validation and the cart round trip need a
+  browser — still no test runner (GAP-001).
+- **Next / open threads:** the backend contract is now the blocker for anything
+  further down the funnel. GAP-004 and GAP-007 still block a public launch.
+
 ## 2026-09-06 — Shopping bag (/cart) + a real cart
 
 - **Done:** Built `/cart` from the frames — free-delivery progress, line items

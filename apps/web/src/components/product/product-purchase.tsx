@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon, CheckIcon } from "@/components/ui/icons";
 import type { Product } from "@/content/products";
 import { formatKobo } from "@/lib/money";
-import { addLine } from "@/lib/cart/use-cart";
+import { useCartActions } from "@/lib/cart/use-cart";
 
 const MAX_QUANTITY = 20;
 
@@ -26,6 +26,7 @@ export function ProductPurchase({ product }: { product: Product }) {
   const [pack, setPack] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const { addLine } = useCartActions();
   const selected = product.detail.packaging[pack];
 
   return (

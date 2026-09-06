@@ -3,18 +3,19 @@
 import Link from "next/link";
 import { ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { ArrowRightIcon, CheckIcon, ICONS, TruckIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { CART } from "@/content/cart";
 import { formatKobo, naira } from "@/lib/money";
-import { MAX_QUANTITY, removeLine, setQuantity, useCart } from "@/lib/cart/use-cart";
+import { MAX_QUANTITY, useCart, useCartActions } from "@/lib/cart/use-cart";
 
 /** UNVERIFIED — the mock's free-delivery threshold. See GAP-007. */
 const FREE_DELIVERY_THRESHOLD = naira(15000);
 
 export function CartView() {
   const { items, count, subtotal, isEmpty } = useCart();
+  const { removeLine, setQuantity } = useCartActions();
 
   if (isEmpty) return <EmptyBag />;
 
@@ -215,16 +216,10 @@ function OrderSummary({
           </p>
         )}
 
-        <Button disabled aria-describedby="checkout-note" className="mt-gutter-md w-full">
+        <ButtonLink href={ROUTES.checkout} className="mt-gutter-md w-full">
           Proceed to checkout
           <ArrowRightIcon className="h-4 w-4" />
-        </Button>
-        <p
-          id="checkout-note"
-          className="mt-gutter-xs text-center text-body-sm text-nutmeg"
-        >
-          Checkout opens once payments are connected.
-        </p>
+        </ButtonLink>
 
         <Link
           href={ROUTES.shop}
