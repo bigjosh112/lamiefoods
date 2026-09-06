@@ -31,9 +31,7 @@ export type { ImageSlot } from "./image-slot";
 export const NAV_LINKS = [
   { label: "Home", href: ROUTES.home },
   { label: "Shop", href: ROUTES.shop },
-  /* /about has no route yet and would 404. The manifesto section is the brand
-     story for now; swap back to ROUTES.about when that page ships. */
-  { label: "About", href: "/#manifesto" },
+  { label: "About", href: ROUTES.about },
   { label: "Contact", href: "#contact" },
 ] as const;
 
@@ -45,7 +43,7 @@ export const HERO = {
   titleLine2: "Good Taste.",
   body: "Elevating Nigeria's quintessential kettle pastry to haute confectionery. Made in small batches with sweet cream dairy butter and whole-milled nutmeg.",
   primaryCta: { label: "Shop Chinchin Collection", href: ROUTES.shop },
-  secondaryCta: { label: "Explore Culinary Story", href: "/#manifesto" },
+  secondaryCta: { label: "Explore Culinary Story", href: ROUTES.about },
   image: {
     src: "/images/chinchin5.jpg.png",
     alt: "A bowl of freshly made Lamie Foods chinchin",

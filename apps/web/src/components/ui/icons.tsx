@@ -197,6 +197,10 @@ export const ICONS = {
   instagram: InstagramIcon,
   chat: ChatIcon,
   mail: MailIcon,
+  box: BoxIcon,
+  leaf: LeafIcon,
+  sound: SoundIcon,
+  utensils: UtensilsIcon,
 } as const;
 
 export type IconName = keyof typeof ICONS;

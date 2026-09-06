@@ -1,4 +1,4 @@
-import { DELIVERY } from "@lamiefoods/config";
+import { DELIVERY, ROUTES } from "@lamiefoods/config";
 import { PRODUCTS } from "./products";
 
 /**
@@ -93,7 +93,7 @@ export const FOOTER_COLUMNS = [
   {
     title: "Company",
     links: [
-      { label: "Brand Story", href: "/#manifesto" },
+      { label: "Brand Story", href: ROUTES.about },
       { label: "Artisanal Process", href: null },
       { label: "Ingredient Sourcing", href: null },
       { label: "Press & Stockists", href: null },

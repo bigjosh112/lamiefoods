@@ -17,6 +17,42 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-06 — About / heritage page (/about)
+
+- **Done:** Built `/about` from the frames — hero with stat trio and overlapping
+  batch cards, heritage spread with acoustic-metric overlay, three tenets (middle
+  card inverted onto cacao), horizon section with offset imagery and values,
+  sensory profile bars, and the closing dark CTA.
+- **Files:** new `app/about/page.tsx`, `components/about/about-sections.tsx`,
+  `content/about.ts`; updated `content/landing.ts`, `content/shop.ts`,
+  `components/ui/icons.tsx` (registered `box`/`leaf`/`sound`/`utensils` in the
+  lookup), `app/sitemap.ts`.
+- **Unblocked:** `/about` finally exists, so the nav, the hero's "Explore
+  culinary story" CTA and the footer's "Brand Story" now point at the real route
+  instead of the `/#manifesto` anchor they were faking. `/about` added to the
+  sitemap. Verified: zero `#manifesto` links remain on home or shop.
+- **Decisions:**
+  - Body copy says **"Lamie Foods"**, not the mock's "Lamie Foods Enterprise"
+    (twice). Verified absent from the built page.
+  - Images reuse the catalogue where they genuinely fit — `chinchin7` for the
+    hero portrait, `chinchin11` for the heritage bowl (it matches the frame's
+    spice styling), `chinchin5` for the pantry spread. The gift-jar shot has no
+    asset and renders the labelled placeholder.
+  - The tenet cards ended in links in the mock; there is nowhere for them to go,
+    so they render as labels rather than dead links.
+  - "Enquire about events" points at Instagram — the only confirmed contact
+    channel.
+  - The mock's closing strip promised "dispatched within 24 hours", which
+    contradicts the confirmed 1–5 day window, so no dispatch time is claimed.
+- **Verify:** lint, typecheck, build, format pass; `/about` is static; one `h1`
+  with 9 `h2` and 4 `h3`; six sections; every internal link resolves 200.
+- **Gaps:** GAP-004 grows substantially — this page states butterfat and
+  preservative percentages, a 48-hour kettle-to-pouch window, a 175°C frying
+  temperature (removed from the rendered copy), a batch number, three sensory
+  index percentages, and sourcing claims about named regions.
+- **Next / open threads:** every route in the original architecture now exists
+  except `/admin/*`. The API contract remains the blocker for real ordering.
+
 ## 2026-09-06 — Order confirmation (/order-success)
 
 - **Done:** Built the confirmation page from the frames — reference, line items,
