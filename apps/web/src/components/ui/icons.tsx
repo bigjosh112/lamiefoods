@@ -183,6 +183,20 @@ export const UtensilsIcon = (p: IconProps) => (
   </svg>
 );
 
+export const CalendarIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M3 10h18M8 3v4M16 3v4" />
+  </svg>
+);
+
+export const BoardIcon = (p: IconProps) => (
+  <svg {...iconProps} {...p}>
+    <path d="M3 5.5 9 4l6 2 6-1.5v14L15 20l-6-2-6 1.5z" />
+    <path d="M9 4v14M15 6v14" />
+  </svg>
+);
+
 /** Icon lookup for content-driven sections, so content stays free of JSX. */
 export const ICONS = {
   award: AwardIcon,
@@ -200,6 +214,8 @@ export const ICONS = {
   box: BoxIcon,
   leaf: LeafIcon,
   sound: SoundIcon,
+  calendar: CalendarIcon,
+  board: BoardIcon,
   utensils: UtensilsIcon,
 } as const;
 

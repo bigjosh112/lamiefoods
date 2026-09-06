@@ -1,11 +1,13 @@
 import { cn } from "@lamiefoods/ui";
 import { Delta, RevenueChart } from "@/components/admin/revenue-chart";
 import { Button } from "@/components/ui/button";
-import { ICONS } from "@/components/ui/icons";
+import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
 import {
   ADMIN_BEST_SELLERS,
   ADMIN_DISPATCHES,
+  ADMIN_DISPATCH_TOTAL,
   ADMIN_FLEET,
+  ADMIN_FLEET_CARD,
   ADMIN_RANGES,
   ADMIN_REVENUE_SERIES,
   ADMIN_STATS,
@@ -59,18 +61,22 @@ export function AdminDashboard() {
           aria-label="Date range (not active)"
           className="flex rounded border border-rule/70 bg-surface"
         >
-          {ADMIN_RANGES.map((range, index) => (
-            <span
-              key={range}
-              aria-disabled="true"
-              className={cn(
-                "flex min-h-11 items-center px-gutter-sm font-label text-label-sm",
-                index === 1 ? "bg-primary-container text-linen" : "text-nutmeg/70",
-              )}
-            >
-              {range}
-            </span>
-          ))}
+          {ADMIN_RANGES.map((range, index) => {
+            const RangeIcon = range.icon ? ICONS[range.icon] : null;
+            return (
+              <span
+                key={range.label}
+                aria-disabled="true"
+                className={cn(
+                  "flex min-h-11 items-center gap-gutter-xs px-gutter-sm font-label text-label-sm",
+                  index === 1 ? "bg-primary-container text-linen" : "text-nutmeg/70",
+                )}
+              >
+                {range.label}
+                {RangeIcon && <RangeIcon className="h-4 w-4" />}
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -162,9 +168,19 @@ export function AdminDashboard() {
               </p>
               <h2 className="mt-1 text-headline-sm text-cacao">Recent dispatches</h2>
             </div>
-            <Button variant="secondary" disabled>
-              Export CSV
-            </Button>
+            <div className="flex items-center gap-gutter-xs">
+              <Button variant="secondary" disabled>
+                Export CSV
+              </Button>
+              {/* Disabled: there is no orders screen to view them all in. */}
+              <span
+                aria-disabled="true"
+                className="inline-flex min-h-11 cursor-not-allowed items-center gap-gutter-xs font-label text-label-sm text-nutmeg/70 uppercase"
+              >
+                View all {ADMIN_DISPATCH_TOTAL}
+                <ArrowRightIcon className="h-4 w-4" />
+              </span>
+            </div>
           </div>
 
           {/* Wide table scrolls inside its own container so the page never does. */}
@@ -279,10 +295,17 @@ export function AdminDashboard() {
           </section>
 
           <section className="rounded border border-rule/70 bg-surface p-gutter-md">
-            <p className="font-label text-label-caps text-terracotta uppercase">
-              Last-mile dispatch
-            </p>
-            <h2 className="mt-1 text-headline-sm text-cacao">Rider fleet</h2>
+            <div className="flex items-start justify-between gap-gutter-sm">
+              <div>
+                <p className="font-label text-label-caps text-terracotta uppercase">
+                  {ADMIN_FLEET_CARD.eyebrow}
+                </p>
+                <h2 className="mt-1 text-headline-sm text-cacao">
+                  {ADMIN_FLEET_CARD.title}
+                </h2>
+              </div>
+              <ICONS.truck className="mt-1 h-5 w-5 shrink-0 text-terracotta" />
+            </div>
 
             <ul className="mt-gutter-md space-y-3">
               {ADMIN_FLEET.map((zone) => (
@@ -294,13 +317,22 @@ export function AdminDashboard() {
                       zone.status === "active" ? "bg-terracotta" : "bg-rule",
                     )}
                   />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-body-sm text-cacao">{zone.zone}</p>
-                    <p className="text-body-sm text-nutmeg">{zone.detail}</p>
-                  </div>
+                  <p className="min-w-0 flex-1 text-body-sm text-cacao">{zone.zone}</p>
+                  <p className="max-w-24 shrink-0 text-right text-body-sm text-nutmeg">
+                    {zone.detail}
+                  </p>
                 </li>
               ))}
             </ul>
+
+            {/* Disabled: there is no tracking board to open. */}
+            <span
+              aria-disabled="true"
+              className="mt-gutter-md flex min-h-11 cursor-not-allowed items-center gap-gutter-xs border-t border-rule/70 pt-gutter-sm font-label text-label-sm text-terracotta/70"
+            >
+              <ICONS.board className="h-4 w-4" />
+              {ADMIN_FLEET_CARD.trackingBoard}
+            </span>
           </section>
         </div>
       </div>

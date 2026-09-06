@@ -27,7 +27,15 @@ export const ADMIN_NAV = [
   { label: "Inventory", href: ADMIN_ROUTES.inventory, icon: "timer" as const },
 ];
 
-export const ADMIN_RANGES = ["Today", "7 days", "30 days"] as const;
+export const ADMIN_RANGES = [
+  { label: "Today", icon: null },
+  { label: "7 days", icon: null },
+  { label: "30 days", icon: null },
+  { label: "Custom", icon: "calendar" as const },
+];
+
+/** Total dispatches behind the "view all" link. Sample, like everything here. */
+export const ADMIN_DISPATCH_TOTAL = 148;
 
 export const ADMIN_STATS = [
   {
@@ -146,6 +154,12 @@ export const ADMIN_DISPATCHES = [
   },
 ];
 
+export const ADMIN_FLEET_CARD = {
+  eyebrow: "Last-mile dispatch",
+  title: "Rider Fleet Active",
+  trackingBoard: "Open dispatch fleet tracking board",
+};
+
 export const ADMIN_FLEET = [
   {
     zone: "Lekki Phase 1 & Chevron",
@@ -162,5 +176,9 @@ export const ADMIN_FLEET = [
     detail: "2 bags manifested",
     status: "active" as const,
   },
-  { zone: "Nationwide waybills", detail: "Ready 16:00", status: "pending" as const },
+  {
+    zone: "Nationwide waybills (GIG)",
+    detail: "Ready 16:00",
+    status: "pending" as const,
+  },
 ];
