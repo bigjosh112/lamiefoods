@@ -67,18 +67,22 @@ export default function RootLayout({
   return (
     <html
       lang="en-NG"
-      className={`no-js ${bodoniModa.variable} ${epilogue.variable} ${spaceGrotesk.variable}`}
+      className={`${bodoniModa.variable} ${epilogue.variable} ${spaceGrotesk.variable}`}
     >
       <head>
         {/*
-          Scroll reveals are driven by IntersectionObserver. Without scripting
-          they would sit at opacity 0 forever, so the document starts marked
-          `no-js` and this strips the mark before first paint — leaving the
-          fallback rule in effect only when JS genuinely never runs.
+          Scroll reveals are driven by IntersectionObserver; without scripting
+          they would sit at opacity 0 forever.
+
+          The browser applies this stylesheet only when scripting is disabled,
+          so no class toggling and no inline script are involved. An earlier
+          version marked <html> with `no-js` and had a script strip it, which
+          made the server and client markup disagree and logged a hydration
+          mismatch on every page load.
         */}
-        <script
+        <noscript
           dangerouslySetInnerHTML={{
-            __html: `document.documentElement.classList.remove('no-js')`,
+            __html: `<style>[data-reveal]{opacity:1!important;transform:none!important}</style>`,
           }}
         />
       </head>

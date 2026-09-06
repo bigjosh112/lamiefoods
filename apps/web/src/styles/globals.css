@@ -275,18 +275,6 @@
   animation: lamie-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@layer base {
-  /*
-    Scroll reveals are JS-driven (IntersectionObserver via Framer Motion). If
-    scripting is unavailable the elements would sit at opacity 0 forever, so
-    force every one of them visible instead.
-  */
-  .no-js [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}
-
 /*
   Honour prefers-reduced-motion globally. Framer Motion is also configured to
   respect it, but this catches CSS transitions and any animation added later.
