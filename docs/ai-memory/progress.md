@@ -17,6 +17,50 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Editorial treatment for the landing product grid
+
+- **Done:** Removed the card treatment from the flavour cards' info block, per
+  the owner's spec: editorial luxury catalogue, not ecommerce cards.
+- **Files:** `components/landing/flavours.tsx`, `components/landing/add-to-bag.tsx`.
+- **Changes:**
+  - The `<li>` lost its background, border, radius and hover shadow. The
+    photograph took over the `rounded overflow-hidden` it used to inherit from
+    the wrapper, so it stays the one visually distinct element; the category
+    badge on it is untouched.
+  - The info block dropped `p-inset-card` entirely, so the copy starts flush
+    with the image's left edge and sits on the page background. No divider was
+    added in place of the border.
+  - Order is now category → name → description → price → button, all
+    left-aligned. Price moved out of the old justified eyebrow row.
+  - Eyebrow is the category alone — no `01 ·` prefix.
+  - Grid gap went from `gap-gutter-md` to `gap-x-gutter-lg gap-y-gutter-xl`,
+    since spacing now does the separating the borders used to.
+- **Sentence case in CSS, not in the data:** the category uses
+  `lowercase first-letter:uppercase` rather than rewriting `kicker`. It is title
+  case in the catalogue and other surfaces render it their own way, so casing
+  stays a presentation choice. `::first-letter` needs a block box, hence the
+  `block` on the span.
+- **Button:** `normal-case` and `text-label-md` over the shared button's
+  uppercase `text-label-caps`, whose 0.12em tracking is drawn for capitals and
+  reads loose in sentence case. `rounded-md` is the 6px token — inside the
+  requested 6–8px and not a magic number. `self-start` replaced `w-full` so it
+  sits at its own width under the copy rather than spanning the column.
+  **These overrides only land because of this morning's `cn()` fix** — before
+  it, `text-label-md` would have been silently dropped as a colour conflict.
+- **Verified:** rendered `<li>` is `group relative flex h-full flex-col
+  text-left` and the info block `mt-gutter-sm flex flex-1 flex-col` — no
+  background, border, radius, shadow, padding or divider on either. The button
+  resolves to `… rounded-md font-label text-label-md normal-case` with the
+  base `rounded`, `uppercase` and `text-label-caps` correctly merged away. Both
+  `.lowercase` and `.first-letter\:uppercase:first-letter` compiled. Lint,
+  typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** the shop page tiles (`shop/product-card.tsx`) still
+  use the boxed treatment — not changed, since the request was scoped to the
+  landing grid and said not to redesign beyond it. Worth deciding whether the
+  two should match.
+
 ## 2026-09-07 — Navbar trim, clickable flavour cards, placeholder pack shots
 
 - **Done:** Navbar cleanup, rebuilt the landing flavour cards, and wired the

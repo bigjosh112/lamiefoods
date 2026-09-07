@@ -35,11 +35,16 @@ export function Flavours() {
         </StoryLink>
       </Reveal>
 
-      <ul className="mt-gutter-lg grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-gutter-lg grid gap-x-gutter-lg gap-y-gutter-xl sm:grid-cols-2 lg:grid-cols-3">
         {FLAVOURS.items.map((item, index) => (
           <Reveal key={item.slug} delay={index * 0.08} className="h-full">
-            <li className="group relative flex h-full flex-col overflow-hidden rounded border border-rule/70 bg-surface-container-lowest transition-shadow duration-300 focus-within:shadow-earth hover:shadow-earth">
-              <div className="relative aspect-4/3 bg-surface-container">
+            <li className="group relative flex h-full flex-col text-left">
+              {/*
+                The photograph keeps the rounding and clipping the card wrapper
+                used to provide, so it stays the one visually distinct element.
+                The category badge on it is unchanged.
+              */}
+              <div className="relative aspect-4/3 overflow-hidden rounded bg-surface-container">
                 <ImageSlot
                   slot={item.image}
                   sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
@@ -49,15 +54,21 @@ export function Flavours() {
                 </span>
               </div>
 
-              <div className="flex flex-1 flex-col p-inset-card">
-                <div className="flex items-baseline justify-between gap-gutter-sm">
-                  <span className="font-label text-label-sm text-tertiary uppercase">
-                    {item.index} · {item.kicker}
-                  </span>
-                  <span className="shrink-0 font-label text-label-md text-cacao">
-                    {formatKobo(lowestPrice(item))}
-                  </span>
-                </div>
+              {/*
+                No padding, no background, no border: the copy sits on the page
+                and starts flush with the image's left edge. Separation between
+                products comes from the grid gap and the type hierarchy.
+              */}
+              <div className="mt-gutter-sm flex flex-1 flex-col">
+                {/*
+                  Sentence case done in CSS rather than by rewriting the string:
+                  `kicker` is title case in the catalogue and other surfaces
+                  render it their own way, so the casing stays a presentation
+                  choice here. `::first-letter` needs a block box to apply.
+                */}
+                <span className="block font-label text-label-sm text-tertiary lowercase first-letter:uppercase">
+                  {item.kicker}
+                </span>
 
                 {/*
                   The whole card is the link. The anchor sits on the product
@@ -74,8 +85,14 @@ export function Flavours() {
                     {item.name}
                   </Link>
                 </h3>
+
+                {/* Grows so the price and button share a baseline across the row. */}
                 <p className="mt-gutter-xs flex-1 text-body-sm text-on-surface-variant">
                   {item.body}
+                </p>
+
+                <p className="mt-gutter-sm font-label text-label-md text-cacao">
+                  {formatKobo(lowestPrice(item))}
                 </p>
 
                 <AddToBag
