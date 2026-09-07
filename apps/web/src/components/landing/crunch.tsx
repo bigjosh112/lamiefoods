@@ -5,17 +5,15 @@ import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { CRUNCH } from "@/content/landing";
 
-const SCORE_MAX = 10;
-
 /**
  * Measured off the approved frame at 1280px: an even 6/6 split, 540px each,
  * separated by the 40px desktop gutter. The image column is 540 x 540 — square,
- * and the same height as the column — so the sensory card overlays the image
- * rather than sitting under it. This section pads 128px vertically, one step
- * more than the page default.
+ * and the same height as the column. This section pads 128px vertically, one
+ * step more than the page default.
  *
- * As in the manifesto, the card only goes absolute from `lg`; three metric rows
- * pinned over a phone-width photo would bury the picture entirely.
+ * The "Acoustic Sensory Profile" card that used to overlay the photograph was
+ * removed at the owner's request, and its invented scores went with it — see
+ * the note where `CRUNCH.image` is defined. The photograph now stands alone.
  */
 export function Crunch() {
   return (
@@ -24,37 +22,6 @@ export function Crunch() {
         <Reveal className="relative md:col-span-6">
           <div className="relative aspect-square overflow-hidden rounded border border-rule/70">
             <ImageSlot slot={CRUNCH.image} sizes="(min-width: 1024px) 45vw, 100vw" />
-          </div>
-
-          <div className="relative mx-gutter-md -mt-gutter-lg rounded border border-rule/70 bg-surface-container-lowest p-gutter-md shadow-earth lg:absolute lg:right-gutter-md lg:bottom-gutter-md lg:left-gutter-md lg:mx-0 lg:mt-0">
-            <p className="font-label text-label-caps text-cacao uppercase">
-              {CRUNCH.profile.title}
-            </p>
-            <dl className="mt-gutter-sm space-y-3">
-              {CRUNCH.profile.metrics.map((metric) => (
-                <div key={metric.label}>
-                  <div className="flex items-baseline justify-between gap-gutter-sm">
-                    <dt className="text-body-sm text-on-surface-variant">
-                      {metric.label}
-                    </dt>
-                    <dd className="shrink-0 font-label text-label-sm text-terracotta">
-                      {metric.score} / {SCORE_MAX}
-                    </dd>
-                  </div>
-                  {/* Presentational bar: the value is already stated in the
-                      <dd> above, so it is hidden rather than duplicated. */}
-                  <div
-                    aria-hidden="true"
-                    className="mt-1 h-1 w-full overflow-hidden rounded-sm bg-rule/60"
-                  >
-                    <div
-                      className="h-full rounded-sm bg-terracotta"
-                      style={{ width: `${(metric.score / SCORE_MAX) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </dl>
           </div>
         </Reveal>
 

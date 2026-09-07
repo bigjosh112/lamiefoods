@@ -121,22 +121,18 @@ export const CRUNCH = {
   titleLine2: "the crunch.",
   body: "A genuine Lamie chin-chin does not shatter into coarse dry crumbs, nor does it yield to heavy oiliness. The first contact delivers a sharp acoustic snap, quickly giving way to a velvety, sweet-butter crumble infused with warm nutmeg perfume.",
   image: {
-    src: "/images/chinchin8.png",
-    alt: "A piece of chinchin breaking to show its layered interior",
-    note: "Macro texture photography",
+    src: "/images/newchinchin.jpeg",
+    alt: "A plate piled with golden chin chin cubes",
+    note: "Product photography",
   } satisfies ImageSlot,
-  /** UNVERIFIED — the mock's invented sensory scores. */
-  profile: {
-    title: "Acoustic Sensory Profile",
-    metrics: [
-      { label: "Flake & Crunch Resistance", score: 9.4 },
-      { label: "Sweetness Balance (Savory–Sweet)", score: 4.2 },
-      { label: "Butterfat Palate Melt", score: 8.8 },
-    ],
-  } as Unverified<{
-    title: string;
-    metrics: { label: string; score: number }[];
-  }>,
+  /*
+    The "Acoustic Sensory Profile" card was removed at the owner's request.
+    With it went the mock's invented scores — 9.4/10 flake and crunch
+    resistance, 4.2/10 sweetness balance, 8.8/10 butterfat palate melt. Nothing
+    measured any of them, and they were among the UNVERIFIED claims GAP-004
+    lists. The data is deleted rather than left dormant, so it cannot quietly
+    return to the page.
+  */
   /** UNVERIFIED — process claims. */
   points: [
     {

@@ -184,6 +184,16 @@
   centralised in one file, so this is an edit pass, not a rebuild. **Do not deploy
   publicly until this is done.** `Product` structured data is deliberately withheld
   from `page.tsx` for the same reason — add it once pricing is real.
+- **Update 2026-09-07 — `CRUNCH.profile` is gone.** The owner removed the
+  "Acoustic Sensory Profile" card from the crunch section, and the data was
+  deleted with it rather than left dormant: the invented 9.4/10 flake and crunch
+  resistance, 4.2/10 sweetness balance and 8.8/10 butterfat palate melt no
+  longer exist anywhere in the codebase. One `UNVERIFIED` block down.
+  **Still outstanding, and note the overlap:** `HERO.stats` continues to render
+  **"9.4 / 10 Crisp Snap"** — the same invented score, in a different section.
+  Removing the card did not remove that. `PLACEHOLDER_PRICE_FROM`,
+  `MANIFESTO.stats`, `FLAVOURS.items[].body` and `HORIZON.items` are also
+  unchanged.
 - **Status:** open — blocks public launch
 
 ### GAP-005 — Supplied photography is below the resolution its slots need

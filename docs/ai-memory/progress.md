@@ -17,6 +17,36 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Crunch section: new photograph, sensory card removed
+
+- **Done:** Swapped the crunch section's image for `newchinchin.jpeg` and
+  removed the "Acoustic Sensory Profile" overlay card entirely.
+- **Files:** `content/landing.ts`, `components/landing/crunch.tsx`.
+- **Image:** `chinchin8.png` → `/images/newchinchin.jpeg`, a plate of chin chin.
+  Worth noting against GAP-006: unlike the three packaging stand-ins, this one
+  is clean — no third-party branding, no barcode, no nutrition panel, no baked-in
+  text — so it carries none of their constraints. Alt text updated to describe
+  what the photograph actually shows.
+- **Card removed, and the data with it.** `CRUNCH.profile` was deleted from
+  `landing.ts`, not just unrendered. It held the mock's invented scores — 9.4/10
+  flake and crunch resistance, 4.2/10 sweetness balance, 8.8/10 butterfat palate
+  melt — which nothing measured and which GAP-004 lists. Leaving them dormant
+  would have invited them back onto the page. `SCORE_MAX` went too.
+- **⚠ The same invented score still ships elsewhere.** `HERO.stats` renders
+  **"9.4 / 10 Crisp Snap"** in the hero. Removing this card did not remove that,
+  and the owner has not asked for it — flagged in GAP-004 so the overlap is on
+  record rather than assumed handled.
+- **Verified:** `newchinchin.jpeg` renders and `chinchin8.png` is gone from the
+  page; none of the card's four strings remain; the section's eyebrow, headings,
+  body, both process points and the story link are untouched. Lint, typecheck,
+  build and `prettier --check` pass.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** GAP-004 updated — one `UNVERIFIED` block closed, the hero overlap
+  recorded.
+- **Next / open threads:** unchanged — shop tiles still boxed with descriptive
+  badges; `HERO.stats` and the other UNVERIFIED landing values still need owner
+  sign-off.
+
 ## 2026-09-07 — Full-width CTA, and the landing badge becomes a status
 
 - **Done:** "Add to bag" spans the column, and the landing image badge is "New"
