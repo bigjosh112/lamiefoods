@@ -86,6 +86,19 @@ const extraGallery = (name: string): ImageSlot[] => [
 /** Highest score on the crunch scale, so the bar and the label agree. */
 export const CRUNCH_MAX = 10;
 
+/*
+  PLACEHOLDER PACK SHOTS — replace at the brand shoot.
+
+  The three `image.src` values below are stand-in photographs of OTHER brands'
+  chin chin packaging, supplied for local layout review. They carry third-party
+  names, an Instagram handle, barcodes and — on two of them — legible nutrition
+  panels and ingredient lists, including milk powder.
+
+  They must not reach production. Shipping them would put another company's
+  trade dress on the storefront and would display nutritional and allergen
+  information that is not Lamie Foods' own, which is exactly what GAP-004 and
+  GAP-007 exist to prevent. Tracked as GAP-006.
+*/
 export const PRODUCTS: Product[] = [
   {
     index: "01",
@@ -94,8 +107,8 @@ export const PRODUCTS: Product[] = [
     kicker: "Dairy Reserve",
     body: "Rich velvety milk indulgence, tender melt-in-the-mouth golden crumb, and gentle undertones of vanilla and stone-grated nutmeg.",
     image: {
-      src: null,
-      alt: "Milky Velvet Chinchin in a keepsake jar",
+      src: "/images/packagedchinchin.jpeg",
+      alt: "Milky Velvet Chinchin in its pack",
       note: "Product photography",
     },
     badges: { landing: "House Classic", shop: "Original Heritage" },
@@ -171,8 +184,8 @@ export const PRODUCTS: Product[] = [
     kicker: "Tropical Warmth",
     body: "Toasted coastal coconut flakes folded into buttery dough for a warm tropical snap with balanced sweetness.",
     image: {
-      src: "/images/chinchin10.png",
-      alt: "Coco Velvet Chinchin with fresh coconut",
+      src: "/images/packagedchinchin1.jpeg",
+      alt: "Coco Velvet Chinchin in its pack",
       note: "Product photography",
     },
     badges: { landing: "Coastal Batch", shop: "Tropical Infusion" },
@@ -248,8 +261,8 @@ export const PRODUCTS: Product[] = [
     kicker: "Hearth Spiced",
     body: "Freshly milled cinnamon bark and warm whole nutmeg toasted deeply into a crisp, acoustic crunch.",
     image: {
-      src: "/images/chinchin11.png",
-      alt: "Cinnamon Chinchin on a wooden board",
+      src: "/images/packagedchinchin3.jpeg",
+      alt: "Cinnamon Chinchin in its pack",
       note: "Product photography",
     },
     badges: { landing: "Aromatic Hearth", shop: "Spiced Signature" },
@@ -323,6 +336,19 @@ export const PRODUCTS: Product[] = [
 /** Cheapest pack for a product — what the "from" price on a card refers to. */
 export function lowestPrice(product: Product): Kobo {
   return Math.min(...product.detail.packaging.map((pack) => pack.price));
+}
+
+/**
+ * The pack a card's "from" price belongs to.
+ *
+ * A card that shows one price and adds a differently priced pack to the bag is
+ * a card that lies, so the two are derived from the same comparison rather than
+ * assuming the cheapest option is listed first.
+ */
+export function cheapestPack(product: Product) {
+  return product.detail.packaging.reduce((cheapest, pack) =>
+    pack.price < cheapest.price ? pack : cheapest,
+  );
 }
 
 /** Look up one pack option by its display name. */

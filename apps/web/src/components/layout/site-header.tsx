@@ -7,13 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { BRAND, ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
 import { ButtonLink } from "@/components/ui/button";
-import {
-  BagIcon,
-  CloseIcon,
-  MenuIcon,
-  SearchIcon,
-  UserIcon,
-} from "@/components/ui/icons";
+import { BagIcon, CloseIcon, MenuIcon, UserIcon } from "@/components/ui/icons";
 import { NAV_LINKS } from "@/content/landing";
 import { useCart } from "@/lib/cart/use-cart";
 
@@ -108,10 +102,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-gutter-xs">
-            <IconButton label="Search products">
-              <SearchIcon className="h-5 w-5" />
-            </IconButton>
-
             {/* Real bag count. useSyncExternalStore renders 0 on the server and
                 swaps in the persisted count after hydration, so no mismatch. */}
             <Link
@@ -131,7 +121,7 @@ export function SiteHeader() {
             </Link>
 
             <ButtonLink href={ROUTES.shop} className="hidden sm:inline-flex">
-              Shop Chinchin
+              Shop
             </ButtonLink>
 
             <IconButton label="Your account" className="hidden sm:inline-flex">
@@ -183,7 +173,7 @@ export function SiteHeader() {
           onClick={() => setOpen(false)}
           className="mt-gutter-md w-full sm:hidden"
         >
-          Shop Chinchin
+          Shop
         </ButtonLink>
       </div>
     </header>

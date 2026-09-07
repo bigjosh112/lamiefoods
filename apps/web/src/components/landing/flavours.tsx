@@ -1,19 +1,25 @@
+import Link from "next/link";
 import { ROUTES } from "@lamiefoods/config";
+import { AddToBag } from "@/components/landing/add-to-bag";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink, StoryLink } from "@/components/ui/button";
-import { ArrowRightIcon, BoxIcon, EyeIcon } from "@/components/ui/icons";
+import { ArrowRightIcon, BoxIcon } from "@/components/ui/icons";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { FLAVOURS } from "@/content/landing";
-import { lowestPrice } from "@/content/products";
+import { cheapestPack, lowestPrice } from "@/content/products";
 import { formatKobo } from "@/lib/money";
 
 /**
  * The three launch flavours.
  *
- * "Add to bag" is a link to the product page, not a button: no cart exists yet,
- * and a button that silently does nothing is worse than one that takes you
- * somewhere real. It becomes a true add-to-cart action once the API is wired.
+ * The whole card is a link to the product page — the anchor sits on the product
+ * name and its ::after overlay covers the card — so there is one link per card
+ * in the accessibility tree, rather than the three that used to be there, one of
+ * which rendered as an empty box.
+ *
+ * "Add to bag" is a real action against the browser-side bag, and it adds the
+ * pack whose price the card is showing.
  */
 export function Flavours() {
   return (
@@ -32,7 +38,7 @@ export function Flavours() {
       <ul className="mt-gutter-lg grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
         {FLAVOURS.items.map((item, index) => (
           <Reveal key={item.slug} delay={index * 0.08} className="h-full">
-            <li className="flex h-full flex-col overflow-hidden rounded border border-rule/70 bg-surface-container-lowest transition-shadow duration-300 hover:shadow-earth">
+            <li className="group relative flex h-full flex-col overflow-hidden rounded border border-rule/70 bg-surface-container-lowest transition-shadow duration-300 focus-within:shadow-earth hover:shadow-earth">
               <div className="relative aspect-4/3 bg-surface-container">
                 <ImageSlot
                   slot={item.image}
@@ -53,28 +59,30 @@ export function Flavours() {
                   </span>
                 </div>
 
-                <h3 className="mt-gutter-xs text-headline-sm text-cacao">{item.name}</h3>
+                {/*
+                  The whole card is the link. The anchor sits on the product
+                  name — so the accessible name is the product, and the link
+                  list reads sensibly — and its ::after overlay covers the card,
+                  which is what makes tapping anywhere work. One link per card
+                  in the accessibility tree, not three.
+                */}
+                <h3 className="mt-gutter-xs text-headline-sm text-cacao">
+                  <Link
+                    href={ROUTES.product(item.slug)}
+                    className="group-hover:text-terracotta after:absolute after:inset-0 after:content-['']"
+                  >
+                    {item.name}
+                  </Link>
+                </h3>
                 <p className="mt-gutter-xs flex-1 text-body-sm text-on-surface-variant">
                   {item.body}
                 </p>
 
-                <div className="mt-gutter-md flex gap-gutter-xs">
-                  <ButtonLink
-                    href={ROUTES.product(item.slug)}
-                    className="flex-1"
-                    aria-label={`View details for ${item.name}`}
-                  >
-                    View details
-                  </ButtonLink>
-                  <ButtonLink
-                    href={ROUTES.product(item.slug)}
-                    variant="secondary"
-                    className="w-11 shrink-0 px-0"
-                    aria-label={`View details for ${item.name}`}
-                  >
-                    <EyeIcon className="h-4 w-4" />
-                  </ButtonLink>
-                </div>
+                <AddToBag
+                  slug={item.slug}
+                  pack={cheapestPack(item).name}
+                  productName={item.name}
+                />
               </div>
             </li>
           </Reveal>

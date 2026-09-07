@@ -32,7 +32,6 @@ export const NAV_LINKS = [
   { label: "Home", href: ROUTES.home },
   { label: "Shop", href: ROUTES.shop },
   { label: "About", href: ROUTES.about },
-  { label: "Contact", href: "#contact" },
 ] as const;
 
 export const HERO = {

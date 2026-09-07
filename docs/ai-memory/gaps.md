@@ -240,7 +240,29 @@
   the customer-facing name, or crop so the label is not legible. If the physical
   packaging genuinely reads "Enterprise", that is an owner decision about brand
   consistency, not something to solve in code.
-- **Status:** open — needs owner input
+- **Update 2026-09-07 — three placeholder pack shots added, and they are the
+  more serious version of this gap.** The three product images in `products.ts`
+  are now `packagedchinchin.jpeg`, `packagedchinchin1.jpeg` and
+  `packagedchinchin3.jpeg`, supplied by the owner as **local stand-ins until the
+  brand shoot**, which they have said they will replace. Each is a stock
+  packaging mockup for a *different company*:
+    - `packagedchinchin.jpeg` — "Crispy Delights" branding, the Instagram handle
+      `@crispy.delight`, a barcode, a full nutrition panel (150 kcal, 2g protein,
+      6g sugars, 30mg sodium) and a legible ingredient list **including milk
+      powder**.
+    - `packagedchinchin1.jpeg` — a third-party nut brand's pouches, with its own
+      ingredient panel and barcode. Also only 404×316, well below what the 4:3
+      card slot needs (see GAP-005).
+    - `packagedchinchin3.jpeg` — "Prime Essentials" branding, a nutrition panel,
+      an ingredient list and contact phone numbers.
+  **These must not reach production.** Deployed, they would put another
+  company's trade dress on the storefront and display nutritional and allergen
+  information that is not Lamie Foods' own — the precise failure GAP-004 and
+  GAP-007 exist to prevent, arriving as pixels instead of text so neither of
+  those checks catches it. `main` deploys to Vercel, so a push is all it takes.
+  The same warning is written above `PRODUCTS` in `products.ts`, where anyone
+  changing the catalogue will see it.
+- **Status:** open — blocks public launch until the brand shoot lands
 
 ### GAP-001 — No test runner or test infrastructure in any workspace
 

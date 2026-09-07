@@ -17,6 +17,55 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Navbar trim, clickable flavour cards, placeholder pack shots
+
+- **Done:** Navbar cleanup, rebuilt the landing flavour cards, and wired the
+  owner's three placeholder pack shots through the shared catalogue.
+- **Files:** `content/landing.ts`, `content/products.ts`,
+  `components/layout/site-header.tsx`, `components/landing/flavours.tsx`,
+  new `components/landing/add-to-bag.tsx`.
+- **Navbar:** dropped "Contact" (its href was `#contact`, an anchor to an
+  element that exists nowhere on the site), removed the search icon, and
+  shortened the header CTA to "Shop". The hero and closing CTAs still read
+  "Shop Chinchin Collection" / "Shop Chinchin Now" — the request was scoped to
+  the navbar, so body copy was left alone.
+- **The empty box the owner asked about:** each flavour card carried **two**
+  `ButtonLink`s to the same product page with the *same* aria-label — a wide
+  "View details" and an icon-only one whose `EyeIcon` rendered as an empty
+  outline. Three links per card in the accessibility tree, all to one place.
+- **Cards rebuilt:** the anchor now sits on the product name with an
+  `after:absolute after:inset-0` overlay, so the whole card is the click target
+  and there is exactly one link per card. The card action became a working
+  **Add to bag** (`AddToBag`, a small client island so `Flavours` stays a Server
+  Component). It needs `relative z-10` to sit above the link overlay, or every
+  tap would navigate instead of adding.
+- **Added `cheapestPack()`** to the catalogue. The landing card has no size
+  selector, so it adds the pack whose price the card is showing — derived from
+  the same comparison as `lowestPrice()` rather than assuming the cheapest pack
+  is listed first. A card that shows one price and bags another is a card that
+  lies. Verified: ₦3,600 shown, 250g Pouch added.
+- **Images:** set on `products.ts` `image.src`, the single slot read by the
+  landing row, shop grid, product page, cart, checkout summary and admin
+  catalogue — which is what makes the three pack shots identical across pages by
+  construction. Milky Velvet had no image at all before this (`src: null`),
+  which was the inconsistency visible on the landing page.
+- **⚠ The three images are other companies' packaging.** The owner supplied them
+  knowingly as local stand-ins until the brand shoot and will replace them. They
+  carry third-party brand names, an Instagram handle, barcodes, and legible
+  nutrition panels and ingredient lists (one lists milk powder). **They must not
+  be deployed** — they would put another company's trade dress on the storefront
+  and display allergen and nutritional information that is not Lamie Foods',
+  arriving as pixels so neither the GAP-004 nor GAP-007 text checks catch it.
+  Recorded in GAP-006 and in a comment above `PRODUCTS` in `products.ts`.
+- **Verified:** navbar has no Contact link and no search control; each card
+  renders one product link plus one add-to-bag button whose pack matches the
+  displayed price; the same image file appears on landing, shop and product
+  pages. Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** GAP-006 escalated to "blocks public launch until the brand shoot
+  lands".
+- **Next / open threads:** the header's account icon is still a dead control.
+
 ## 2026-09-07 — Scroll-position bug, tablet tier, and a silent class-merge bug
 
 - **Done:** Fixed pages opening part-way down, gave the storefront a real
