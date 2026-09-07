@@ -40,8 +40,15 @@ Questions for the backend developer:
    can surface field-level errors from the server.
 7. **Stock** — is availability checked at order time? What does an out-of-stock
    response look like?
+8. **Sales ranking** — is there an endpoint, or a field on the product, that says
+   how much of each product has actually sold? The landing badge is a status:
+   every product currently reads "New" because the brand has not launched. The
+   owner wants a **"Best seller"** badge once records exist, and that badge is a
+   claim about what other customers bought. It must be driven by real order data
+   — inventing it would be inventing social proof, which is the same failure as
+   a fabricated review. Nothing renders it until this is answered.
 
-Until 1–7 are answered, `apps/web/src/lib/api` stays endpoint-free by design.
+Until 1–8 are answered, `apps/web/src/lib/api` stays endpoint-free by design.
 
 ## Base configuration
 

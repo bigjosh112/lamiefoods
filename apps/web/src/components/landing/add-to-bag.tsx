@@ -22,8 +22,8 @@ import { useCartActions } from "@/lib/cart/use-cart";
  * Styling overrides the shared button's uppercase `text-label-caps`, whose
  * 0.12em tracking is drawn for capitals and reads loose in sentence case, and
  * takes `rounded-md` (6px) over the system's default 4px — a clean rectangle
- * rather than an ecommerce pill. `self-start` keeps it to its own width so it
- * aligns under the copy instead of spanning the column.
+ * rather than an ecommerce pill. It spans the column, so the three buttons line
+ * up as one row across the grid.
  */
 export function AddToBag({
   slug,
@@ -39,7 +39,7 @@ export function AddToBag({
   return (
     <Button
       onClick={() => addLine(slug, pack)}
-      className="relative z-10 mt-gutter-sm self-start rounded-md font-label text-label-md normal-case"
+      className="relative z-10 mt-gutter-sm w-full rounded-md font-label text-label-md normal-case"
       aria-label={`Add ${productName}, ${pack}, to bag`}
     >
       <BagIcon className="h-4 w-4" />

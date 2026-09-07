@@ -17,6 +17,36 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Full-width CTA, and the landing badge becomes a status
+
+- **Done:** "Add to bag" spans the column, and the landing image badge is "New"
+  on all three products.
+- **Files:** `content/products.ts`, `components/landing/add-to-bag.tsx`,
+  `docs/ai-memory/api-integration.md`.
+- **Button:** `self-start` → `w-full`, at the owner's request after seeing it.
+  Keeps `rounded-md` and `normal-case`; the three buttons now line up as one row
+  across the grid.
+- **Badge:** "House Classic" / "Coastal Batch" / "Aromatic Hearth" → **"New"**
+  on all three. `badges.landing` is now documented as a **status**, not
+  descriptive copy — every product is "New" because the brand has not launched.
+  `badges.shop` is untouched and still descriptive.
+- **The important part — "Best seller" is gated on real data.** The owner's plan
+  is to mark best sellers "once records are being kept". A best-seller badge is
+  a claim about what other customers bought, so setting one without order data
+  would be inventing social proof — the same failure class as a fabricated
+  review. Recorded as question 8 in `api-integration.md` (sales ranking), and
+  the rule is written into the `badges` doc comment in `products.ts` so whoever
+  edits the catalogue next sees it before typing "Best seller".
+- **Verified:** all three landing badges render "New", none of the old strings
+  remain, and the button resolves with `w-full rounded-md … normal-case`. Lint,
+  typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md, api-integration.md.
+- **Gaps:** none opened.
+- **Next / open threads:** the shop tiles still show the descriptive
+  `badges.shop` values and keep the boxed card treatment — both left alone since
+  the request was scoped to the landing grid. Worth deciding whether shop should
+  follow.
+
 ## 2026-09-07 — Editorial treatment for the landing product grid
 
 - **Done:** Removed the card treatment from the flavour cards' info block, per

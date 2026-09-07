@@ -25,7 +25,17 @@ export interface Product {
   kicker: string;
   body: string;
   image: ImageSlot;
-  /** Badge over the image. The two pages label the same product differently. */
+  /**
+   * Badge over the image.
+   *
+   * `landing` is a **status**, not a description: every product is "New"
+   * because the brand has not launched. "Best seller" is the obvious next value
+   * and must NOT be set until real order data supports it — a best-seller badge
+   * is a claim about what other customers bought, and inventing one is inventing
+   * social proof. It needs the orders API (see `api-integration.md`).
+   *
+   * `shop` is still descriptive copy and unaffected.
+   */
   badges: { landing: string; shop: string };
   /** UNVERIFIED — the mock's sensory scoring. */
   crunch: { label: string; score: number };
@@ -111,7 +121,7 @@ export const PRODUCTS: Product[] = [
       alt: "Milky Velvet Chinchin in its pack",
       note: "Product photography",
     },
-    badges: { landing: "House Classic", shop: "Original Heritage" },
+    badges: { landing: "New", shop: "Original Heritage" },
     crunch: { label: "Tender Crisp", score: 8 },
     notes: ["100% Churned Dairy", "Subtle Sweetness"],
     detail: {
@@ -188,7 +198,7 @@ export const PRODUCTS: Product[] = [
       alt: "Coco Velvet Chinchin in its pack",
       note: "Product photography",
     },
-    badges: { landing: "Coastal Batch", shop: "Tropical Infusion" },
+    badges: { landing: "New", shop: "Tropical Infusion" },
     crunch: { label: "Toasted Snap", score: 8 },
     notes: ["Fresh Coconut", "Rich Nutty Aroma"],
     detail: {
@@ -265,7 +275,7 @@ export const PRODUCTS: Product[] = [
       alt: "Cinnamon Chinchin in its pack",
       note: "Product photography",
     },
-    badges: { landing: "Aromatic Hearth", shop: "Spiced Signature" },
+    badges: { landing: "New", shop: "Spiced Signature" },
     crunch: { label: "Acoustic Crunch", score: 9.5 },
     notes: ["Cinnamon Bark & Nutmeg", "Warming Spiced Finish"],
     detail: {
