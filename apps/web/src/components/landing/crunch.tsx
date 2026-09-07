@@ -14,6 +14,11 @@ import { CRUNCH } from "@/content/landing";
  * The "Acoustic Sensory Profile" card that used to overlay the photograph was
  * removed at the owner's request, and its invented scores went with it — see
  * the note where `CRUNCH.image` is defined. The photograph now stands alone.
+ *
+ * The eyebrow and the story link run in sentence case here, unlike the rest of
+ * the site. That is done with a className at each call site rather than in
+ * `Eyebrow` and `StoryLink` themselves: both are shared components, and this
+ * request covered this section only.
  */
 export function Crunch() {
   return (
@@ -26,7 +31,8 @@ export function Crunch() {
         </Reveal>
 
         <Reveal delay={0.1} className="md:col-span-6">
-          <Eyebrow>{CRUNCH.eyebrow}</Eyebrow>
+          {/* Sentence case here only — see the note above the component. */}
+          <Eyebrow className="text-label-sm normal-case">{CRUNCH.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">
             <span className="block">{CRUNCH.titleLine1}</span>
             <span className="block text-terracotta italic">{CRUNCH.titleLine2}</span>
@@ -56,7 +62,10 @@ export function Crunch() {
             ))}
           </ul>
 
-          <StoryLink href={CRUNCH.link.href} className="mt-gutter-md">
+          <StoryLink
+            href={CRUNCH.link.href}
+            className="mt-gutter-md text-label-sm normal-case"
+          >
             {CRUNCH.link.label}
             <ArrowRightIcon className="h-4 w-4" />
           </StoryLink>

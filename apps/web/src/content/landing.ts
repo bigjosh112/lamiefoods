@@ -116,10 +116,10 @@ export const PILLARS = {
 };
 
 export const CRUNCH = {
-  eyebrow: "The Anatomy of Craving",
+  eyebrow: "How it's made",
   titleLine1: "Then comes",
   titleLine2: "the crunch.",
-  body: "A genuine Lamie chin-chin does not shatter into coarse dry crumbs, nor does it yield to heavy oiliness. The first contact delivers a sharp acoustic snap, quickly giving way to a velvety, sweet-butter crumble infused with warm nutmeg perfume.",
+  body: "You'll hear it before you taste it. A sharp golden crunch gives way to a soft, buttery crumb, warmed through with real nutmeg.",
   image: {
     src: "/images/newchinchin.jpeg",
     alt: "A plate piled with golden chin chin cubes",
@@ -133,18 +133,22 @@ export const CRUNCH = {
     lists. The data is deleted rather than left dormant, so it cannot quietly
     return to the page.
   */
-  /** UNVERIFIED — process claims. */
+  /**
+   * Process claims, rewritten by the owner on 2026-09-07 — so unlike the mock's
+   * versions these are the brand's own statements about its own kitchen, not
+   * copy invented for a design frame. No longer UNVERIFIED.
+   */
   points: [
     {
-      title: "Stone-Milled Whole Nutmeg",
-      body: "Ground in small batches right before folding to lock in fleeting volatile aromatic oils.",
+      title: "Stone-milled nutmeg",
+      body: "Ground fresh in small batches so the flavour never fades.",
     },
     {
-      title: "Double-Rested Dough Blankets",
-      body: "A cold resting cycle relaxes gluten strands, yielding micro-layered flakiness.",
+      title: "Rested dough",
+      body: "A slow chill before frying is what gives every piece its flaky layers.",
     },
   ],
-  link: { label: "Experience the crunch in 3 flavours", href: ROUTES.shop },
+  link: { label: "See all 3 flavours", href: ROUTES.shop },
 };
 
 export const FLAVOURS = {

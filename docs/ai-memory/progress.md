@@ -17,6 +17,38 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Crunch section copy, owner-written
+
+- **Done:** Replaced the crunch section's eyebrow, body, both feature points and
+  the story link with the owner's copy, and set the eyebrow and link in sentence
+  case. Headline, layout, grid, image and spacing untouched, as specified.
+- **Files:** `content/landing.ts`, `components/landing/crunch.tsx`.
+- **Casing scoped to this section.** `Eyebrow` and `StoryLink` are shared —
+  30 other elements across the site use their tracked-out caps. Both accept a
+  `className` and run it through `cn()`, so the override sits at the two call
+  sites rather than in the components; verified the rest of the page still
+  renders caps.
+- **Kept the type size.** The caps treatment is `text-label-caps`
+  (0.6875rem / 0.12em / 700) — the tracking is drawn for capitals and the weight
+  is heavy for sentence case, but the *size* was not the problem.
+  `text-label-sm` is the same 0.6875rem with 0.03em and 500, so only the caps
+  treatment changed. `text-label-md` was the first attempt and would have grown
+  both to 13px — a size change a copy-only request did not ask for.
+- **The points are no longer UNVERIFIED.** "Stone-milled nutmeg — ground fresh
+  in small batches" and "Rested dough — a slow chill before frying" are the
+  owner's own statements about their own kitchen, written by them today, not
+  copy invented for a design frame. The marker in `landing.ts` was updated to
+  say so. This is what GAP-004 asks for, one block at a time.
+- **Verified:** all seven new strings render, all five old ones are gone, the
+  headline is untouched, and the two overridden elements resolve without
+  `uppercase` or `text-label-caps` while the other 30 keep theirs. Lint,
+  typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened; GAP-004 unchanged in status — `HERO.stats`,
+  `PLACEHOLDER_PRICE_FROM`, `MANIFESTO.stats`, `FLAVOURS.items[].body` and
+  `HORIZON.items` still need the same treatment.
+- **Next / open threads:** unchanged.
+
 ## 2026-09-07 — Crunch section: new photograph, sensory card removed
 
 - **Done:** Swapped the crunch section's image for `newchinchin.jpeg` and
