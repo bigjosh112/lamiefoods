@@ -22,8 +22,14 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-rule/70 bg-surface-container-low px-margin py-section">
       <div className="mx-auto w-full max-w-(--container-page)">
-        <div className="grid gap-gutter-lg lg:grid-cols-12">
-          <div className="lg:col-span-4">
+        {/*
+          Three tiers, not two. Stacking the brand block and all four link
+          columns vertically until 1024px made the footer taller than most
+          phone screens; from 640px the link columns sit two-up, and from
+          768px the whole thing is one 12-column row.
+        */}
+        <div className="grid gap-gutter-lg sm:grid-cols-2 md:grid-cols-12">
+          <div className="sm:col-span-2 md:col-span-4">
             <div className="flex items-center gap-gutter-xs">
               <Image
                 src="/Lamie Foods - Logo.svg"
@@ -79,7 +85,7 @@ export function SiteFooter() {
           </div>
 
           {FOOTER_COLUMNS.map((column) => (
-            <nav key={column.title} aria-label={column.title} className="lg:col-span-2">
+            <nav key={column.title} aria-label={column.title} className="md:col-span-2">
               <h2 className="font-label text-label-caps text-cacao uppercase">
                 {column.title}
               </h2>

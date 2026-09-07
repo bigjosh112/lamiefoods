@@ -17,7 +17,7 @@ export function Moments() {
 
       {/* The design offsets these two cards vertically on wide screens. The
           offset is decorative, so it only applies once there is room for it. */}
-      <ul className="mt-gutter-xl grid gap-gutter-md lg:grid-cols-2">
+      <ul className="mt-gutter-xl grid gap-gutter-md md:grid-cols-2">
         {MOMENTS.features.map((feature, index) => (
           <Reveal
             key={feature.title}

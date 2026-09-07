@@ -20,8 +20,8 @@ const SCORE_MAX = 10;
 export function Crunch() {
   return (
     <Section className="lg:py-section-xl">
-      <div className="grid items-center gap-gutter-lg lg:grid-cols-12">
-        <Reveal className="relative lg:col-span-6">
+      <div className="grid items-center gap-gutter-lg md:grid-cols-12">
+        <Reveal className="relative md:col-span-6">
           <div className="relative aspect-square overflow-hidden rounded border border-rule/70">
             <ImageSlot slot={CRUNCH.image} sizes="(min-width: 1024px) 45vw, 100vw" />
           </div>
@@ -58,7 +58,7 @@ export function Crunch() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1} className="lg:col-span-6">
+        <Reveal delay={0.1} className="md:col-span-6">
           <Eyebrow>{CRUNCH.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">
             <span className="block">{CRUNCH.titleLine1}</span>

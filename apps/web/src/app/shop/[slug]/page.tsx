@@ -95,32 +95,18 @@ export default async function ProductPage({
             </ol>
           </nav>
 
-          <div className="mt-gutter-lg grid gap-gutter-lg lg:grid-cols-12">
-            <div className="lg:col-span-7">
+          {/*
+            Side by side from 768px, not 1024px. On a tablet the single-column
+            fallback put a full-width product photograph above the fold and
+            pushed the price and pack picker off it entirely — the two things a
+            buyer came for.
+          */}
+          <div className="mt-gutter-lg grid gap-gutter-lg md:grid-cols-12">
+            <div className="md:col-span-7">
               <ProductGallery product={product} />
-
-              <div className="mt-gutter-md flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-inset-card">
-                <div className="flex items-start gap-gutter-sm">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded bg-secondary-container text-primary">
-                    <ICONS.seal className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h2 className="text-headline-sm text-cacao">
-                      {product.detail.proof.title}
-                    </h2>
-                    <p className="mt-1 max-w-sm text-body-sm text-on-surface-variant">
-                      {product.detail.proof.body}
-                    </p>
-                  </div>
-                </div>
-                <span className="inline-flex items-center gap-gutter-xs font-label text-label-sm text-terracotta uppercase">
-                  {product.detail.proof.cta}
-                  <ArrowRightIcon className="h-4 w-4" />
-                </span>
-              </div>
             </div>
 
-            <div className="lg:col-span-5">
+            <div className="md:col-span-5">
               <div className="flex flex-wrap items-center justify-between gap-gutter-sm">
                 <p className="font-label text-label-caps text-terracotta uppercase">
                   {BRAND.displayName}
@@ -169,6 +155,33 @@ export default async function ProductPage({
                   );
                 })}
               </ul>
+            </div>
+
+            {/*
+              Its own grid child rather than part of the gallery column. Auto
+              placement lands it back under the gallery from 768px up, but on a
+              phone the column now reads gallery → price and pack picker →
+              proof, so the buy controls are no longer buried beneath a card the
+              buyer did not scroll for.
+            */}
+            <div className="flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-inset-card md:col-span-7">
+              <div className="flex items-start gap-gutter-sm">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded bg-secondary-container text-primary">
+                  <ICONS.seal className="h-5 w-5" />
+                </span>
+                <div>
+                  <h2 className="text-headline-sm text-cacao">
+                    {product.detail.proof.title}
+                  </h2>
+                  <p className="mt-1 max-w-sm text-body-sm text-on-surface-variant">
+                    {product.detail.proof.body}
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-gutter-xs font-label text-label-sm text-terracotta uppercase">
+                {product.detail.proof.cta}
+                <ArrowRightIcon className="h-4 w-4" />
+              </span>
             </div>
           </div>
         </Section>

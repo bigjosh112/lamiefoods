@@ -16,8 +16,8 @@ export function AboutHero() {
 
   return (
     <Section className="bg-surface-container-low">
-      <div className="grid items-center gap-gutter-xl lg:grid-cols-12">
-        <div className="lg:col-span-6">
+      <div className="grid items-center gap-gutter-xl md:grid-cols-12">
+        <div className="md:col-span-6">
           <p className="inline-flex items-center gap-gutter-xs rounded-full border border-rule/70 bg-surface px-3 py-1.5 font-label text-label-caps text-terracotta uppercase">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-terracotta" />
             {hero.eyebrow}
@@ -52,7 +52,7 @@ export function AboutHero() {
           </dl>
         </div>
 
-        <Reveal delay={0.1} className="relative lg:col-span-6">
+        <Reveal delay={0.1} className="relative md:col-span-6">
           <div className="relative aspect-4/5 overflow-hidden rounded border border-rule/70">
             <ImageSlot
               slot={hero.image}
@@ -93,8 +93,8 @@ export function AboutHeritage() {
 
   return (
     <Section>
-      <div className="grid items-center gap-gutter-xl lg:grid-cols-12">
-        <Reveal className="relative lg:col-span-6">
+      <div className="grid items-center gap-gutter-xl md:grid-cols-12">
+        <Reveal className="relative md:col-span-6">
           <div className="relative aspect-4/3 overflow-hidden rounded border border-rule/70">
             <ImageSlot slot={heritage.image} sizes="(min-width: 1024px) 45vw, 100vw" />
           </div>
@@ -110,7 +110,7 @@ export function AboutHeritage() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.1} className="lg:col-span-6">
+        <Reveal delay={0.1} className="md:col-span-6">
           <Eyebrow withRule>{heritage.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{heritage.title}</h2>
           {heritage.body.map((paragraph) => (
@@ -152,17 +152,17 @@ export function AboutTenets() {
 
   return (
     <Section className="bg-surface-container-low">
-      <div className="grid gap-gutter-lg lg:grid-cols-12">
-        <div className="lg:col-span-6">
+      <div className="grid gap-gutter-lg md:grid-cols-12">
+        <div className="md:col-span-6">
           <Eyebrow>{tenets.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{tenets.title}</h2>
         </div>
-        <p className="self-end text-body-md text-on-surface-variant lg:col-span-6">
+        <p className="self-end text-body-md text-on-surface-variant md:col-span-6">
           {tenets.body}
         </p>
       </div>
 
-      <ul className="mt-gutter-xl grid gap-gutter-md lg:grid-cols-3">
+      <ul className="mt-gutter-xl grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
         {tenets.items.map((item, index) => {
           const Icon = ICONS[item.icon];
           const inverted = "inverted" in item && item.inverted;
@@ -238,8 +238,8 @@ export function AboutHorizon() {
 
   return (
     <Section>
-      <div className="grid items-center gap-gutter-xl lg:grid-cols-12">
-        <Reveal className="lg:col-span-6">
+      <div className="grid items-center gap-gutter-xl md:grid-cols-12">
+        <Reveal className="md:col-span-6">
           <Eyebrow>{horizon.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{horizon.title}</h2>
           <p className="mt-gutter-sm max-w-prose text-body-md text-on-surface-variant">
@@ -251,7 +251,7 @@ export function AboutHorizon() {
           </p>
         </Reveal>
 
-        <Reveal delay={0.1} className="grid grid-cols-2 gap-gutter-sm lg:col-span-6">
+        <Reveal delay={0.1} className="grid grid-cols-2 gap-gutter-sm md:col-span-6">
           {horizon.images.map((image, index) => (
             <div
               key={image.note}
@@ -296,8 +296,8 @@ export function AboutSensory() {
 
   return (
     <Section className="bg-surface-container-low">
-      <div className="grid items-center gap-gutter-xl lg:grid-cols-12">
-        <Reveal className="lg:col-span-5">
+      <div className="grid items-center gap-gutter-xl md:grid-cols-12">
+        <Reveal className="md:col-span-5">
           <Eyebrow>{sensory.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{sensory.title}</h2>
           <p className="mt-gutter-sm text-body-md text-on-surface-variant">
@@ -305,7 +305,7 @@ export function AboutSensory() {
           </p>
         </Reveal>
 
-        <Reveal delay={0.1} className="lg:col-span-7">
+        <Reveal delay={0.1} className="md:col-span-7">
           <dl className="grid gap-gutter-md rounded border border-rule/70 bg-surface p-inset-card">
             {sensory.metrics.map((metric) => (
               <div key={metric.label}>

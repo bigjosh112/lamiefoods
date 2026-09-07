@@ -37,8 +37,8 @@ export function OrderConfirmation({ order }: { order: Order }) {
   const { deliveryAddress } = order.customer;
 
   return (
-    <div className="grid gap-gutter-lg lg:grid-cols-12">
-      <section className="rounded border border-rule/70 bg-surface-container-low p-inset-card lg:col-span-7">
+    <div className="grid gap-gutter-lg md:grid-cols-12">
+      <section className="rounded border border-rule/70 bg-surface-container-low p-inset-card md:col-span-7">
         <div className="flex flex-wrap items-start justify-between gap-gutter-sm">
           <div>
             <p className="font-label text-label-sm text-nutmeg uppercase">
@@ -152,7 +152,7 @@ export function OrderConfirmation({ order }: { order: Order }) {
         </div>
       </section>
 
-      <div className="flex flex-col gap-gutter-md lg:col-span-5">
+      <div className="flex flex-col gap-gutter-md md:col-span-5">
         <section className="rounded border border-rule/70 bg-surface-container-low p-inset-card">
           <p className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg uppercase">
             <ICONS.truck className="h-4 w-4 text-terracotta" />
@@ -181,8 +181,14 @@ export function OrderConfirmation({ order }: { order: Order }) {
             </span>
           </div>
 
-          {/* Progress is derived from the order's own status, never hardcoded. */}
-          <ol className="mt-gutter-md grid grid-cols-4 gap-gutter-xs">
+          {/*
+            Progress is derived from the order's own status, never hardcoded.
+
+            Two-up on phones: four columns left roughly 68px per stage, which
+            is not enough for a label like "Out for delivery" at any legible
+            size.
+          */}
+          <ol className="mt-gutter-md grid grid-cols-2 gap-gutter-xs sm:grid-cols-4">
             {STAGES.map((stage) => {
               const done = stage.statuses.includes(order.status);
               return (
@@ -196,7 +202,7 @@ export function OrderConfirmation({ order }: { order: Order }) {
                   />
                   <span
                     className={cn(
-                      "mt-1 block font-label text-[10px] uppercase",
+                      "mt-1 block font-label text-label-caps uppercase",
                       done ? "text-cacao" : "text-nutmeg/70",
                     )}
                   >

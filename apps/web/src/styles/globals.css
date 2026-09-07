@@ -201,7 +201,19 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    /*
+      No `scroll-behavior: smooth` here, deliberately.
+
+      Next's App Router resets the scroll position on navigation by scrolling
+      the document element. With smooth behaviour set on <html>, that reset is
+      animated and gets interrupted by the incoming page's own layout, so a
+      route opened from halfway down one page lands halfway down the next —
+      which reads as "it opened at the footer". There are no in-page anchors on
+      the site, so the property was buying nothing and costing that.
+
+      If anchor navigation is added later, scope smooth scrolling to that
+      interaction rather than putting it back on the root element.
+    */
     scroll-padding-block-start: 5rem;
     -webkit-text-size-adjust: 100%;
   }
@@ -280,10 +292,6 @@
   respect it, but this catches CSS transitions and any animation added later.
 */
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
   *,
   *::before,
   *::after {

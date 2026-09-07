@@ -17,8 +17,8 @@ export function AtelierLab() {
   return (
     <Section className="pb-0">
       <Reveal>
-        <div className="grid gap-gutter-lg rounded border border-rule/70 bg-surface-container-low p-inset-card sm:p-gutter-xl lg:grid-cols-12">
-          <div className="lg:col-span-7">
+        <div className="grid gap-gutter-lg rounded border border-rule/70 bg-surface-container-low p-inset-card sm:p-gutter-xl md:grid-cols-12">
+          <div className="md:col-span-7">
             <Eyebrow withRule>{ATELIER_LAB.eyebrow}</Eyebrow>
             <h2 className="mt-gutter-sm text-headline-md text-cacao">
               {ATELIER_LAB.title}
@@ -28,7 +28,7 @@ export function AtelierLab() {
             </p>
           </div>
 
-          <form className="flex flex-col gap-gutter-xs self-center sm:flex-row sm:items-end lg:col-span-5">
+          <form className="flex flex-col gap-gutter-xs self-center sm:flex-row sm:items-end md:col-span-5">
             <div className="flex-1">
               <label htmlFor="notify-email" className="sr-only">
                 {ATELIER_LAB.form.label}
@@ -49,7 +49,7 @@ export function AtelierLab() {
             </Button>
           </form>
 
-          <p id="notify-note" className="text-body-sm text-nutmeg lg:col-span-12">
+          <p id="notify-note" className="text-body-sm text-nutmeg md:col-span-12">
             Sign-ups open once our ordering system goes live.
           </p>
         </div>

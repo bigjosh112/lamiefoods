@@ -17,6 +17,72 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Scroll-position bug, tablet tier, and a silent class-merge bug
+
+- **Done:** Fixed pages opening part-way down, gave the storefront a real
+  tablet tier, and fixed a design-system bug that was deleting font sizes.
+- **Files:** `styles/globals.css`, `packages/ui/src/cn.ts`,
+  `app/shop/[slug]/page.tsx`, `components/layout/site-footer.tsx`,
+  `components/order/order-confirmation.tsx`, `components/about/about-sections.tsx`,
+  `components/landing/{crunch,manifesto,moments}.tsx`,
+  `components/shop/atelier-lab.tsx`,
+  `components/product/{provenance,related-products}.tsx`.
+
+### 1. Pages opened at the footer
+
+- **Cause:** `scroll-behavior: smooth` on `<html>`. Next's App Router resets
+  scroll on navigation by scrolling the document element; with smooth behaviour
+  that reset is animated and gets interrupted by the incoming page's layout, so
+  a route opened from halfway down one page stayed halfway down the next.
+- **Fix:** removed it. The site has **no in-page anchors at all**, so the
+  property was buying nothing. `scroll-padding-block-start` stays for the sticky
+  header if anchors are added later — scope smooth scrolling to that
+  interaction then, not to the root element.
+
+### 2. No tablet tier anywhere
+
+- **Cause:** the storefront jumped straight from one column to `lg:` (1024px).
+  Across every customer-facing component the `md:` count was **1**. Every tablet
+  in portrait — and most in landscape — got the phone layout: full-width
+  product photography with the price and pack picker pushed off screen.
+- **Fix:** added the 768px tier to the product page, footer, order
+  confirmation, about page, and the crunch/manifesto/moments/atelier-lab/
+  provenance/related-products sections. Typography and spacing were already
+  fluid `clamp()` with mobile floors, so only layout needed the work.
+- **Footer** got a third tier (`sm:grid-cols-2 md:grid-cols-12`): the brand
+  block plus four link columns stacked vertically until 1024px, making the
+  footer taller than most phone screens.
+- **Order tracker** was `grid-cols-4` unprefixed — roughly 68px per stage on a
+  phone, not enough for "Out for delivery" at any legible size. Now
+  `grid-cols-2 sm:grid-cols-4`.
+- **Product page:** the proof card moved out of the gallery column into its own
+  grid child. Auto placement returns it under the gallery from 768px up, but the
+  phone column now reads gallery → price and pack picker → proof, so the buy
+  controls are no longer buried under a card nobody scrolled for.
+
+### 3. `cn()` was silently deleting font sizes
+
+- **Cause:** `cn` used bare `twMerge`. tailwind-merge only knows Tailwind's stock
+  sizes, so every custom step (`text-headline-sm`, `text-label-caps`, …) was
+  classified as a **text colour**. In any `cn()` call that also set a colour, one
+  overwrote the other. The order tracker rendered
+  `font-label uppercase text-cacao` with its size stripped entirely.
+- **Fix:** `extendTailwindMerge` registering the ten `--text-*` steps as the
+  `font-size` group. **Keep that list in step with `globals.css`.**
+- **Scope:** 35 class combinations across the site were affected. Verified fixed
+  in the rendered output.
+
+- **Verified:** all seven storefront routes return 200; the compiled CSS carries
+  no `scroll-behavior: smooth`; the new `md:` classes are present in the markup
+  and the breakpoint rules in the CSS; size and colour now both survive `cn()`.
+  Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** the admin screens were not re-checked for tablet
+  width — they are desktop tooling and their wide tables already scroll inside
+  `overflow-x-auto`. The header's search and account icons are still dead
+  controls (asked about, never answered).
+
 ## 2026-09-06 — Settings (/admin/settings), dev-gated — designed, no mock
 
 - **Done:** Designed and built the settings screen from the admin's own

@@ -24,7 +24,7 @@ export function Provenance({ product }: { product: Product }) {
         </p>
       </Reveal>
 
-      <div className="mt-gutter-xl grid gap-gutter-md lg:grid-cols-3">
+      <div className="mt-gutter-xl grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
         <Reveal className="h-full">
           <Card icon={<LeafIcon className="h-5 w-5" />} title={provenance.flavour.title}>
             <p className="text-body-sm text-on-surface-variant">
@@ -97,7 +97,7 @@ export function Provenance({ product }: { product: Product }) {
         </Reveal>
       </div>
 
-      <div className="mt-gutter-md grid gap-gutter-md lg:grid-cols-2">
+      <div className="mt-gutter-md grid gap-gutter-md md:grid-cols-2">
         <Reveal className="h-full">
           <Panel title="Artisanal Ingredients" tag={ingredients.tag}>
             <p className="text-body-sm text-on-surface-variant">{ingredients.body}</p>

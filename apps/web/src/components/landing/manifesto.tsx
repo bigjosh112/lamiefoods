@@ -18,8 +18,8 @@ import { MANIFESTO } from "@/content/landing";
 export function Manifesto() {
   return (
     <Section className="bg-surface-container-low" id="manifesto">
-      <div className="grid items-center gap-gutter-lg lg:grid-cols-12">
-        <Reveal className="relative lg:col-span-5">
+      <div className="grid items-center gap-gutter-lg md:grid-cols-12">
+        <Reveal className="relative mx-auto w-full max-w-sm md:col-span-5 md:max-w-none">
           <div className="relative aspect-3/4 overflow-hidden rounded border border-rule/70">
             <ImageSlot slot={MANIFESTO.image} sizes="(min-width: 1024px) 40vw, 100vw" />
           </div>
@@ -38,7 +38,7 @@ export function Manifesto() {
           />
         </Reveal>
 
-        <Reveal delay={0.1} className="lg:col-span-7">
+        <Reveal delay={0.1} className="md:col-span-7">
           <Eyebrow withRule>{MANIFESTO.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{MANIFESTO.title}</h2>
           {MANIFESTO.body.map((paragraph) => (

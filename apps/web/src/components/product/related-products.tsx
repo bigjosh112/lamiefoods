@@ -36,7 +36,7 @@ export function RelatedProducts({ current }: { current: Product }) {
         </StoryLink>
       </Reveal>
 
-      <ul className="mt-gutter-lg grid gap-gutter-md lg:grid-cols-2">
+      <ul className="mt-gutter-lg grid gap-gutter-md sm:grid-cols-2">
         {others.map((product, index) => (
           <Reveal key={product.slug} delay={index * 0.08} className="h-full">
             <li className="flex h-full overflow-hidden rounded border border-rule/70 bg-surface-container-low">
