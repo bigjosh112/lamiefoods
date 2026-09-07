@@ -89,28 +89,44 @@ export const MANIFESTO = {
 };
 
 export const PILLARS = {
-  eyebrow: "Uncompromised Standard",
+  eyebrow: "What goes into every batch",
   title: "The Three Pillars of Lamie Craft",
-  body: "From the stone mortar where we grate whole nutmeg pods to the seal on our keepsake jars.",
-  /** UNVERIFIED — process descriptions from the mock. */
+  body: "From the nutmeg we grind to the jar we seal it in.",
+  /**
+   * Rewritten by the owner on 2026-09-07, so these are the brand's own
+   * statements about its own kitchen rather than the mock's invented process
+   * copy. No longer UNVERIFIED — with one exception, below.
+   */
   items: [
     {
       icon: "award" as const,
       index: "Pillar 01",
       title: "Obsessive Quality",
-      body: "Made with meticulous attention to the details that matter. Heritage wheat flour, slow-churned sweet cream butter, whole farm eggs, and fresh stone-grated spices.",
+      body: "Wheat flour, real butter, farm eggs, fresh-ground spices. Nothing cut, nothing swapped.",
     },
     {
       icon: "timer" as const,
       index: "Pillar 02",
       title: "Small-Batch Freshness",
-      body: "Freshly prepared in temperature-calibrated small kettles. We never mass-produce inventory; each pouch is dispatched within hours of reaching optimal cooling balance.",
+      body: "Made in small pots, not mass-produced. Every pouch ships within hours of cooling.",
     },
     {
+      /*
+        AHEAD OF THE CATALOGUE — this copy is correct; `products.ts` is not.
+
+        The owner has confirmed every chin chin will be packaged in THREE sizes.
+        The catalogue still lists two per product — "250g Pouch" and
+        "500g Gourmet Jar" — so a customer who reads this and clicks through to
+        the shop currently finds two options, one of them glass.
+
+        The third size cannot be added here: it needs a name, a format and a
+        price, and prices are the one thing this project never invents. Blocked
+        on the owner. Tracked in gaps.md.
+      */
       icon: "sparkle" as const,
       index: "Pillar 03",
       title: "Thoughtful Craft",
-      body: "Beautifully packaged in moisture-barrier wax pouches and embossed keepsake jars designed for discerning personal study desks and warm banquet gift tables alike.",
+      body: "Packed fresh in pouches, in three sizes, sealed to stay crisp.",
     },
   ],
 };

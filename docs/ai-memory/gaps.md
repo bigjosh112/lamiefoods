@@ -34,6 +34,37 @@
   offer exists at all) and the number resolves itself.
 - **Status:** open — no code change expected
 
+### GAP-011 — The catalogue is missing a confirmed third pack size
+
+- **Category:** content-risk / data-completeness
+- **Severity:** high (the storefront currently under-sells the range)
+- **Location:** `apps/web/src/content/products.ts` — `detail.packaging` on all
+  three products; the claim is in `content/landing.ts` (`PILLARS.items[2].body`).
+- **Found:** 2026-09-07, confirmed by the owner in the same session
+- **Problem:** The owner has confirmed **every chin chin will be packaged in
+  three sizes**. The catalogue lists two per product: "250g Pouch" (₦3,600) and
+  "500g Gourmet Jar" (₦5,600). The landing page now says "in pouches, in three
+  sizes", which is correct — the catalogue is what is behind.
+  A customer reading the pillar and clicking through to the shop finds two
+  options, one of them a glass jar rather than a pouch.
+- **Why it was not just added:** a pack size needs a name, a format and a
+  **price**. Prices are the one thing this project never invents (GAP-004, and
+  the owner's original brief). Adding a third row with a plausible figure is
+  precisely the failure the whole catalogue is built to avoid.
+- **Blast radius when it lands:** `products.ts` is the single source, so adding
+  the size updates the shop grid, product pages, the cart's pack picker, the
+  admin catalogue and the inventory table at once. `admin-inventory.ts` keys its
+  sample stock as `<slug>::<pack name>`, so a new pack needs a matching entry
+  there or it silently reports no stock. The inventory page's "6 pack sizes"
+  and "8 stock lines" figures are derived and will update themselves.
+- **Fix:** owner supplies, for the third size: its name and format (is it a
+  pouch, given the copy says "pouches"?), its weight, and its price. Then add it
+  to `detail.packaging` on each product and add the matching `SAMPLE_STOCK` key.
+- **Also unresolved:** the pillar says "in pouches" while the existing 500g
+  format is a jar. If all three sizes are pouches, the jar needs renaming; if
+  not, the copy overstates.
+- **Status:** open — blocks accurate pricing and the shop's pack picker
+
 ### GAP-010 — No record of who agreed to be contacted
 
 - **Category:** compliance / content-risk

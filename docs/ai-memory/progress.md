@@ -17,6 +17,48 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-07 — Three Pillars: card styling removed, owner-written copy
+
+- **Done:** Stripped the card treatment from the three pillar columns and
+  replaced the eyebrow, subheadline and all three bodies with the owner's copy.
+  Headline, grid, icon choices and column count untouched.
+- **Files:** `content/landing.ts`, `components/landing/pillars.tsx`.
+- **Styling:** the `<li>` lost its background, border, radius, padding and hover
+  shadow; the icon lost its 44px terracotta chip and now sits bare at 24px in
+  terracotta — the colour the chip used to carry. Verified the rendered
+  `<ul>` contains no `border`, `rounded`, `shadow-earth`, `p-inset-card`,
+  `bg-surface-container-low` or `bg-primary-container` at all.
+- **Grid gap `gutter-md` → `gutter-lg`.** Not a rhythm change for its own sake:
+  the boxes contributed 24px of `p-inset-card` on each side, so with them gone
+  the three blocks of copy would have sat *closer* together than they did inside
+  their boxes. The larger gap holds the previous separation. The optional
+  hairline was skipped — spacing alone does the work, as in the flavours row.
+- **Casing** overridden at the call sites again (`text-label-sm normal-case`),
+  not in `Eyebrow`, which is shared and keeps its caps elsewhere. Applies to the
+  eyebrow and the "Pillar 01/02/03" labels.
+- **⚠ GAP-011 opened — the catalogue is missing a confirmed third pack size.**
+  Pillar 03's new copy says "in pouches, in three sizes". `products.ts` lists
+  **two** per product, one of them a glass jar. I flagged it as a conflict; the
+  owner then confirmed **every chin chin will come in three sizes**, so the copy
+  is right and the catalogue is behind. It could not simply be added: a pack
+  size needs a name, a format and a **price**, and prices are the one thing this
+  project never invents. The comment in `landing.ts` was corrected from
+  "either/or" to "the catalogue is what is wrong".
+  Note for whoever adds it: `admin-inventory.ts` keys sample stock as
+  `<slug>::<pack name>`, so a new pack needs a matching entry there or it
+  silently reports zero stock. The derived "6 pack sizes" and "8 stock lines"
+  figures update themselves.
+  Still unresolved inside that gap: the copy says "pouches" while the 500g
+  format is a jar.
+- **Bodies are no longer UNVERIFIED** — owner-written, like the crunch points.
+- **Verified:** all six new strings render, all five old ones gone, headline
+  intact, grid still `md:grid-cols-3`. Lint, typecheck, build and
+  `prettier --check` pass.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** GAP-011 opened.
+- **Next / open threads:** third pack size (GAP-011) is now the most concrete
+  thing blocked on the owner, alongside GAP-004's remaining values.
+
 ## 2026-09-07 — Crunch section copy, owner-written
 
 - **Done:** Replaced the crunch section's eyebrow, body, both feature points and
