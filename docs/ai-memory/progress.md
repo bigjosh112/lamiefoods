@@ -17,6 +17,47 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Product detail page: badges, cards and copy
+
+- **Done:** The owner's full product-page pass, applied to **all three
+  products** — everything is driven by shared components and per-product data,
+  so there is no per-product markup to keep in step.
+- **Files:** `content/products.ts`, `app/shop/[slug]/page.tsx`,
+  `components/product/{product-gallery,product-purchase}.tsx`.
+- **Five per-product `detail` fields deleted, not just unrendered:**
+  `heroBadge`, `batchSeries`, `atelier`, `tagline`, `description`. Removing the
+  first two closes more of GAP-004 — the hero badges asserted
+  **"100% Churned Butter"**, and the batch series printed **"N° 84" / "N° 61" /
+  "N° 47"**, numbers nothing tracks, the same fiction as the shop header's
+  "Batch No. 842" and the hero's "Batch Kettle No. 042", both already removed.
+  Left in the type they would have been one JSX line from returning.
+- **`description` is gone rather than shortened.** The product page and the shop
+  grid now both render `product.body`, so the two pages cannot describe the same
+  product differently. The page `<meta description>` follows the same field —
+  shorter than an SEO-ideal 150 chars, but true and consistent, and search
+  engines rewrite these anyway.
+- **De-carded:** the price block and the trust list both lost their fill, border
+  and padding. The price label is "Price", the brand wordmark is `Lamie Foods`
+  in normal casing rather than tracked-out capitals.
+- **Size selector:** label is "Select size"; the pack name that floated to the
+  right of it is gone — the options below already show the selection. Unselected
+  options lost their fill for a hairline, selected keeps its state, and the
+  radius moved to `rounded-md` so the picker matches the shop grid's.
+- **Delivery wording already matched.** `PRODUCT_ASSURANCES` interpolates
+  `DELIVERY.minDays`–`maxDays`, so it was already rendering
+  "Fast nationwide delivery (1–5 business days)" with a true en-dash. Confirmed
+  rather than changed.
+- **Verified on all three product pages:** no leftover badge, atelier, tagline,
+  batch-series or old-description strings; "Price" and "Select size" present;
+  each page shows its own shop-grid sentence; price block and trust list carry
+  no border or fill; both actions and the size options render at `rounded-md`
+  with no `uppercase`. The two remaining "Crafted for Good Taste" hits are the
+  footer tagline and the JSON-LD slogan — both correct. Lint, typecheck, build
+  and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** GAP-004 further reduced — two more invented claims gone.
+- **Next / open threads:** unchanged, minus the ones closed here.
+
 ## 2026-09-08 — Whole shop tile is clickable
 
 - **Done:** Clicking anywhere on a shop product tile opens its product page, not

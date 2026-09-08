@@ -23,24 +23,10 @@ export function ProductGallery({ product }: { product: Product }) {
   return (
     <div>
       <div className="relative aspect-4/3 overflow-hidden rounded border border-rule/70">
+        {/* No overlay badges. The two that sat here asserted a butter
+            percentage nobody has confirmed and a batch number nothing
+            tracks. */}
         <ImageSlot slot={current} sizes="(min-width: 1024px) 55vw, 100vw" priority />
-
-        <span className="absolute top-4 left-4 inline-flex items-center gap-gutter-xs rounded-sm bg-cacao/85 px-3 py-1.5 font-label text-label-sm text-linen uppercase backdrop-blur-sm">
-          <span
-            aria-hidden="true"
-            className="h-1.5 w-1.5 rounded-full bg-tertiary-fixed-dim"
-          />
-          {product.detail.heroBadge}
-        </span>
-
-        <span className="absolute right-4 bottom-4 rounded-sm bg-cacao/85 px-3 py-1.5 text-right text-linen backdrop-blur-sm">
-          <span className="block font-label text-label-sm text-linen/60 uppercase">
-            {product.detail.batchSeries.label}
-          </span>
-          <span className="block font-label text-label-md text-tertiary-fixed-dim">
-            {product.detail.batchSeries.value}
-          </span>
-        </span>
       </div>
 
       <div

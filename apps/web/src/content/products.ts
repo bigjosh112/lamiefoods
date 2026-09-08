@@ -61,11 +61,18 @@ export interface Product {
  * "to be confirmed" line until the owner supplies the real statement.
  */
 export interface ProductDetail {
-  heroBadge: string;
-  batchSeries: { label: string; value: string };
-  atelier: string;
-  tagline: string;
-  description: string;
+  /*
+    Removed 2026-09-08 at the owner's request: `heroBadge`, `batchSeries`,
+    `atelier`, `tagline` and `description`.
+
+    Two were invented claims and their removal closes more of GAP-004 — the
+    hero badges asserted "100% Churned Butter" and the batch series printed
+    numbers ("N° 84", "N° 61", "N° 47") that nothing tracks, the same fiction as
+    the shop header's "Batch No. 842" and the hero's "Batch Kettle No. 042".
+
+    `description` is gone rather than shortened: the product page and the shop
+    grid now both render `product.body`, so the two cannot drift apart.
+  */
   /** Extra gallery slots beyond `image`, which is always first. */
   gallery: ImageSlot[];
   /**
@@ -149,12 +156,6 @@ export const PRODUCTS: Product[] = [
     crunch: { label: "Tender Crisp", score: 8 },
     notes: ["100% Churned Dairy", "Subtle Sweetness"],
     detail: {
-      heroBadge: "Signature Recipe · 100% Churned Butter",
-      batchSeries: { label: "Batch Series", value: "N° 84" },
-      atelier: "Master Atelier",
-      tagline: "Crafted for Good Taste",
-      description:
-        "Our quintessential confectionery. Crafted with unbleached flour, pure churned butter, and fragrant whole spice to achieve a delicate acoustic crunch that gives way to a velvety, buttery melt.",
       gallery: extraGallery("Milky Velvet Chinchin"),
       packaging: PACKS,
       proof: {
@@ -215,12 +216,6 @@ export const PRODUCTS: Product[] = [
     crunch: { label: "Toasted Snap", score: 8 },
     notes: ["Fresh Coconut", "Rich Nutty Aroma"],
     detail: {
-      heroBadge: "Coastal Batch · Toasted Coconut",
-      batchSeries: { label: "Batch Series", value: "N° 61" },
-      atelier: "Master Atelier",
-      tagline: "Crafted for Good Taste",
-      description:
-        "Toasted coconut flakes folded through a sweet-cream butter dough, then flash-fried so the coconut caramelises into the crumb rather than sitting on it. Tropical warmth with a clean, dry snap.",
       gallery: extraGallery("Coco Velvet Chinchin"),
       packaging: PACKS,
       proof: {
@@ -281,12 +276,6 @@ export const PRODUCTS: Product[] = [
     crunch: { label: "Acoustic Crunch", score: 9.5 },
     notes: ["Cinnamon Bark & Nutmeg", "Warming Spiced Finish"],
     detail: {
-      heroBadge: "Hearth Spiced · Freshly Milled Bark",
-      batchSeries: { label: "Batch Series", value: "N° 47" },
-      atelier: "Master Atelier",
-      tagline: "Crafted for Good Taste",
-      description:
-        "Cinnamon bark milled to order and whole nutmeg grated in the same hour, folded through the dough so the spice blooms in the fry rather than fading. A long, warming aromatic finish.",
       gallery: extraGallery("Cinnamon Chinchin"),
       packaging: PACKS,
       proof: {

@@ -36,7 +36,7 @@ export async function generateMetadata({
 
   return buildMetadata({
     title: product.name,
-    description: product.detail.description,
+    description: product.body,
     path: ROUTES.product(product.slug),
     image: product.image.src ?? undefined,
   });
@@ -107,25 +107,18 @@ export default async function ProductPage({
             </div>
 
             <div className="md:col-span-5">
-              <div className="flex flex-wrap items-center justify-between gap-gutter-sm">
-                <p className="font-label text-label-caps text-terracotta uppercase">
-                  {BRAND.displayName}
-                </p>
-                <span className="rounded-sm border border-rule/70 bg-surface-container-low px-2 py-1 font-label text-label-sm text-nutmeg">
-                  {product.detail.atelier}
-                </span>
-              </div>
-
-              <h1 className="mt-gutter-xs text-headline-lg text-cacao">{product.name}</h1>
-              <p className="font-display text-body-lg text-terracotta italic">
-                {product.detail.tagline}
+              {/* Wordmark casing, as in the nav — not tracked-out capitals. The
+                  "Master Atelier" badge and the tagline beneath the title are
+                  gone. */}
+              <p className="font-label text-label-md text-terracotta">
+                {BRAND.displayName}
               </p>
 
-              <div className="mt-gutter-md flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
+              <h1 className="mt-gutter-xs text-headline-lg text-cacao">{product.name}</h1>
+
+              <div className="mt-gutter-md flex flex-wrap items-center justify-between gap-gutter-sm">
                 <div>
-                  <p className="font-label text-label-sm text-nutmeg uppercase">
-                    Fresh atelier pricing
-                  </p>
+                  <p className="font-label text-label-sm text-nutmeg">Price</p>
                   <p className="mt-1 font-display text-headline-md text-terracotta">
                     {formatKobo(lowestPrice(product))}
                   </p>
@@ -136,13 +129,15 @@ export default async function ProductPage({
                 </span>
               </div>
 
+              {/* The same sentence the shop grid shows, from one field, so the
+                  two pages cannot describe the product differently. */}
               <p className="mt-gutter-md text-body-md text-on-surface-variant">
-                {product.detail.description}
+                {product.body}
               </p>
 
               <ProductPurchase product={product} />
 
-              <ul className="mt-gutter-md space-y-3 rounded border border-rule/70 bg-surface-container-low p-inset-card">
+              <ul className="mt-gutter-md space-y-3">
                 {PRODUCT_ASSURANCES.map((item) => {
                   const Icon = ICONS[item.icon];
                   return (

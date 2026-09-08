@@ -31,14 +31,9 @@ export function ProductPurchase({ product }: { product: Product }) {
 
   return (
     <div>
-      <div className="mt-gutter-md flex items-baseline justify-between gap-gutter-sm">
-        <p className="font-label text-label-caps text-nutmeg uppercase">
-          Select measure &amp; packaging
-        </p>
-        <p className="shrink-0 font-label text-label-sm text-terracotta">
-          {selected?.name}
-        </p>
-      </div>
+      {/* The selected pack used to be repeated to the right of this label; the
+          options below already show which one is chosen. */}
+      <p className="mt-gutter-md font-label text-label-caps text-nutmeg">Select size</p>
 
       {/* Three across from `sm`. A two-column grid left the third pack
           orphaned on its own row once the range went from two sizes to three. */}
@@ -53,10 +48,10 @@ export function ProductPurchase({ product }: { product: Product }) {
               aria-checked={isSelected}
               onClick={() => setPack(index)}
               className={cn(
-                "rounded border p-gutter-sm text-left transition-colors",
+                "rounded-md border p-gutter-sm text-left transition-colors",
                 isSelected
                   ? "border-terracotta bg-secondary-container/40"
-                  : "border-rule bg-surface hover:border-cacao",
+                  : "border-rule hover:border-cacao",
               )}
             >
               <span className="flex items-start justify-between">
@@ -119,6 +114,7 @@ export function ProductPurchase({ product }: { product: Product }) {
             addLine(product.slug, selected.name, quantity);
             setAdded(true);
           }}
+          className="text-label-md normal-case"
           aria-label={`Add ${quantity} ${selected?.name} of ${product.name} to bag`}
         >
           <BagIcon className="h-4 w-4" />
@@ -127,7 +123,7 @@ export function ProductPurchase({ product }: { product: Product }) {
         <Button
           disabled
           aria-describedby="purchase-note"
-          className="bg-cacao hover:bg-primary-container"
+          className="bg-cacao text-label-md normal-case hover:bg-primary-container"
         >
           Instant checkout
           <ArrowRightIcon className="h-4 w-4" />
