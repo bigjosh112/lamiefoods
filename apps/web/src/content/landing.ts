@@ -250,7 +250,9 @@ export const FOOTER = {
   tagline: BRAND.tagline,
   /** Build credit, confirmed by the owner. Plain text — no URL supplied. */
   credit: "Website by Basil Studio",
-  body: "An artisanal West African pastry house dedicated to elevating the time-honoured chin-chin tradition. Prepared in conscientious small batches with golden butter, aromatic spices, and warm hospitality.",
+  /* Owner-written, 2026-09-08. Uses "chinchin" one word, the site convention —
+     this replaced the last "chin-chin" on the landing page. */
+  body: "Nigerian-made chinchin, baked fresh in small batches with real butter and warm spices.",
   /**
    * Only Instagram is confirmed. The mock invented an email address and a
    * WhatsApp line — those render as plain text, never as a live link, until

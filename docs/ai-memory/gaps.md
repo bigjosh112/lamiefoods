@@ -60,9 +60,27 @@
 - **Fix:** owner supplies, for the third size: its name and format (is it a
   pouch, given the copy says "pouches"?), its weight, and its price. Then add it
   to `detail.packaging` on each product and add the matching `SAMPLE_STOCK` key.
-- **Also unresolved:** the pillar says "in pouches" while the existing 500g
-  format is a jar. If all three sizes are pouches, the jar needs renaming; if
-  not, the copy overstates.
+- **Also unresolved → now resolved, 2026-09-08.** The pillar copy said "in
+  pouches" while the 500g pack is called a jar. Removing "Gift Jars & Bundles"
+  from the footer, the owner stated plainly: **the brand sells pouches only, in
+  three sizes.** That is the second statement to the same effect, so the
+  catalogue's **"500g Gourmet Jar" is a wrong name**, not just an incomplete
+  list. Its `note` — "Display pantry glass canister" — is wrong for the same
+  reason.
+- **So the catalogue needs three corrections, not one:**
+  1. rename the 500g pack from "Gourmet Jar" to its real pouch name, and fix its
+     `note`;
+  2. add the missing third size;
+  3. supply a price for it.
+  Renaming touches `admin-inventory.ts` too — its `SAMPLE_STOCK` and
+  `SAMPLE_BATCH` maps are keyed `<slug>::<pack name>`, so a rename that misses
+  them silently drops the row from the inventory table. The `packLabel()` helper
+  there also branches on the word "jar" and would need revisiting.
+  It also touches the cart: persisted bags store `{slug, pack, quantity}` by
+  pack **name**, and `cart-store.ts`'s `sanitise()` drops lines whose pack no
+  longer matches the catalogue. Anyone with a saved bag containing a
+  "500g Gourmet Jar" loses that line on the next visit. Acceptable pre-launch;
+  worth knowing.
 - **Status:** open — blocks accurate pricing and the shop's pack picker
 
 ### GAP-010 — No record of who agreed to be contacted

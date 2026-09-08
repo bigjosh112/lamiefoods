@@ -17,6 +17,54 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Footer copy and link trim
+
+- **Done:** New brand blurb, sentence-case tagline, and the link columns
+  trimmed to what actually exists. Dev-only links, staff sign-in, copyright,
+  the Basil Studio credit, socials and layout untouched.
+- **Files:** `content/landing.ts`, `content/shop.ts`,
+  `components/layout/site-footer.tsx`.
+- **Tagline casing done in CSS, deliberately.** `FOOTER.tagline` is
+  `BRAND.tagline` — an owner-confirmed brand fact that also feeds the page
+  title, OG tags and JSON-LD. Rewriting the string to get sentence case would
+  have changed all of those, so the `<p>` takes
+  `lowercase first-letter:uppercase` instead and the fact stays intact.
+- **Links removed for the right reason, not just tidiness:**
+  - "Gift Jars & Bundles" — advertised a format the brand does not sell.
+  - "Press & Stockists" — no press coverage and no retail partnerships exist.
+  - "Artisanal Process" + "Ingredient Sourcing" merged to "Our process".
+  - "Contact Atelier" → "Contact us".
+  Every remaining link still has `href: null` and renders as plain text, which
+  is the existing rule: a footer of 404s is worse than one honest about what has
+  shipped.
+- **Last "chin-chin" on the landing page is gone** — the new blurb replaced it.
+  Two remain in `about.ts`, a different page.
+- **⚠ GAP-011 materially advanced.** Removing the jar link, the owner stated the
+  brand sells **pouches only, in three sizes**. That is the second statement to
+  that effect, and it resolves the gap's open sub-question: the catalogue's
+  **"500g Gourmet Jar" is a wrong name**, not merely an incomplete list, and its
+  note "Display pantry glass canister" is wrong with it. GAP-011 now records
+  three corrections rather than one — rename the 500g pack, add the third size,
+  price it — plus two knock-ons found while writing it up:
+    - `admin-inventory.ts` keys `SAMPLE_STOCK`/`SAMPLE_BATCH` as
+      `<slug>::<pack name>`, so a rename that misses them silently drops the row
+      from the inventory table; its `packLabel()` also branches on the word
+      "jar".
+    - persisted carts store lines by pack **name**, and `cart-store.ts`'s
+      `sanitise()` drops lines whose pack no longer matches — so anyone holding a
+      saved "500g Gourmet Jar" loses that line. Fine pre-launch, worth knowing.
+- **Verified:** all four columns render exactly as specified (Shop: Milky
+  Velvet, Coco Velvet, Cinnamon / Company: Brand Story, Our process / Customer
+  Care: Track Order, Delivery Schedule, Bulk & Events, Contact us / Policies
+  unchanged), every removed string is gone, and the credit, staff sign-in and
+  copyright line are intact. Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** GAP-011 expanded.
+- **Next / open threads:** GAP-011's three catalogue corrections are now the
+  most concrete blocked item; then GAP-004's remainder, the self-linking gifting
+  button, the Flavours/Horizon adjacency and Horizon's outer panel, the
+  `<ul><div>` pattern in four components, and two "chin-chin" in `about.ts`.
+
 ## 2026-09-08 — Final CTA copy and casing
 
 - **Done:** Eyebrow, subheading, both buttons and all three trust-strip items

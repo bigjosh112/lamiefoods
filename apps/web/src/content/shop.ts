@@ -87,16 +87,23 @@ export const FOOTER_COLUMNS = [
         label: product.name.replace(" Chinchin", ""),
         href: null,
       })),
-      { label: "Gift Jars & Bundles", href: null },
+      /*
+        "Gift Jars & Bundles" was removed on 2026-09-08. The owner states the
+        brand sells pouches only, in three sizes — so a jar listing advertised a
+        format that does not exist. See GAP-011: the catalogue still calls the
+        500g pack a "Gourmet Jar", which the same statement contradicts.
+      */
     ],
   },
   {
     title: "Company",
     links: [
       { label: "Brand Story", href: ROUTES.about },
-      { label: "Artisanal Process", href: null },
-      { label: "Ingredient Sourcing", href: null },
-      { label: "Press & Stockists", href: null },
+      /* "Artisanal Process" and "Ingredient Sourcing" merged into one. */
+      { label: "Our process", href: null },
+      /* "Press & Stockists" removed — no press coverage and no retail
+         partnerships exist, so the column advertised neither. Re-add when there
+         is something real to link to. */
     ],
   },
   {
@@ -105,7 +112,7 @@ export const FOOTER_COLUMNS = [
       { label: "Track Order", href: null },
       { label: "Delivery Schedule", href: null },
       { label: "Bulk & Events", href: null },
-      { label: "Contact Atelier", href: null },
+      { label: "Contact us", href: null },
     ],
   },
   {

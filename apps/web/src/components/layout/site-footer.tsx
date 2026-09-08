@@ -43,7 +43,13 @@ export function SiteFooter() {
               </span>
             </div>
 
-            <p className="mt-gutter-sm font-label text-label-caps text-terracotta uppercase">
+            {/*
+              Sentence case done in CSS, not by editing the string. `tagline` is
+              `BRAND.tagline`, an owner-confirmed brand fact that also feeds the
+              page title, OG tags and JSON-LD — rewriting it here would change
+              all of those. `::first-letter` needs a block box, which <p> is.
+            */}
+            <p className="mt-gutter-sm font-label text-label-sm text-terracotta lowercase first-letter:uppercase">
               {FOOTER.tagline}
             </p>
             <p className="mt-gutter-sm max-w-sm text-body-sm text-on-surface-variant">
