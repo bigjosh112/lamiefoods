@@ -81,7 +81,23 @@
   longer matches the catalogue. Anyone with a saved bag containing a
   "500g Gourmet Jar" loses that line on the next visit. Acceptable pre-launch;
   worth knowing.
-- **Status:** open — blocks accurate pricing and the shop's pack picker
+- **CLOSED 2026-09-08.** The owner supplied the range: **100g / 300g / 500g
+  pouches at ₦2,000 / ₦3,500 / ₦5,000**. The first list had 100g and 300g both
+  at ₦2,000 — three times the product for the same money — which was queried
+  rather than guessed at, and corrected to the ladder above. All three
+  corrections in this gap are done: the jar is renamed and gone, the third size
+  exists, and every size is priced.
+  Packs are now declared once in `products.ts` as `PACKS` and shared by all
+  three products; they previously each held a copy, and Coco Velvet and Cinnamon
+  were priced ₦200 above Milky Velvet on figures inherited from the mock. One
+  price list for the range means the three now cost the same.
+  Knock-ons handled: `admin-inventory.ts` stock and batch maps rekeyed (a miss
+  would have silently emptied the inventory table), `packLabel()` retired since
+  nothing branches on "jar" any more, the glass-jar consumable replaced, the
+  dashboard's jar stock lines renamed, `sample-order.ts` repointed — it
+  referenced both retired packs and would have rendered an empty, zero-total
+  order — and the product pack picker widened from two columns to three.
+- **Status:** closed
 
 ### GAP-010 — No record of who agreed to be contacted
 

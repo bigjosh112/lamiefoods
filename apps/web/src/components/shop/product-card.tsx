@@ -81,7 +81,7 @@ export function ProductCard({ product }: { product: Product }) {
           <legend className="font-label text-label-caps text-nutmeg uppercase">
             Select size
           </legend>
-          <div className="mt-gutter-xs flex gap-gutter-xs" role="radiogroup">
+          <div className="mt-gutter-xs grid grid-cols-3 gap-gutter-xs" role="radiogroup">
             {packs.map((pack) => {
               const option = pack.name;
               const selected = option === size;
@@ -94,7 +94,7 @@ export function ProductCard({ product }: { product: Product }) {
                   name={groupId}
                   onClick={() => setSize(option)}
                   className={cn(
-                    "min-h-11 flex-1 rounded-md border font-label text-label-sm transition-colors",
+                    "min-h-11 rounded-md border px-1 font-label text-label-sm transition-colors",
                     selected
                       ? "border-cacao bg-cacao text-linen"
                       : "border-rule bg-surface text-cacao hover:border-cacao",

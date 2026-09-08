@@ -66,7 +66,7 @@ export const ASSURANCES = [
     icon: "truck" as const,
     /** Delivery window is the CONFIRMED 1–5 days. */
     title: `${DELIVERY.minDays}–${DELIVERY.maxDays} Days Nationwide Delivery`,
-    body: "Sealed in aroma-lock pouches and tamper-proof culinary jars, shipped directly from our kitchen.",
+    body: "Sealed in resealable pouches, shipped directly from our kitchen.",
   },
 ];
 
@@ -91,8 +91,8 @@ export const FOOTER_COLUMNS = [
       /*
         "Gift Jars & Bundles" was removed on 2026-09-08. The owner states the
         brand sells pouches only, in three sizes — so a jar listing advertised a
-        format that does not exist. See GAP-011: the catalogue still calls the
-        500g pack a "Gourmet Jar", which the same statement contradicts.
+        format that does not exist. The catalogue was corrected on the same day
+        (100g / 300g / 500g pouches), closing GAP-011.
       */
     ],
   },

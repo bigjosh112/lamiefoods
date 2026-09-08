@@ -38,8 +38,8 @@ function sampleItem(slug: string, packName: string, quantity: number) {
 }
 
 const items = [
-  sampleItem("milky-velvet-chinchin", "250g Pouch", 2),
-  sampleItem("coco-velvet-chinchin", "500g Gourmet Jar", 1),
+  sampleItem("milky-velvet-chinchin", "300g Pouch", 2),
+  sampleItem("coco-velvet-chinchin", "500g Pouch", 1),
 ].filter((item) => item !== null);
 
 const subtotal = items.reduce((total, item) => total + item.lineTotal.amount, 0);

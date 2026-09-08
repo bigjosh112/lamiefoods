@@ -104,7 +104,7 @@ export const ABOUT = {
         icon: "sparkle" as const,
         index: "Tenet 03",
         title: "Thoughtful Craft",
-        body: "Every detail — from ergonomic resealable craft pouches to desk-ready gift jars — is engineered to transition seamlessly from quiet afternoon focus to festive holiday gifting.",
+        body: "Every detail — from the resealable pouch to the seal that keeps it crisp — is meant to carry the same chinchin from a quiet afternoon to a festive table.",
         note: "Luxury keepsake form",
       },
     ],
@@ -124,7 +124,7 @@ export const ABOUT = {
       },
       {
         src: null,
-        alt: "Lamie Foods gift jars",
+        alt: "Lamie Foods chinchin pouches",
         note: "Packaging photography",
       },
     ] satisfies ImageSlot[],

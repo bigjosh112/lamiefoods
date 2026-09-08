@@ -93,6 +93,30 @@ const extraGallery = (name: string): ImageSlot[] => [
   { src: null, alt: `${name} texture close-up`, note: "Texture shot" },
 ];
 
+/**
+ * Pack sizes and prices, confirmed by the owner on 2026-09-08.
+ *
+ * These replace "250g Pouch" and "500g Gourmet Jar": the brand sells pouches
+ * only, there is no jar, and the 250g size is retired. Prices are in kobo.
+ *
+ * Declared once and shared by all three products. Previously each carried its
+ * own copy and Coco Velvet and Cinnamon were priced ₦200 above Milky Velvet —
+ * a difference inherited from the design mock. The owner supplied one price
+ * list for the range, so the three now cost the same.
+ *
+ * The first list supplied put 100g and 300g both at ₦2,000; queried rather than
+ * guessed at, and the owner corrected it to the ladder below.
+ *
+ * `note` describes the format and nothing else. The old notes carried mock
+ * claims ("aroma-lock", "Display pantry glass canister"); per-size copy is the
+ * owner's to write.
+ */
+const PACKS = [
+  { name: "100g Pouch", note: "Resealable pouch", price: 200000 },
+  { name: "300g Pouch", note: "Resealable pouch", price: 350000 },
+  { name: "500g Pouch", note: "Resealable pouch", price: 500000 },
+];
+
 /** Highest score on the crunch scale, so the bar and the label agree. */
 export const CRUNCH_MAX = 10;
 
@@ -132,18 +156,7 @@ export const PRODUCTS: Product[] = [
       description:
         "Our quintessential confectionery. Crafted with unbleached flour, pure churned butter, and fragrant whole spice to achieve a delicate acoustic crunch that gives way to a velvety, buttery melt.",
       gallery: extraGallery("Milky Velvet Chinchin"),
-      packaging: [
-        {
-          name: "250g Pouch",
-          note: "Resealable craft aroma-lock",
-          price: 360000,
-        },
-        {
-          name: "500g Gourmet Jar",
-          note: "Display pantry glass canister",
-          price: 560000,
-        },
-      ],
+      packaging: PACKS,
       proof: {
         title: "Pure Dairy Commitment",
         body: "Churned sweet-cream butter replaces conventional margarine for an authentic melting texture.",
@@ -182,7 +195,7 @@ export const PRODUCTS: Product[] = [
       },
       storage: {
         tag: "Batch Dated",
-        body: "Store in a cool, dry pantry away from direct sunlight. Reseal the multi-barrier pouch tightly after every pour, or keep inside our airtight gourmet jar.",
+        body: "Store in a cool, dry pantry away from direct sunlight. Reseal the pouch tightly after every pour — the aromatics are the first thing to go once air gets in.",
         note: "100% recyclable outer packaging",
       },
     },
@@ -209,18 +222,7 @@ export const PRODUCTS: Product[] = [
       description:
         "Toasted coconut flakes folded through a sweet-cream butter dough, then flash-fried so the coconut caramelises into the crumb rather than sitting on it. Tropical warmth with a clean, dry snap.",
       gallery: extraGallery("Coco Velvet Chinchin"),
-      packaging: [
-        {
-          name: "250g Pouch",
-          note: "Resealable craft aroma-lock",
-          price: 380000,
-        },
-        {
-          name: "500g Gourmet Jar",
-          note: "Display pantry glass canister",
-          price: 580000,
-        },
-      ],
+      packaging: PACKS,
       proof: {
         title: "Coconut, Folded Not Dusted",
         body: "Flakes are folded into the dough before frying, so the flavour carries through the crumb instead of coating it.",
@@ -286,18 +288,7 @@ export const PRODUCTS: Product[] = [
       description:
         "Cinnamon bark milled to order and whole nutmeg grated in the same hour, folded through the dough so the spice blooms in the fry rather than fading. A long, warming aromatic finish.",
       gallery: extraGallery("Cinnamon Chinchin"),
-      packaging: [
-        {
-          name: "250g Pouch",
-          note: "Resealable craft aroma-lock",
-          price: 380000,
-        },
-        {
-          name: "500g Gourmet Jar",
-          note: "Display pantry glass canister",
-          price: 580000,
-        },
-      ],
+      packaging: PACKS,
       proof: {
         title: "Milled To Order",
         body: "Bark and nutmeg are ground in the same session they are used, because volatile aromatic oils fade within hours of milling.",

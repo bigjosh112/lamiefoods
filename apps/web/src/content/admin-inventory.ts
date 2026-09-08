@@ -59,38 +59,38 @@ export interface InventoryLine {
  * reporting stock for something that no longer exists.
  */
 const SAMPLE_STOCK: Record<string, { available: number; threshold: number }> = {
-  "milky-velvet-chinchin::250g Pouch": { available: 280, threshold: 50 },
-  "milky-velvet-chinchin::500g Gourmet Jar": { available: 140, threshold: 30 },
-  "coco-velvet-chinchin::250g Pouch": { available: 115, threshold: 40 },
-  "coco-velvet-chinchin::500g Gourmet Jar": { available: 18, threshold: 25 },
-  "cinnamon-chinchin::250g Pouch": { available: 100, threshold: 30 },
-  "cinnamon-chinchin::500g Gourmet Jar": { available: 22, threshold: 25 },
+  "milky-velvet-chinchin::100g Pouch": { available: 180, threshold: 40 },
+  "milky-velvet-chinchin::300g Pouch": { available: 280, threshold: 50 },
+  "milky-velvet-chinchin::500g Pouch": { available: 140, threshold: 30 },
+  "coco-velvet-chinchin::100g Pouch": { available: 95, threshold: 40 },
+  "coco-velvet-chinchin::300g Pouch": { available: 115, threshold: 40 },
+  "coco-velvet-chinchin::500g Pouch": { available: 18, threshold: 25 },
+  "cinnamon-chinchin::100g Pouch": { available: 60, threshold: 30 },
+  "cinnamon-chinchin::300g Pouch": { available: 100, threshold: 30 },
+  "cinnamon-chinchin::500g Pouch": { available: 22, threshold: 25 },
 };
 
 /** INVENTED batch references, keyed the same way. */
 const SAMPLE_BATCH: Record<string, { batch: string; when: string }> = {
-  "milky-velvet-chinchin::250g Pouch": { batch: "Batch #042", when: "Today" },
-  "milky-velvet-chinchin::500g Gourmet Jar": {
-    batch: "Batch #041",
-    when: "Yesterday",
-  },
-  "coco-velvet-chinchin::250g Pouch": { batch: "Batch #040", when: "2 days ago" },
-  "coco-velvet-chinchin::500g Gourmet Jar": {
-    batch: "Batch #038",
-    when: "3 days ago",
-  },
-  "cinnamon-chinchin::250g Pouch": { batch: "Batch #039", when: "2 days ago" },
-  "cinnamon-chinchin::500g Gourmet Jar": {
-    batch: "Batch #037",
-    when: "4 days ago",
-  },
+  "milky-velvet-chinchin::100g Pouch": { batch: "Batch #043", when: "Today" },
+  "milky-velvet-chinchin::300g Pouch": { batch: "Batch #042", when: "Today" },
+  "milky-velvet-chinchin::500g Pouch": { batch: "Batch #041", when: "Yesterday" },
+  "coco-velvet-chinchin::100g Pouch": { batch: "Batch #040", when: "2 days ago" },
+  "coco-velvet-chinchin::300g Pouch": { batch: "Batch #040", when: "2 days ago" },
+  "coco-velvet-chinchin::500g Pouch": { batch: "Batch #038", when: "3 days ago" },
+  "cinnamon-chinchin::100g Pouch": { batch: "Batch #039", when: "2 days ago" },
+  "cinnamon-chinchin::300g Pouch": { batch: "Batch #039", when: "2 days ago" },
+  "cinnamon-chinchin::500g Pouch": { batch: "Batch #037", when: "4 days ago" },
 };
 
 const key = (slug: string, pack: string) => `${slug}::${pack}`;
 
-/** Jars and pouches read differently in the packaging column. */
-const packLabel = (packName: string) =>
-  packName.toLowerCase().includes("jar") ? "Keeper jar" : "Resealable pouch";
+/**
+ * Every finished pack is a pouch since the owner confirmed the range on
+ * 2026-09-08, so this no longer branches on the pack name. Kept as a named
+ * constant so a future format has one place to change.
+ */
+const PACK_FORMAT = "Resealable pouch";
 
 /**
  * Finished stock, one line per buyable pack size.
@@ -118,7 +118,7 @@ const finished: InventoryLine[] = PRODUCTS.flatMap((product, index) =>
         note: pack.note,
         image: product.image,
         category: "Finished stock" as const,
-        pack: packLabel(pack.name),
+        pack: PACK_FORMAT,
         available: stock.available,
         threshold: stock.threshold,
         unit: "units",
@@ -148,18 +148,23 @@ const materials: InventoryLine[] = [
     lastBatchWhen: "Restocked a week ago",
   },
   {
-    id: "keeper-jars",
-    sku: "LF-MAT-JAR-01",
+    /*
+      Was "Embossed glass keeper jars & seals" until 2026-09-08. The owner
+      confirmed the range is pouches only, so a glass-jar consumable was
+      reporting stock for a format the brand does not use.
+    */
+    id: "pouch-labels",
+    sku: "LF-MAT-LBL-01",
     slug: null,
-    name: "Embossed glass keeper jars & seals",
-    variant: "500ml heavy base glass",
-    note: "Supplied with tamper seals",
-    image: { src: null, alt: "Glass keeper jars", note: "Packaging shot" },
+    name: "Printed pouch labels & tamper seals",
+    variant: "Front and back, per pouch",
+    note: "Applied after cooling",
+    image: { src: null, alt: "Pouch labels", note: "Packaging shot" },
     category: "Packaging materials",
-    pack: "Cases",
+    pack: "Sheets",
     available: 320,
     threshold: 100,
-    unit: "jars",
+    unit: "sets",
     lastBatch: null,
     lastBatchWhen: "Restocked two weeks ago",
   },
@@ -205,7 +210,7 @@ export const INVENTORY_PAGE = {
   eyebrow: "Kitchen stock",
   title: "Inventory & Batch Stock Levels",
   /** The mock said "real-time". Nothing here is. */
-  body: "Stock on hand across finished pouches, keeper jars and packaging materials.",
+  body: "Stock on hand across finished pouches and packaging materials.",
   action: { label: "Log a kettle batch", icon: "timer" as const },
   searchPlaceholder: "Search by SKU or item",
   footer: `${INVENTORY_LINES.length} stock lines`,

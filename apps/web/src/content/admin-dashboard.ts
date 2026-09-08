@@ -119,13 +119,14 @@ export const ADMIN_BEST_SELLERS = [
 
 export const ADMIN_STOCK = [
   {
-    name: "250g stand-up pouches",
+    name: "300g stand-up pouches",
     detail: "420 in stock — comfortable",
     level: "ok" as const,
     action: null,
   },
   {
-    name: "500g gourmet glass jars",
+    // Was "500g gourmet glass jars" — the range is pouches only.
+    name: "500g stand-up pouches",
     detail: "18 remaining — risks stalling a kettle run",
     level: "low" as const,
     action: "Reorder",

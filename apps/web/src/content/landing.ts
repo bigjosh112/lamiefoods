@@ -115,16 +115,10 @@ export const PILLARS = {
     },
     {
       /*
-        AHEAD OF THE CATALOGUE — this copy is correct; `products.ts` is not.
-
-        The owner has confirmed every chin chin will be packaged in THREE sizes.
-        The catalogue still lists two per product — "250g Pouch" and
-        "500g Gourmet Jar" — so a customer who reads this and clicks through to
-        the shop currently finds two options, one of them glass.
-
-        The third size cannot be added here: it needs a name, a format and a
-        price, and prices are the one thing this project never invents. Blocked
-        on the owner. Tracked in gaps.md.
+        "in pouches, in three sizes" now matches the catalogue: the owner
+        supplied 100g / 300g / 500g pouches with prices on 2026-09-08, and
+        `products.ts` was corrected the same day. This copy led the data for a
+        few hours; it no longer does.
       */
       icon: "sparkle" as const,
       index: "Pillar 03",
@@ -177,11 +171,11 @@ export const FLAVOURS = {
   /** Straight from the shared catalogue, so the shop can never show a
    *  different name, photograph or price for the same product. */
   items: PRODUCTS,
-  /** UNVERIFIED — pack formats have not been confirmed. */
+  /* Confirmed by the owner on 2026-09-08 — three pouch sizes, no jars. */
   formats: {
-    title: "Available in Two Mindful Formats",
-    body: "250g artisanal stand-up wax pouches and 500g embossed airtight keeper jars.",
-    cta: { label: "Compare formats", href: ROUTES.shop },
+    title: "Available in three sizes",
+    body: "100g, 300g and 500g resealable pouches.",
+    cta: { label: "Compare sizes", href: ROUTES.shop },
   },
 };
 

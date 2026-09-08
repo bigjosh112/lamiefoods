@@ -40,7 +40,9 @@ export function ProductPurchase({ product }: { product: Product }) {
         </p>
       </div>
 
-      <div className="mt-gutter-xs grid gap-gutter-xs sm:grid-cols-2" role="radiogroup">
+      {/* Three across from `sm`. A two-column grid left the third pack
+          orphaned on its own row once the range went from two sizes to three. */}
+      <div className="mt-gutter-xs grid gap-gutter-xs sm:grid-cols-3" role="radiogroup">
         {product.detail.packaging.map((option, index) => {
           const isSelected = index === pack;
           return (

@@ -60,7 +60,7 @@ export function buildOrderDetail(row: OrderRow) {
       name: "Coco Velvet Chinchin",
       slug: "coco-velvet-chinchin",
       batch: "Batch CV-11",
-      format: "500g gourmet keeper glass jar · toasted flake infusion",
+      format: "500g resealable pouch · toasted flake infusion",
       note: "Cold-pressed coconut cream and vanilla",
       qty: 1,
       unit: naira(8_500),
