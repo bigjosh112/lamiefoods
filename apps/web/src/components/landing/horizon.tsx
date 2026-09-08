@@ -17,29 +17,38 @@ export function Horizon() {
     <Section className="bg-surface-container-low">
       <div className="rounded border border-rule/70 bg-surface-container p-inset-card sm:p-gutter-xl">
         <Reveal className="max-w-2xl">
-          <Eyebrow>{HORIZON.eyebrow}</Eyebrow>
+          <Eyebrow className="text-label-sm normal-case">{HORIZON.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{HORIZON.title}</h2>
           <p className="mt-gutter-sm text-body-md text-on-surface-variant">
             {HORIZON.body}
           </p>
         </Reveal>
 
-        <ul className="mt-gutter-lg space-y-3">
+        {/*
+          A list, not a stack of cards: one hairline above the first row and one
+          between each pair, no side borders and no radius. The rule sits on the
+          <li> so it draws immediately, while only the content inside rises.
+
+          `Reveal` renders a <div>, so it used to wrap each <li> — putting a div
+          directly inside a <ul>, which is invalid. It is nested inside the row
+          now instead. `flavours.tsx` still has the original pattern.
+        */}
+        <ul className="mt-gutter-lg">
           {HORIZON.items.map((entry, index) => (
-            <Reveal key={entry.title} delay={index * 0.08}>
-              <li className="flex flex-wrap items-center gap-gutter-sm rounded border border-rule/70 bg-surface-container-lowest p-gutter-sm">
-                <span className="w-24 shrink-0 rounded-sm bg-secondary-container px-2 py-1 text-center font-label text-label-sm text-primary uppercase">
+            <li key={entry.title} className="border-t border-rule/70 py-gutter-sm">
+              <Reveal
+                delay={index * 0.08}
+                className="flex flex-wrap items-center gap-gutter-sm"
+              >
+                <span className="w-24 shrink-0 rounded-sm bg-secondary-container px-2 py-1 text-center font-label text-label-sm text-primary">
                   {entry.status}
                 </span>
                 <div className="min-w-48 flex-1">
                   <h3 className="text-body-md font-semibold text-cacao">{entry.title}</h3>
                   <p className="text-body-sm text-on-surface-variant">{entry.body}</p>
                 </div>
-                <span className="shrink-0 font-label text-label-sm text-nutmeg">
-                  {entry.meta}
-                </span>
-              </li>
-            </Reveal>
+              </Reveal>
+            </li>
           ))}
         </ul>
 
@@ -63,7 +72,13 @@ export function Horizon() {
                 className="mt-1 min-h-11 w-full rounded border border-rule bg-[#f8f3ec] px-3 text-body-md text-cacao placeholder:text-nutmeg/70 focus:border-terracotta focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
-            <Button disabled aria-describedby="tasting-note">
+            {/* Sentence case and the 6px radius the page's other primary
+                buttons now use. Still disabled — see the note above. */}
+            <Button
+              disabled
+              aria-describedby="tasting-note"
+              className="rounded-md text-label-md normal-case"
+            >
               {HORIZON.form.cta}
             </Button>
           </form>

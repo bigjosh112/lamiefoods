@@ -17,6 +17,50 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Horizon section: copy, list dividers, and an HTML-validity fix
+
+- **Done:** Rewrote the "Chinchin is just the beginning" section's eyebrow,
+  subheading and all three product descriptions, turned the three cards into a
+  divided list, and restyled the sign-up button.
+- **Files:** `content/landing.ts`, `components/landing/horizon.tsx`.
+- **Rows de-carded:** background, border, radius and padding gone, replaced by a
+  `border-t border-rule/70` hairline on each row — one above the first and one
+  between each pair, no side borders, no radius. The rule sits on the `<li>` so
+  it draws immediately while only the content rises.
+- **"Drop 02" / "Drop 03" / "Limited release" removed** along with the `meta`
+  field. Worth noting beyond the styling: those labels implied a release order
+  and schedule nobody has set. The three products remain UNVERIFIED — none is
+  announced, dated or priced — but the page now says only that they are in the
+  works, which is the honest framing for something that does not exist.
+- **Fixed invalid HTML while rewriting the list.** `Reveal` renders a `<div>`,
+  and it was wrapping each `<li>`, producing `<ul><div><li>` — a div is not
+  permitted as a direct child of `ul`. `Reveal` is now nested inside the row.
+  **The same pattern remains in four other components**, untouched because this
+  request was copy and card removal: `landing/flavours.tsx`,
+  `landing/pillars.tsx`, `about/about-sections.tsx`,
+  `product/related-products.tsx`. Worth one cleanup pass.
+- **Button:** `rounded-md` (6px) plus sentence case, matching the flavour cards'
+  add-to-bag. Still `disabled` — there is no endpoint to receive an address, and
+  the form has always been honest about that.
+- **⚠ The outer panel was left in place.** The brief said to remove card styling
+  from "the three product rows" and to preserve the section's overall structure,
+  so the `rounded border bg-surface-container` wrapper around the whole block
+  stays. That means the rows sit on that panel rather than literally on the page
+  background. It is also currently the only thing giving this section a visible
+  edge against Flavours, which shares its `bg-surface-container-low` since the
+  Moments section was removed. Flagged to the owner — removing it is one line,
+  but it interacts with that adjacency.
+- **Verified:** all nine new strings render, all nine removed strings are gone,
+  each row carries `border-t border-rule/70 py-gutter-sm` with no fill or radius,
+  the button resolves with `rounded-md text-label-md normal-case` and no
+  `uppercase`, and the horizon list no longer produces `<ul><div>`. Lint,
+  typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** the tinted-on-tinted adjacency and the outer panel
+  above; the `<ul><div>` pattern in four components; GAP-011 and GAP-004's
+  remainder.
+
 ## 2026-09-08 — Removed the "Made for every kind of moment" section
 
 - **Done:** Deleted the Moments section entirely — component, content block and

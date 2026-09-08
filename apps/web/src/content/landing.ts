@@ -186,30 +186,33 @@ export const FLAVOURS = {
 };
 
 export const HORIZON = {
-  eyebrow: "Pantry Horizon",
+  eyebrow: "What's next",
   title: "Chinchin is just the beginning.",
-  body: "We are patiently building toward an expansive collection of snacks, roasted nut butters, and culinary provisions rooted in West African culinary excellence. Here is what is slowly simmering in the testing kitchen:",
-  /** UNVERIFIED — none of these upcoming products has been confirmed. */
+  body: "We're building out more West African snacks and pantry staples. Here's what's currently in the works:",
+  /**
+   * Descriptions rewritten by the owner on 2026-09-08. The products themselves
+   * are still UNVERIFIED: none has been announced, dated or priced, and the
+   * page says only that they are in the works — which is the honest framing for
+   * something that does not exist yet. The "Drop 02 / Drop 03" schedule labels
+   * were removed, so the page no longer implies a release order nobody set.
+   */
   items: [
     {
-      status: "In Testing",
+      status: "In testing",
       title: "Spiced Plantain Crisps",
-      body: "Kettle-cooked green plantains with roasted scotch bonnet and sea crystals.",
-      meta: "Drop 02",
+      body: "Fried green plantains with roasted scotch bonnet and sea salt.",
     },
     {
-      status: "Lab Blend",
-      title: "Artisanal Cashew Nut Spread",
-      body: "Sun-dried cashews stone-ground with wild honey and warm spices.",
-      meta: "Drop 03",
+      status: "In development",
+      title: "Cashew Nut Spread",
+      body: "Cashews, stone-ground with wild honey and warm spices.",
     },
     {
       status: "Reserve",
       title: "Honey Glazed Seasonal Tins",
-      body: "Limited holiday release baked with raw plateau honeycombs.",
-      meta: "Limited release",
+      body: "A limited holiday batch, made with raw honey from Plateau State.",
     },
-  ] as Unverified<{ status: string; title: string; body: string; meta: string }[]>,
+  ] as Unverified<{ status: string; title: string; body: string }[]>,
   form: {
     label: "Email address",
     placeholder: "Enter your email address",
