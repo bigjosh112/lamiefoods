@@ -57,29 +57,27 @@ export const HERO = {
 };
 
 export const MANIFESTO = {
-  eyebrow: "The Lamie Manifesto",
-  title: "More than a snack. An ongoing tribute to West African culinary pride.",
+  eyebrow: "The Lamie manifesto",
+  title: "More than a snack. It's West African pride, in every batch.",
+  /*
+    Owner-written, 2026-09-07. "chinchin" as one word, lowercase, which is the
+    page's dominant convention — 39 one-word uses against 7 hyphenated or
+    spaced. The stragglers are noted in progress.md.
+  */
   body: [
-    `${BRAND.displayName} is building a trusted Nigerian food brand around great taste, uncompromising quality, pristine freshness, and thoughtful presentation — starting with our signature range of freshly made Chinchin.`,
-    "For generations, chin-chin has been relegated to celebratory afterthoughts or cellophane parcels sold on congested expressways. We believe this golden, fragrant pastry deserves the dignity of fine viennoiserie: premium butter, stone-ground nutmeg, and unbleached flour baked with patience.",
+    "We're building a Nigerian food brand on one idea: chinchin should taste this good, every time. That starts with real ingredients, made fresh in small batches — no shortcuts.",
+    "For years, chinchin has been treated like an afterthought — sold in cellophane parcels on the roadside. We think it deserves better: real butter, stone-ground nutmeg, and unbleached flour, made with patience.",
   ],
   image: {
-    src: "/images/chinchin7.png",
-    alt: "Lamie Foods chinchin in kraft packaging, held in two hands",
-    note: "Packaging photography",
+    src: "/images/newchinchin1.jpeg",
+    alt: "Chinchin piled in a blue ceramic bowl",
+    note: "Product photography",
   } satisfies ImageSlot,
   /*
-   * The philosophy card is a supplied image, not markup. Its wording lives in
-   * the artwork, so `alt` has to carry it — that text is invisible to search
-   * engines and to anyone selecting or resizing text. If it should become
-   * real text again, the design's line break falls after "respects".
-   */
-  overlay: {
-    src: "/images/card.png",
-    alt: "Philosophy — Good food respects the craft.",
-    width: 219,
-    height: 124,
-  },
+    The "Philosophy — Good food respects the craft" card that sat over the
+    photograph was removed at the owner's request. It was supplied artwork
+    (`public/images/card.png`), which is now unreferenced but left in place.
+  */
   /** UNVERIFIED — ingredient and shelf-life claims, not yet confirmed. */
   stats: [
     { value: "100%", label: "Churned Dairy Butter", note: "Zero synthetic margarine" },

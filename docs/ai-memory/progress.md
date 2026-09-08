@@ -17,6 +17,49 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Manifesto: new photograph, overlay card gone, copy rewritten
+
+- **Done:** Replaced the manifesto's eyebrow, headline and both paragraphs with
+  the owner's copy, swapped the photograph, removed the philosophy card that
+  overlaid it, and stripped the card treatment from the stat row.
+- **Files:** `content/landing.ts`, `components/landing/manifesto.tsx`.
+- **Note on the brief:** the pasted spec said "do not change the image" and keep
+  the philosophy badge, but the owner's own trailing instruction — twice —
+  asked to swap the image and remove that card entirely. The later, direct
+  instruction won.
+- **Image:** `chinchin7.png` → `newchinchin1.jpeg`, chinchin in a blue ceramic
+  bowl. Clean and unbranded. This also retires the last on-page use of
+  `chinchin7.png`, whose packaging read "LAMIE FOODS ENTERPRISE" — half of
+  GAP-006's original complaint is now moot on the landing page.
+- **Philosophy card removed**, and with it all the positioning it needed: the
+  `next/image` block, the `Image` import, the absolute/in-flow breakpoint
+  juggling, and the `overlay` data. `public/images/card.png` is now
+  unreferenced; left in place rather than deleted.
+- **Stat row de-carded:** `rounded bg-surface p-gutter-md` → `border-t
+  border-rule/70 pt-gutter-md`, the same hairline the footer's bottom bar uses,
+  and `gap-gutter-md` → `gap-gutter-lg` for the generous spacing asked for. No
+  vertical rules.
+- **Eyebrow:** `withRule` dropped (that was the leading dash) and sentence case
+  overridden at the call site, as with crunch and pillars.
+- **Spelling:** measured the page before changing anything — 39 one-word
+  "chinchin"/"Chinchin" against 7 hyphenated or spaced. One word is the
+  convention, which is what the new copy uses. **Stragglers left alone,
+  deliberately out of scope:** `landing.ts` HORIZON body ("time-honoured
+  chin-chin tradition") and two in `about.ts`.
+- **⚠ The stats themselves are still UNVERIFIED.** Only the container was
+  removed. "100% Churned Dairy Butter", "48 Hrs Kettle To Pack" and "Zero
+  Artificial Preservatives" are the same GAP-004 claims as before — a
+  preservative claim is a consumer-protection matter, not copy.
+- **Verified:** all four new strings render, all six old strings and both
+  removed assets are gone from the page, the `<dl>` carries the hairline and no
+  background, radius, padding, shadow or divider, and the eyebrow renders with
+  no leading rule. Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened. GAP-004 unchanged; GAP-006 partially relieved on the
+  landing page.
+- **Next / open threads:** GAP-011 (third pack size) and the remaining GAP-004
+  values are still the owner's to answer.
+
 ## 2026-09-07 — Three Pillars: card styling removed, owner-written copy
 
 - **Done:** Stripped the card treatment from the three pillar columns and
