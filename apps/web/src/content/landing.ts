@@ -221,20 +221,28 @@ export const HORIZON = {
 };
 
 export const FINAL_CTA = {
-  eyebrow: "Order Fresh Daily",
+  eyebrow: "Order fresh daily",
   titleLine1: "Good Taste",
   titleLine2: "Starts Here.",
-  body: "Experience Nigeria's finest artisanal Chinchin delivered directly from our ovens to your door.",
-  primaryCta: { label: "Shop Chinchin Now", href: ROUTES.shop },
-  secondaryCta: { label: "Event Gifting Concierge", href: "#contact" },
+  /* "chinchin" one word, lowercase — the site-wide convention set by the hero
+     and manifesto. */
+  body: "Fresh chinchin, delivered from our kitchen to your door.",
+  primaryCta: { label: "Shop chinchin now", href: ROUTES.shop },
+  /*
+    NOTE: this href is "#contact", and the section rendering this button IS
+    `id="contact"`. The link scrolls to itself, so the button does nothing.
+    Renaming it did not change that. There is no gifting page to point at yet;
+    left as-is rather than guessed at, and raised with the owner.
+  */
+  secondaryCta: { label: "Gifting & events", href: "#contact" },
   /** Delivery window is the CONFIRMED 1–5 days, not the mock's 1–3. */
   assurances: [
-    { icon: "shield" as const, label: "Paystack Secured" },
+    { icon: "shield" as const, label: "Paystack secured" },
     {
       icon: "truck" as const,
-      label: `${DELIVERY.minDays}–${DELIVERY.maxDays} Days Delivery`,
+      label: `${DELIVERY.minDays}–${DELIVERY.maxDays} days delivery`,
     },
-    { icon: "seal" as const, label: "Freshness Guaranteed" },
+    { icon: "seal" as const, label: "Freshness guaranteed" },
   ],
 };
 

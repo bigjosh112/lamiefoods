@@ -17,6 +17,40 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Final CTA copy and casing
+
+- **Done:** Eyebrow, subheading, both buttons and all three trust-strip items
+  moved to sentence case with the owner's copy. Headline, background, divider,
+  button radius, variants and spacing untouched.
+- **Files:** `content/landing.ts`, `components/landing/final-cta.tsx`.
+- **Casing:** eyebrow and trust strip take `text-label-sm` — the same 0.6875rem
+  as the caps step, so no size moved. The **buttons** take `text-label-md`
+  instead: at 11px, sentence case at 500 weight reads noticeably weaker than
+  700-weight capitals, so keeping the size would have quietly shrunk the page's
+  closing CTA. Matches the hero's buttons. Radius and variants untouched, as
+  asked.
+- **Spelling checked (point 6):** the new copy uses "chinchin" one word,
+  lowercase — the convention the hero and manifesto set. **Straggler:** the
+  FOOTER body still reads "time-honoured chin-chin tradition", as do two lines
+  in `about.ts`. Same three noted on 2026-09-07; still out of scope.
+- **⚠ The secondary button links to the section it lives in.** Its href is
+  `#contact`, and this section *is* `id="contact"` — so "Gifting & events"
+  scrolls to itself and does nothing. Renaming it did not change that. This is
+  the same anchor the 2026-09-08 correction identified. There is no gifting page
+  to point it at, so the href was left alone rather than guessed at, with a
+  comment at the data and the owner told. It is the last dead control on the
+  landing page.
+- **Verified:** all nine new strings render inside `id="contact"`, all seven old
+  ones are gone from the whole page, the eyebrow/buttons/trust strip carry no
+  `uppercase`, and `bg-cacao` plus `border-t border-linen/15` are unchanged.
+  Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** the self-linking gifting button; the tinted-on-tinted
+  Flavours/Horizon adjacency and Horizon's outer panel; the `<ul><div>` pattern
+  in four components; the three "chin-chin" stragglers; GAP-011 and GAP-004's
+  remainder.
+
 ## 2026-09-08 — Horizon section: copy, list dividers, and an HTML-validity fix
 
 - **Done:** Rewrote the "Chinchin is just the beginning" section's eyebrow,

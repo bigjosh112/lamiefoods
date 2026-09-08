@@ -12,7 +12,9 @@ export function FinalCta() {
   return (
     <Section className="bg-cacao" id="contact">
       <Reveal className="mx-auto max-w-2xl text-center">
-        <Eyebrow className="text-tertiary-fixed-dim">{FINAL_CTA.eyebrow}</Eyebrow>
+        <Eyebrow className="text-label-sm text-tertiary-fixed-dim normal-case">
+          {FINAL_CTA.eyebrow}
+        </Eyebrow>
 
         <h2 className="mt-gutter-sm text-headline-lg text-linen">
           <span className="block">{FINAL_CTA.titleLine1}</span>
@@ -24,10 +26,22 @@ export function FinalCta() {
         <p className="mt-gutter-sm text-body-lg text-linen/75">{FINAL_CTA.body}</p>
 
         <div className="mt-gutter-lg flex flex-col items-stretch gap-gutter-sm sm:flex-row sm:justify-center">
-          <ButtonLink href={FINAL_CTA.primaryCta.href}>
+          {/* Casing only — radius, variant and spacing are untouched.
+              `text-label-md` rather than the caps step: at the same 11px,
+              sentence case at 500 weight reads noticeably weaker than 700-weight
+              capitals, which would have quietly shrunk the page's closing CTA.
+              Matches the hero's buttons. */}
+          <ButtonLink
+            href={FINAL_CTA.primaryCta.href}
+            className="text-label-md normal-case"
+          >
             {FINAL_CTA.primaryCta.label}
           </ButtonLink>
-          <ButtonLink href={FINAL_CTA.secondaryCta.href} variant="inverted">
+          <ButtonLink
+            href={FINAL_CTA.secondaryCta.href}
+            variant="inverted"
+            className="text-label-md normal-case"
+          >
             {FINAL_CTA.secondaryCta.label}
           </ButtonLink>
         </div>
@@ -41,7 +55,7 @@ export function FinalCta() {
                 className="flex items-center gap-gutter-xs text-linen/70"
               >
                 <Icon className="h-4 w-4 text-tertiary-fixed-dim" />
-                <span className="font-label text-label-sm uppercase">{entry.label}</span>
+                <span className="font-label text-label-sm">{entry.label}</span>
               </li>
             );
           })}
