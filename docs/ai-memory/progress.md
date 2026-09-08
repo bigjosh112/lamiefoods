@@ -17,6 +17,69 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Hero rebuilt: no background image, two columns, bigger headline
+
+- **Done:** Replaced the full-bleed photographic hero with a two-column spread
+  on the page background: copy left, contained product photograph right,
+  stacking image-above-copy on phones.
+- **Files:** `components/landing/hero.tsx` (rewritten), `content/landing.ts`,
+  `styles/globals.css`.
+- **Removed:** the background photograph and its cacao scrim, the
+  "West African Fine Confectionery • Batch Kettle No. 042" badge, and the three
+  stat cards. Section now sits on the cream ground like the rest of the page.
+- **Three UNVERIFIED claims went with them**, which the owner asked for as
+  redundancy rather than as a content fix, but the effect is the same: the
+  invented batch number "042", the invented sensory score "9.4 / 10 Crisp Snap"
+  (the same figure the deleted crunch profile card carried), and the unconfirmed
+  "100% Churned Butter" / "Lagos Hand-Rolled". Deleted from `landing.ts`, not
+  left dormant. **`HERO.stats` and `HERO.eyebrow*` no longer exist.**
+- **New `--text-display-xl` token** — clamp(2.625rem → 4.5rem), one step above
+  `display-hero`, which is untouched and still drives the about page's `h1`.
+  Added rather than resizing the existing step, so the about page did not move.
+- **Contrast re-checked, as GAP-003 asks whenever the palette moves** — and
+  moving the hero off cacao moves it. Terracotta `#a84c2c` on cream `#fff8f1`
+  computes to **5.34:1**, passing AA for normal text. Cacao and
+  on-surface-variant on cream are far higher.
+- **The photograph is deliberately not animated.** With the scrim gone it is the
+  likeliest LCP element, and fading it in would delay the paint LCP measures.
+  Only the copy rises; the CSS-animation approach is unchanged.
+- **Buttons:** `secondary` rather than `inverted` — the outlined cacao variant
+  is the one drawn for light grounds — plus the usual sentence-case override.
+
+### CORRECTION — two earlier claims in this log were wrong
+
+While verifying the hero I found `<Section id="contact">` in `final-cta.tsx`.
+That contradicts two things I wrote on 2026-09-07:
+
+1. **"The site has no in-page anchors at all."** It has one. The grep behind
+   that used `--include=*.tsx`, so it missed `href: "#contact"` in
+   `content/landing.ts`; the id scan covered `components/layout` and `app/` but
+   not `components/landing/`.
+2. **"Contact's href pointed at an element that exists nowhere."** It pointed at
+   the closing CTA section. Removing it from the navbar was still what the owner
+   asked for — only my reason was wrong.
+
+Both entries above are annotated, and the comment in `globals.css` is corrected.
+**The scroll fix itself stands**: root-level `scroll-behavior: smooth` genuinely
+breaks Next's scroll reset. The cost is that the surviving anchor — the horizon
+section's "Event Gifting Concierge" — now jumps instead of gliding, with
+`scroll-padding-block-start` still clearing the sticky header. That is the right
+trade. If the glide is wanted back, scope it to that link's onClick; do not
+restore the root-level property.
+
+**Lesson:** when grepping to prove an absence, do not scope by file extension —
+content lives in `.ts` here, not just `.tsx`.
+
+- **Verified:** every removed string is gone from the page, all six new strings
+  render, the `h1` carries `text-display-xl`, and the only remaining `bg-cacao`
+  hits are button hovers and the closing CTA. Lint, typecheck, build and
+  `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened. GAP-004 materially reduced — three more claims gone.
+- **Next / open threads:** GAP-011 (third pack size) and GAP-004's remainder
+  (`PLACEHOLDER_PRICE_FROM`, `MANIFESTO.stats`, `FLAVOURS.items[].body`,
+  `HORIZON.items`) are still the owner's to answer.
+
 ## 2026-09-08 — Manifesto: new photograph, overlay card gone, copy rewritten
 
 - **Done:** Replaced the manifesto's eyebrow, headline and both paragraphs with
@@ -245,8 +308,11 @@
 - **Files:** `content/landing.ts`, `content/products.ts`,
   `components/layout/site-header.tsx`, `components/landing/flavours.tsx`,
   new `components/landing/add-to-bag.tsx`.
-- **Navbar:** dropped "Contact" (its href was `#contact`, an anchor to an
-  element that exists nowhere on the site), removed the search icon, and
+- **Navbar:** dropped "Contact" (**CORRECTION 2026-09-08:** this said the
+  `#contact` href pointed at nothing. It did not — `final-cta.tsx` renders
+  `<Section id="contact">`, so the link scrolled to the closing CTA. Removing it
+  was still what the owner asked for; only the stated reason was wrong),
+  removed the search icon, and
   shortened the header CTA to "Shop". The hero and closing CTAs still read
   "Shop Chinchin Collection" / "Shop Chinchin Now" — the request was scoped to
   the navbar, so body copy was left alone.
@@ -304,10 +370,16 @@
   scroll on navigation by scrolling the document element; with smooth behaviour
   that reset is animated and gets interrupted by the incoming page's layout, so
   a route opened from halfway down one page stayed halfway down the next.
-- **Fix:** removed it. The site has **no in-page anchors at all**, so the
-  property was buying nothing. `scroll-padding-block-start` stays for the sticky
-  header if anchors are added later — scope smooth scrolling to that
-  interaction then, not to the root element.
+- **Fix:** removed it. `scroll-padding-block-start` stays so the sticky header
+  is cleared.
+  **CORRECTION (2026-09-08):** this entry originally said the site had "no
+  in-page anchors at all". That was wrong — the grep behind it used
+  `--include=*.tsx` and missed `href: "#contact"` in `content/landing.ts`, and
+  the id scan skipped `components/landing/`, where `final-cta.tsx` renders
+  `<Section id="contact">`. One anchor is live: the horizon section's "Event
+  Gifting Concierge". It now jumps instantly rather than gliding, which is the
+  right trade against every route opening part-way down the page. Do not restore
+  the root-level property to fix it — scope it to that link's onClick.
 
 ### 2. No tablet tier anywhere
 

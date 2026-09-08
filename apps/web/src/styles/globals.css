@@ -111,6 +111,17 @@
      Line heights are unitless ratios (spec px / spec size) so they stay correct
      at every size a clamp resolves to. Labels stay FIXED — their wide tracking
      is tuned to an exact size and breaks if scaled. */
+  /*
+    One step above the system's largest, added for the landing hero after it
+    was rebuilt as a two-column layout: with the headline no longer competing
+    with a full-bleed photograph, it has to carry the section on its own.
+    `display-hero` is unchanged and still drives the about page's h1.
+  */
+  --text-display-xl: clamp(2.625rem, 1.85rem + 3.3vw, 4.5rem);
+  --text-display-xl--line-height: 1.08;
+  --text-display-xl--letter-spacing: -0.025em;
+  --text-display-xl--font-weight: 600;
+
   --text-display-hero: clamp(2.375rem, 1.909rem + 1.989vw, 3.5rem);
   --text-display-hero--line-height: 1.143;
   --text-display-hero--letter-spacing: -0.02em;
@@ -208,11 +219,18 @@
       the document element. With smooth behaviour set on <html>, that reset is
       animated and gets interrupted by the incoming page's own layout, so a
       route opened from halfway down one page lands halfway down the next —
-      which reads as "it opened at the footer". There are no in-page anchors on
-      the site, so the property was buying nothing and costing that.
+      which reads as "it opened at the footer".
 
-      If anchor navigation is added later, scope smooth scrolling to that
-      interaction rather than putting it back on the root element.
+      There IS one in-page anchor on the site — the horizon section's
+      "Event Gifting Concierge" points at #contact, the final CTA — so this
+      does cost something: that link jumps instantly instead of gliding.
+      `scroll-padding-block-start` below still clears the sticky header, so it
+      lands in the right place. An instant jump for one link is the better
+      trade against every route opening part-way down the page.
+
+      Do not put this back on the root element to restore that glide. If smooth
+      anchor scrolling is wanted, scope it to the interaction — an onClick with
+      `scrollIntoView({ behavior: "smooth" })` on that one link.
     */
     scroll-padding-block-start: 5rem;
     -webkit-text-size-adjust: 100%;

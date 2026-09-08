@@ -35,25 +35,30 @@ export const NAV_LINKS = [
 ] as const;
 
 export const HERO = {
-  eyebrow: "West African Fine Confectionery",
-  /** UNVERIFIED — the mock's "Batch Kettle No. 042" is invented. */
-  eyebrowMeta: "Batch Kettle No. 042" as Unverified<string>,
+  /*
+    Rebuilt 2026-09-08 as a two-column layout on the page background. Three
+    things were removed at the owner's request, and all three were UNVERIFIED
+    claims GAP-004 was waiting on:
+      - the eyebrow's "Batch Kettle No. 042", an invented batch number;
+      - "9.4 / 10 Crisp Snap", an invented sensory score — the same figure the
+        crunch section's deleted profile card carried;
+      - "100% Churned Butter" and "Lagos Hand-Rolled", unconfirmed product
+        claims.
+    The owner asked for them gone as redundant, not as a content fix, but the
+    effect is the same: three fewer unverified claims on the page. They are
+    deleted rather than left dormant.
+  */
   titleLine1: "Crafted for",
-  titleLine2: "Good Taste.",
-  body: "Elevating Nigeria's quintessential kettle pastry to haute confectionery. Made in small batches with sweet cream dairy butter and whole-milled nutmeg.",
-  primaryCta: { label: "Shop Chinchin Collection", href: ROUTES.shop },
-  secondaryCta: { label: "Explore Culinary Story", href: ROUTES.about },
+  titleLine2: "Good taste.",
+  body: "Nigeria's favorite fried snack, made properly. Small batches, real butter, and whole-milled nutmeg in every bite.",
+  primaryCta: { label: "Shop chinchin", href: ROUTES.shop },
+  secondaryCta: { label: "Our story", href: ROUTES.about },
+  /** PLACEHOLDER until the brand shoot — see GAP-006. */
   image: {
-    src: "/images/chinchin5.jpg.png",
-    alt: "A bowl of freshly made Lamie Foods chinchin",
+    src: "/images/newchinchin2.jpeg",
+    alt: "A tray of freshly fried chinchin with a small serving bowl",
     note: "Hero photography",
   } satisfies ImageSlot,
-  /** UNVERIFIED — all three are product claims the owner has not confirmed. */
-  stats: [
-    { label: "Fat Source", value: "100% Churned Butter" },
-    { label: "Sensory Crunch", value: "9.4 / 10 Crisp Snap" },
-    { label: "Provenance", value: "Lagos Hand-Rolled" },
-  ] as Unverified<{ label: string; value: string }[]>,
 };
 
 export const MANIFESTO = {
