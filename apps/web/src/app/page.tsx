@@ -7,7 +7,6 @@ import { Flavours } from "@/components/landing/flavours";
 import { Hero } from "@/components/landing/hero";
 import { Horizon } from "@/components/landing/horizon";
 import { Manifesto } from "@/components/landing/manifesto";
-import { Moments } from "@/components/landing/moments";
 import { Pillars } from "@/components/landing/pillars";
 import { JsonLd } from "@/components/seo/json-ld";
 import { buildMetadata } from "@/lib/seo";
@@ -47,7 +46,6 @@ export default function HomePage() {
         <Pillars />
         <Crunch />
         <Flavours />
-        <Moments />
         <Horizon />
         <FinalCta />
       </main>

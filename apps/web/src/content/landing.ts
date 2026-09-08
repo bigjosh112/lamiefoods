@@ -185,51 +185,6 @@ export const FLAVOURS = {
   },
 };
 
-export const MOMENTS = {
-  eyebrow: "Mindful Gastronomy",
-  title: "Made for every kind of moment.",
-  body: "Whether solitary reflection or communal feasting, Lamie settles with quiet elegance.",
-  features: [
-    {
-      eyebrow: "Morning & Twilight",
-      title: "Quiet tea & coffee companionship",
-      body: "A companion to fresh poured pour-over coffee or slow-steeped ginger infusion. The buttery notes dissolve effortlessly into hot drinks without softening prematurely.",
-      image: {
-        src: "/images/workspace1.png",
-        alt: "A bowl of chinchin beside a cup of coffee on a table",
-        note: "Lifestyle photography",
-      } satisfies ImageSlot,
-    },
-    {
-      eyebrow: "Focus Hours",
-      title: "Desk-side creative cadence",
-      body: "Clean finger-feel with zero oily residue on keyboards and pens. The acoustic snap offers an engaging sensory pause between deep work sessions.",
-      image: {
-        src: null,
-        alt: "A jar of chinchin on a desk beside a laptop",
-        note: "Lifestyle photography",
-      } satisfies ImageSlot,
-    },
-  ],
-  small: [
-    {
-      icon: "plane" as const,
-      title: "On the Go",
-      body: "Resealable airtight wax lining keeps your snack fresh through road trips and international flights.",
-    },
-    {
-      icon: "people" as const,
-      title: "Shared Hospitality",
-      body: "A welcoming gesture of high-grade West African host generosity poured into earthen serving bowls.",
-    },
-    {
-      icon: "gift" as const,
-      title: "Luxury Gifting",
-      body: "Curated keepsake boxes with customized hand-lettered cards for weddings, clients, and celebrations.",
-    },
-  ],
-};
-
 export const HORIZON = {
   eyebrow: "Pantry Horizon",
   title: "Chinchin is just the beginning.",

@@ -17,6 +17,39 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Removed the "Made for every kind of moment" section
+
+- **Done:** Deleted the Moments section entirely — component, content block and
+  its render in the page. 114 lines removed, nothing added.
+- **Files:** deleted `components/landing/moments.tsx`; removed `MOMENTS` from
+  `content/landing.ts` and `<Moments />` plus its import from `app/page.tsx`.
+- **Spacing needed no fix.** Every section wraps in `<Section>`, which owns its
+  own `py-section`, so Flavours now meets Horizon with exactly the same gap as
+  any other adjacent pair. No empty space was left behind.
+- **⚠ But the two now share a background.** `Flavours` and `Horizon` are both
+  `bg-surface-container-low`, and Moments — which had no background — was the
+  cream band separating them. They will render as one continuous double-height
+  tinted block with no visible boundary. The section rhythm on this page was
+  cream / tinted / cream / cream / tinted / **cream** / tinted / cacao; that
+  middle cream band is now gone.
+  **Not fixed, deliberately:** the brief said "do not modify any other section".
+  The fix is one word — drop `bg-surface-container-low` from either `Horizon` or
+  `Flavours` — and it is the owner's call which.
+- **Orphans, left in place:** `public/images/workspace1.png` is now referenced
+  nowhere (only Moments used it), and `ICONS.plane` has no remaining consumer.
+  Neither costs anything — unreferenced public files are not fetched, and the
+  icon map is a library that tree-shakes — and removing them would have been
+  scope creep on a removal-only request. `card.png` is in the same state from
+  the manifesto change.
+- **Verified:** all ten of the section's strings are gone from the rendered
+  page, the section list is now hero → manifesto → pillars → crunch → flavours →
+  horizon → final CTA, and no other section changed. Lint, typecheck, build and
+  `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** the tinted-on-tinted adjacency above; plus GAP-011
+  (third pack size) and GAP-004's remaining values.
+
 ## 2026-09-08 — Hero rebuilt: no background image, two columns, bigger headline
 
 - **Done:** Replaced the full-bleed photographic hero with a two-column spread
