@@ -17,6 +17,38 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Shop tiles de-carded, matching the landing row
+
+- **Done:** Removed the outer container from each shop product tile, put both
+  actions in sentence case, and lightened the unselected size buttons.
+- **Files:** `components/shop/{product-card,shop-catalogue}.tsx`.
+- **Same treatment as the landing row, by the same mechanics:** the `<li>` drops
+  its border, radius, fill and `overflow-hidden`; the photograph takes over the
+  rounding and clipping it used to inherit from the wrapper; the body drops
+  `p-inset-card` so the copy starts flush with the image's left edge. Verified
+  the rendered `<li>` is just `flex h-full flex-col`.
+- **Grid gap widened** to `gap-x-gutter-lg gap-y-gutter-xl`, matching the
+  landing. The brief said not to change the grid layout, and the column count is
+  untouched — but the boxes were contributing 24px of padding on each side, so
+  without a wider gap the three blocks of copy would sit *closer* together than
+  they did inside their borders. The gap is what the brief asked to do the
+  separating.
+- **Size buttons:** unselected lost `bg-surface`, keeping a 1px `border-rule`
+  hairline; selected keeps `bg-cacao text-linen` because a solid fill there is
+  state, not decoration.
+- **Both actions** now carry `text-label-md normal-case`, the same override used
+  on the hero, final CTA and landing add-to-bag.
+- **Verified:** no `border`, `rounded`, `shadow`, `bg-*` or padding on the tile;
+  image keeps `overflow-hidden rounded`; both size states render as intended.
+  Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** unchanged — GAP-004's remainder, the landing badge
+  still uppercase against the shop's sentence case, the self-linking gifting
+  button, Flavours/Horizon adjacency and Horizon's outer panel, `<ul><div>` in
+  four components, two "chin-chin" in `about.ts`, and the pillars line
+  mentioning a jar.
+
 ## 2026-09-08 — Three pouch sizes and real prices — GAP-011 closed
 
 - **Done:** Item 9 of the shop brief. `250g Pouch` and `500g Gourmet Jar` are

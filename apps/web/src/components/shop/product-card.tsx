@@ -28,8 +28,8 @@ export function ProductCard({ product }: { product: Product }) {
   const groupId = useId();
 
   return (
-    <li className="flex h-full flex-col overflow-hidden rounded border border-rule/70 bg-surface-container-low">
-      <div className="relative aspect-4/5 bg-surface-container">
+    <li className="flex h-full flex-col">
+      <div className="relative aspect-4/5 overflow-hidden rounded bg-surface-container">
         <ImageSlot
           slot={product.image}
           sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
@@ -42,7 +42,7 @@ export function ProductCard({ product }: { product: Product }) {
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col p-inset-card">
+      <div className="mt-gutter-sm flex flex-1 flex-col">
         <div className="flex items-baseline justify-between gap-gutter-sm">
           <h3 className="text-headline-sm text-cacao">{product.name}</h3>
           <span className="shrink-0 font-label text-label-md text-terracotta">
@@ -97,7 +97,7 @@ export function ProductCard({ product }: { product: Product }) {
                     "min-h-11 rounded-md border px-1 font-label text-label-sm transition-colors",
                     selected
                       ? "border-cacao bg-cacao text-linen"
-                      : "border-rule bg-surface text-cacao hover:border-cacao",
+                      : "border-rule text-cacao hover:border-cacao",
                   )}
                 >
                   {option}
@@ -110,7 +110,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-gutter-md flex gap-gutter-xs">
           <Button
             onClick={() => addLine(product.slug, size)}
-            className="flex-1"
+            className="flex-1 text-label-md normal-case"
             aria-label={`Add ${product.name}, ${size}, to bag`}
           >
             <BagIcon className="h-4 w-4" />
@@ -119,6 +119,7 @@ export function ProductCard({ product }: { product: Product }) {
           <ButtonLink
             href={ROUTES.product(product.slug)}
             variant="secondary"
+            className="text-label-md normal-case"
             aria-label={`View details for ${product.name}`}
           >
             View details
