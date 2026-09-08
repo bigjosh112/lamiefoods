@@ -39,7 +39,7 @@ export function AddToBag({
   return (
     <Button
       onClick={() => addLine(slug, pack)}
-      className="relative z-10 mt-gutter-sm w-full rounded-md font-label text-label-md normal-case"
+      className="relative z-10 mt-gutter-sm w-full font-label text-label-md normal-case"
       aria-label={`Add ${productName}, ${pack}, to bag`}
     >
       <BagIcon className="h-4 w-4" />

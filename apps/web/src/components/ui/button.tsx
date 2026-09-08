@@ -14,8 +14,13 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
  */
 type Variant = "primary" | "secondary" | "inverted";
 
+/*
+ * 6px (`rounded-md`), not the system's 4px default: the owner asked for one
+ * radius on every button site-wide, clean rectangles rather than pills. Cards
+ * and panels keep `rounded` — they are not buttons.
+ */
 const base =
-  "font-label text-label-caps inline-flex min-h-11 items-center justify-center gap-gutter-xs rounded px-gutter-md text-center uppercase transition-colors duration-200";
+  "font-label text-label-caps inline-flex min-h-11 items-center justify-center gap-gutter-xs rounded-md px-gutter-md text-center uppercase transition-colors duration-200";
 
 const variants: Record<Variant, string> = {
   primary: "bg-primary-container text-linen hover:bg-cacao",

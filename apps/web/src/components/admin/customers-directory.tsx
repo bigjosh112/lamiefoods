@@ -70,7 +70,7 @@ export function CustomersDirectory({
                 aria-selected={segment === tab.segment}
                 onClick={() => setSegment(tab.segment)}
                 className={cn(
-                  "inline-flex min-h-11 items-center gap-gutter-xs rounded border px-3 font-label text-label-sm transition-colors",
+                  "inline-flex min-h-11 items-center gap-gutter-xs rounded-md border px-3 font-label text-label-sm transition-colors",
                   segment === tab.segment
                     ? "border-primary-container bg-primary-container text-linen"
                     : "border-rule bg-surface-container-low text-cacao hover:border-cacao",

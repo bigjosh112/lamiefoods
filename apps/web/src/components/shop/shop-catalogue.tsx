@@ -42,7 +42,7 @@ export function ShopCatalogue() {
               disabled={unavailable}
               onClick={() => setActive(filter.id)}
               className={cn(
-                "inline-flex min-h-11 items-center gap-gutter-xs rounded border px-3 font-label text-label-sm uppercase transition-colors",
+                "inline-flex min-h-11 items-center gap-gutter-xs rounded-md border px-3 font-label text-label-sm transition-colors",
                 selected
                   ? "border-primary-container bg-primary-container text-linen"
                   : "border-rule bg-surface-container-low text-cacao",
@@ -51,15 +51,12 @@ export function ShopCatalogue() {
                   : !selected && "hover:border-cacao",
               )}
             >
+              {/* One label, one parenthesis — a count when the tab is real, its
+                  status when it is not. The status used to sit in a separate
+                  chip, which read as a second control. */}
               <span>
-                {filter.label}
-                {!unavailable && ` (${filter.count})`}
+                {filter.label} ({unavailable ? filter.status : filter.count})
               </span>
-              {filter.status && (
-                <span className="rounded-sm bg-secondary-container px-1.5 py-0.5 text-on-secondary-fixed">
-                  {filter.status}
-                </span>
-              )}
             </button>
           );
         })}

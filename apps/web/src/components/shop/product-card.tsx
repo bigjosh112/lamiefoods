@@ -34,11 +34,11 @@ export function ProductCard({ product }: { product: Product }) {
           slot={product.image}
           sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
         />
-        <span className="absolute top-3 left-3 rounded-sm bg-primary-container px-2 py-1 font-label text-label-sm text-linen uppercase">
+        {/* Same chip as the landing row, in sentence case. The "In atelier
+            shop" tag that sat bottom-right is gone — it labelled the page you
+            were already on. */}
+        <span className="absolute top-3 left-3 rounded-sm bg-primary-container px-2 py-1 font-label text-label-sm text-linen">
           {product.badges.shop}
-        </span>
-        <span className="absolute right-3 bottom-3 rounded-sm bg-surface/90 px-2 py-1 font-label text-label-sm text-cacao uppercase backdrop-blur-sm">
-          In atelier shop
         </span>
       </div>
 
@@ -56,7 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         {/* Crunch factor. The value is stated in text beside the label, so the
             bar itself is decorative and hidden from assistive tech. */}
-        <div className="mt-gutter-md rounded border border-rule/70 bg-surface p-3">
+        <div className="mt-gutter-md">
           <div className="flex items-baseline justify-between gap-gutter-sm">
             <span className="font-label text-label-sm text-nutmeg uppercase">
               Crunch Factor
@@ -74,10 +74,7 @@ export function ProductCard({ product }: { product: Product }) {
               style={{ width: `${(product.crunch.score / CRUNCH_MAX) * 100}%` }}
             />
           </div>
-          <p className="mt-2 text-body-sm text-nutmeg">
-            <span className="font-label text-label-sm uppercase">Key:</span>{" "}
-            {product.notes.join(" · ")}
-          </p>
+          <p className="mt-2 text-body-sm text-nutmeg">{product.notes.join(" · ")}</p>
         </div>
 
         <fieldset className="mt-gutter-md">
@@ -97,7 +94,7 @@ export function ProductCard({ product }: { product: Product }) {
                   name={groupId}
                   onClick={() => setSize(option)}
                   className={cn(
-                    "min-h-11 flex-1 rounded border font-label text-label-sm transition-colors",
+                    "min-h-11 flex-1 rounded-md border font-label text-label-sm transition-colors",
                     selected
                       ? "border-cacao bg-cacao text-linen"
                       : "border-rule bg-surface text-cacao hover:border-cacao",

@@ -8,14 +8,15 @@ import { PRODUCTS } from "./products";
  * header, and the assurance claims about butter and frying method.
  */
 export const SHOP = {
-  eyebrow: "Signature Confectionery",
+  eyebrow: "Signature confectionery",
   title: "Shop Chinchin",
-  body: "Choose your favourite flavour. Freshly kettle-fried in small batches using churned butter and fragrant spices.",
-  /** UNVERIFIED — the mock invented both of these. */
-  meta: [
-    { icon: "seal" as const, label: "Batch No. 842" },
-    { icon: "timer" as const, label: "Kettle Fry Date: Today" },
-  ],
+  body: "Choose your flavour. Freshly made in small batches with real butter and warm spices.",
+  /*
+    `meta` was removed on 2026-09-08 — a "Batch No. 842" and a
+    "Kettle Fry Date: Today" the mock invented. Nothing tracked either, and the
+    fry date claimed a freshness fact that no system could have known. Two more
+    of GAP-004's unverified values gone.
+  */
 };
 
 /**
@@ -26,10 +27,10 @@ export const SHOP = {
 export const SHOP_FILTERS = [
   { id: "all", label: "All", count: PRODUCTS.length, status: null },
   { id: "chinchin", label: "Chinchin", count: PRODUCTS.length, status: null },
-  { id: "gift-sets", label: "Gift Sets", count: 0, status: "Coming soon" },
+  { id: "gift-sets", label: "Gift sets", count: 0, status: "Coming soon" },
   {
     id: "packaged-foods",
-    label: "Packaged Foods",
+    label: "Packaged foods",
     count: 0,
     status: "In development",
   },

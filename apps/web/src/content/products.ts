@@ -115,13 +115,13 @@ export const PRODUCTS: Product[] = [
     name: "Milky Velvet Chinchin",
     slug: "milky-velvet-chinchin",
     kicker: "Dairy Reserve",
-    body: "Rich velvety milk indulgence, tender melt-in-the-mouth golden crumb, and gentle undertones of vanilla and stone-grated nutmeg.",
+    body: "Soft, buttery crumb with real vanilla and stone-ground nutmeg.",
     image: {
       src: "/images/packagedchinchin.jpeg",
       alt: "Milky Velvet Chinchin in its pack",
       note: "Product photography",
     },
-    badges: { landing: "New", shop: "Original Heritage" },
+    badges: { landing: "New", shop: "New" },
     crunch: { label: "Tender Crisp", score: 8 },
     notes: ["100% Churned Dairy", "Subtle Sweetness"],
     detail: {
@@ -192,13 +192,13 @@ export const PRODUCTS: Product[] = [
     name: "Coco Velvet Chinchin",
     slug: "coco-velvet-chinchin",
     kicker: "Tropical Warmth",
-    body: "Toasted coastal coconut flakes folded into buttery dough for a warm tropical snap with balanced sweetness.",
+    body: "Toasted coconut folded into buttery dough, for a light tropical crunch.",
     image: {
       src: "/images/packagedchinchin1.jpeg",
       alt: "Coco Velvet Chinchin in its pack",
       note: "Product photography",
     },
-    badges: { landing: "New", shop: "Tropical Infusion" },
+    badges: { landing: "New", shop: "New" },
     crunch: { label: "Toasted Snap", score: 8 },
     notes: ["Fresh Coconut", "Rich Nutty Aroma"],
     detail: {
@@ -269,13 +269,13 @@ export const PRODUCTS: Product[] = [
     name: "Cinnamon Chinchin",
     slug: "cinnamon-chinchin",
     kicker: "Hearth Spiced",
-    body: "Freshly milled cinnamon bark and warm whole nutmeg toasted deeply into a crisp, acoustic crunch.",
+    body: "Fresh cinnamon and whole nutmeg, toasted deep for a warm, spiced crunch.",
     image: {
       src: "/images/packagedchinchin3.jpeg",
       alt: "Cinnamon Chinchin in its pack",
       note: "Product photography",
     },
-    badges: { landing: "New", shop: "Spiced Signature" },
+    badges: { landing: "New", shop: "New" },
     crunch: { label: "Acoustic Crunch", score: 9.5 },
     notes: ["Cinnamon Bark & Nutmeg", "Warming Spiced Finish"],
     detail: {

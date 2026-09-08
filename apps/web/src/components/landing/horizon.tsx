@@ -77,7 +77,7 @@ export function Horizon() {
             <Button
               disabled
               aria-describedby="tasting-note"
-              className="rounded-md text-label-md normal-case"
+              className="text-label-md normal-case"
             >
               {HORIZON.form.cta}
             </Button>

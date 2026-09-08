@@ -38,7 +38,7 @@ export function SettingsTabs({
             aria-controls={`settings-panel-${section.id}`}
             onClick={() => setActive(section.id)}
             className={cn(
-              "inline-flex min-h-11 items-center rounded border px-3 font-label text-label-sm transition-colors",
+              "inline-flex min-h-11 items-center rounded-md border px-3 font-label text-label-sm transition-colors",
               active === section.id
                 ? "border-primary-container bg-primary-container text-linen"
                 : "border-rule bg-surface-container-low text-cacao hover:border-cacao",

@@ -4,7 +4,6 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { JsonLd } from "@/components/seo/json-ld";
 import { AssuranceBand, AtelierLab } from "@/components/shop/atelier-lab";
 import { ShopCatalogue } from "@/components/shop/shop-catalogue";
-import { ICONS } from "@/components/ui/icons";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
@@ -41,29 +40,12 @@ export default function ShopPage() {
 
       <main id="main">
         <Section className="pb-0">
-          <div className="flex flex-wrap items-start justify-between gap-gutter-lg">
-            <div className="max-w-xl">
-              <Eyebrow withRule>{SHOP.eyebrow}</Eyebrow>
-              <h1 className="mt-gutter-sm text-headline-lg text-cacao">{SHOP.title}</h1>
-              <p className="mt-gutter-sm text-body-md text-on-surface-variant">
-                {SHOP.body}
-              </p>
-            </div>
-
-            <ul className="flex flex-wrap gap-gutter-xs rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
-              {SHOP.meta.map((entry) => {
-                const Icon = ICONS[entry.icon];
-                return (
-                  <li
-                    key={entry.label}
-                    className="flex items-center gap-gutter-xs px-2 text-cacao"
-                  >
-                    <Icon className="h-4 w-4 text-terracotta" />
-                    <span className="font-label text-label-sm">{entry.label}</span>
-                  </li>
-                );
-              })}
-            </ul>
+          <div className="max-w-xl">
+            <Eyebrow className="text-label-sm normal-case">{SHOP.eyebrow}</Eyebrow>
+            <h1 className="mt-gutter-sm text-headline-lg text-cacao">{SHOP.title}</h1>
+            <p className="mt-gutter-sm text-body-md text-on-surface-variant">
+              {SHOP.body}
+            </p>
           </div>
 
           <ShopCatalogue />

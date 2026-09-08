@@ -17,6 +17,56 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Shop page: header, cards, and one radius site-wide
+
+- **Done:** Items 1-8 and 10 of the owner's shop brief. **Item 9 (three pouch
+  sizes) is NOT done** — it needs prices; see below.
+- **Files:** `content/shop.ts`, `content/products.ts`, `app/shop/page.tsx`,
+  `components/shop/{product-card,shop-catalogue}.tsx`,
+  `components/ui/button.tsx`, plus four admin tab components and two dedupes.
+- **One radius, one place.** `Button`/`ButtonLink`'s base went `rounded` →
+  `rounded-md` (6px), which covers every button on the site in a single change.
+  The four admin filter-tab strips and the shop's size selector are raw
+  `<button>`s and were updated to match. **Cards and panels keep `rounded`** —
+  they are not buttons, and the brief was about buttons. No pill-shaped buttons
+  existed to remove; `rounded-full` is only used on avatars and dots.
+  The per-call-site `rounded-md` overrides added earlier for add-to-bag and the
+  horizon button are now redundant and were removed.
+- **Batch card gone, and with it two more GAP-004 values:** "Batch No. 842" and
+  "Kettle Fry Date: Today". Nothing tracked either, and the fry date asserted a
+  freshness fact no system could know. `SHOP.meta` deleted rather than
+  unrendered.
+- **Filter tabs** now read "All (3) / Chinchin (3) / Gift sets (Coming soon) /
+  Packaged foods (In development)" — one label and one parenthesis. The status
+  used to sit in a separate chip after the label, which read as a second
+  control inside the tab.
+- **"In atelier shop" removed** — it labelled the page you were already on.
+- **Badges:** `badges.shop` is now "New" on all three, matching what
+  `badges.landing` became. Note this is shared data, so the same badge now
+  appears on `related-products` and `product-suggestions` — consistent, and
+  worth knowing it was not only the shop grid.
+- **⚠ Casing mismatch to settle:** the shop badge is sentence case as
+  instructed, but the **landing** badge still carries `uppercase` and renders
+  "NEW". The brief said "styled the same as the landing page", which the two no
+  longer are. Not changed unasked — one class either way.
+- **Item 9 blocked on prices.** The owner has given the size names — 100g, 300g
+  and 500g pouches — which resolves the naming half of GAP-011. But 100g and
+  300g have never had a price, and 250g is being retired. Asked; the owner chose
+  to supply real prices and they have not arrived yet. **Nothing was invented
+  and nothing was renamed**, so the shop still shows 250g Pouch and
+  500g Gourmet Jar until the figures land.
+- **Verified:** every removed string is absent from `/shop`, all five new
+  strings render, the four tabs read exactly as specified with no `uppercase`,
+  badges are three "New", and add-to-bag/tabs/size buttons all resolve to
+  `rounded-md`. Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** GAP-004 reduced by two. GAP-011 half-answered (names known, prices
+  outstanding).
+- **Next / open threads:** the three pouch prices; then GAP-004's remainder, the
+  landing/shop badge casing, the self-linking gifting button, the
+  Flavours/Horizon adjacency, `<ul><div>` in four components, two "chin-chin" in
+  `about.ts`.
+
 ## 2026-09-08 — Footer copy and link trim
 
 - **Done:** New brand blurb, sentence-case tagline, and the link columns

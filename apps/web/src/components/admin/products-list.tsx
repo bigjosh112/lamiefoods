@@ -54,7 +54,7 @@ export function ProductsList({
               aria-selected={filter === tab.filter}
               onClick={() => setFilter(tab.filter)}
               className={cn(
-                "inline-flex min-h-11 items-center gap-gutter-xs rounded border px-3 font-label text-label-sm transition-colors",
+                "inline-flex min-h-11 items-center gap-gutter-xs rounded-md border px-3 font-label text-label-sm transition-colors",
                 filter === tab.filter
                   ? "border-primary-container bg-primary-container text-linen"
                   : "border-rule bg-surface-container-low text-cacao hover:border-cacao",
