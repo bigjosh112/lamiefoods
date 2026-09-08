@@ -17,6 +17,33 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Whole shop tile is clickable
+
+- **Done:** Clicking anywhere on a shop product tile opens its product page, not
+  just the "View details" button.
+- **Files:** `components/shop/product-card.tsx`.
+- **Stretched the existing link rather than adding one.** "View details" already
+  points at the product page and already carries an accessible name, so it takes
+  an `after:absolute after:inset-0` overlay covering the tile. That keeps
+  **exactly one link per product** in the accessibility tree — verified. Adding a
+  second link on the product name would have duplicated the destination, which
+  is the same problem the landing row had before it was fixed (three links per
+  card, one of them an empty box).
+- **Note the deliberate difference from the landing row**, which puts its link
+  on the product *name*: that card has no "View details" control to reuse, so
+  the heading is the only sensible anchor. Here reusing the CTA avoids a
+  duplicate. Same behaviour, different anchor, for a reason.
+- **The controls had to be raised.** The size selector and "Add to bag" come
+  before the overlay in DOM order, so without `relative z-10` every tap on a
+  size or on add-to-bag would have navigated to the product page instead of
+  doing its job. Both are raised; verified two raised groups per card.
+- **Verified:** three cards, one product link each, overlay present on all
+  three, and `group-hover:text-terracotta` gives the tile a hover cue like the
+  landing row. Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+- **Next / open threads:** unchanged.
+
 ## 2026-09-08 — Shop's last two sections: atelier callout and trust strip
 
 - **Done:** De-carded the "what's coming next" callout, rewrote its copy, and

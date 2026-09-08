@@ -19,6 +19,12 @@ import { useCartActions } from "@/lib/cart/use-cart";
  *
  * Both actions work: "View details" opens the product page, "Add to bag" adds
  * the selected pack to the browser-side bag.
+ *
+ * The whole tile is clickable. Rather than add a second link, "View details"
+ * carries an `::after` overlay covering the card — so there is still exactly one
+ * link per product in the accessibility tree. The size selector and "Add to
+ * bag" are raised above that overlay with `relative z-10`; without it, every
+ * tap on them would navigate instead of doing its job.
  */
 export function ProductCard({ product }: { product: Product }) {
   const packs = product.detail.packaging;
@@ -28,7 +34,7 @@ export function ProductCard({ product }: { product: Product }) {
   const groupId = useId();
 
   return (
-    <li className="flex h-full flex-col">
+    <li className="group relative flex h-full flex-col">
       <div className="relative aspect-4/5 overflow-hidden rounded bg-surface-container">
         <ImageSlot
           slot={product.image}
@@ -44,7 +50,9 @@ export function ProductCard({ product }: { product: Product }) {
 
       <div className="mt-gutter-sm flex flex-1 flex-col">
         <div className="flex items-baseline justify-between gap-gutter-sm">
-          <h3 className="text-headline-sm text-cacao">{product.name}</h3>
+          <h3 className="text-headline-sm text-cacao group-hover:text-terracotta">
+            {product.name}
+          </h3>
           <span className="shrink-0 font-label text-label-md text-terracotta">
             {selectedPack ? formatKobo(selectedPack.price) : ""}
           </span>
@@ -81,7 +89,10 @@ export function ProductCard({ product }: { product: Product }) {
           <legend className="font-label text-label-caps text-nutmeg uppercase">
             Select size
           </legend>
-          <div className="mt-gutter-xs grid grid-cols-3 gap-gutter-xs" role="radiogroup">
+          <div
+            className="relative z-10 mt-gutter-xs grid grid-cols-3 gap-gutter-xs"
+            role="radiogroup"
+          >
             {packs.map((pack) => {
               const option = pack.name;
               const selected = option === size;
@@ -110,7 +121,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-gutter-md flex gap-gutter-xs">
           <Button
             onClick={() => addLine(product.slug, size)}
-            className="flex-1 text-label-md normal-case"
+            className="relative z-10 flex-1 text-label-md normal-case"
             aria-label={`Add ${product.name}, ${size}, to bag`}
           >
             <BagIcon className="h-4 w-4" />
@@ -119,7 +130,7 @@ export function ProductCard({ product }: { product: Product }) {
           <ButtonLink
             href={ROUTES.product(product.slug)}
             variant="secondary"
-            className="text-label-md normal-case"
+            className="text-label-md normal-case after:absolute after:inset-0 after:content-['']"
             aria-label={`View details for ${product.name}`}
           >
             View details
