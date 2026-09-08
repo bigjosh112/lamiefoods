@@ -17,6 +17,60 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Three pouch sizes and real prices — GAP-011 closed
+
+- **Done:** Item 9 of the shop brief. `250g Pouch` and `500g Gourmet Jar` are
+  replaced by the owner's confirmed range: **100g / 300g / 500g resealable
+  pouches at ₦2,000 / ₦3,500 / ₦5,000.**
+- **The first price list was wrong and querying it paid off.** It put 100g and
+  300g both at ₦2,000 — three times the product for the same money, so nobody
+  would ever buy the small one. Flagged rather than "corrected" by guessing, and
+  the owner supplied the ladder above. Worth remembering as the pattern: a
+  suspicious price is raised, never silently adjusted.
+- **Packs are now declared once** as `PACKS` in `products.ts` and shared by all
+  three products. Each previously carried its own copy, and Coco Velvet and
+  Cinnamon were ₦200 above Milky Velvet on mock-inherited figures. One list for
+  the range means the three now cost the same — a real change to note, not a
+  side effect.
+- **The rename reached much further than the catalogue.** Everything below would
+  have been a silent bug:
+  - `admin-inventory.ts` keys `SAMPLE_STOCK`/`SAMPLE_BATCH` as
+    `<slug>::<pack name>`; unrekeyed, every finished-goods row would have
+    vanished from the inventory table with no error.
+  - `sample-order.ts` referenced both retired packs, and `sampleItem` returns
+    `null` for an unknown pack — the order-success preview would have rendered
+    an **empty, zero-total order**.
+  - `packLabel()` branched on the word "jar" and is retired; the glass-jar
+    consumable and the dashboard's jar stock lines are renamed.
+  - The product page's pack picker was `sm:grid-cols-2`, which orphaned the
+    third size on its own row; now `sm:grid-cols-3`. The shop tile's selector
+    went from a flex row to `grid-cols-3`.
+- **Jar language removed everywhere a customer could see it**, beyond the shop
+  page the brief named: the landing "Two Mindful Formats" card, a shop
+  assurance, the product page's storage note telling buyers to keep chinchin
+  "inside our airtight gourmet jar", and an about-page line plus an image alt.
+  These were product claims contradicting a confirmed brand fact, so they were
+  corrected rather than flagged and left. **Verified zero "jar" occurrences on
+  every customer page** except one: the owner's own pillars subheading, "From
+  the nutmeg we grind to the jar we seal it in." Left alone — their words.
+- **Persisted carts:** saved bags store lines by pack name, so anyone holding a
+  "250g Pouch" or "500g Gourmet Jar" line has it dropped by `sanitise()` on the
+  next visit. Expected and documented in advance.
+- **False alarm worth recording:** the owner reported prices missing. Every page
+  was re-rendered and checked — landing ₦2,000, shop ₦2,000, product page all
+  three tiers, admin all three, sample order totalling ₦12,000 — all correct. It
+  was a stale dev server after `products.ts` was restructured under it. If it
+  recurs, restart the dev server before hunting for a bug.
+- **Verified:** lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** **GAP-011 CLOSED.**
+- **Next / open threads:** GAP-004's remainder (`MANIFESTO.stats`,
+  `FLAVOURS.items[].body`, shop `ASSURANCES` claims); landing badge still
+  uppercase while the shop badge is sentence case; the self-linking gifting
+  button; Flavours/Horizon adjacency and Horizon's outer panel; `<ul><div>` in
+  four components; two "chin-chin" in `about.ts`; the pillars line mentioning a
+  jar.
+
 ## 2026-09-08 — Shop page: header, cards, and one radius site-wide
 
 - **Done:** Items 1-8 and 10 of the owner's shop brief. **Item 9 (three pouch
