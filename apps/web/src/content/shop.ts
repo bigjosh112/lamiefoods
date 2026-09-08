@@ -39,9 +39,14 @@ export const SHOP_FILTERS = [
 export type ShopFilterId = (typeof SHOP_FILTERS)[number]["id"];
 
 export const ATELIER_LAB = {
-  eyebrow: "The Lamie Atelier Lab",
-  title: "More snacks and pantry provisions currently in development.",
-  body: "We are formulating spiced plantain crisps, slow-roasted cashew spreads, and celebration gift boxes. Be the first to taste pilot batches.",
+  eyebrow: "What's coming next",
+  title: "More snacks are on the way.",
+  /*
+    Owner-written, 2026-09-08. Still describes unannounced products, but only
+    as things being worked on — no dates, no prices, no promises. That framing
+    is what keeps it out of GAP-004.
+  */
+  body: "We're working on spiced plantain crisps, roasted cashew spread, and gift boxes for celebrations. Be the first to know when they launch.",
   form: {
     label: "Email address",
     placeholder: "Enter your email",
@@ -52,21 +57,21 @@ export const ATELIER_LAB = {
 export const ASSURANCES = [
   {
     icon: "award" as const,
-    /** UNVERIFIED — ingredient claim. */
-    title: "100% Churned Farm Butter",
-    body: "Zero margarine or industrial preservatives. Pure natural dairy for that signature tender flakiness.",
+    /** UNVERIFIED — still an ingredient claim, reworded but not confirmed. */
+    title: "100% churned butter",
+    body: "No margarine, no preservatives — just real dairy butter for a tender, flaky bite.",
   },
   {
     icon: "timer" as const,
-    /** UNVERIFIED — process claim. */
-    title: "Kettle Fried in Small Batches",
-    body: "Artisanally watched over gentle fire to ensure uniform acoustic crunch without excess oil absorption.",
+    /** Owner-written process copy, 2026-09-08. */
+    title: "Fried fresh in small batches",
+    body: "Cooked in small batches over gentle heat, for a crisp bite that's never greasy.",
   },
   {
     icon: "truck" as const,
     /** Delivery window is the CONFIRMED 1–5 days. */
-    title: `${DELIVERY.minDays}–${DELIVERY.maxDays} Days Nationwide Delivery`,
-    body: "Sealed in resealable pouches, shipped directly from our kitchen.",
+    title: `${DELIVERY.minDays}–${DELIVERY.maxDays} days nationwide delivery`,
+    body: "Sealed in resealable pouches and shipped straight from our kitchen.",
   },
 ];
 

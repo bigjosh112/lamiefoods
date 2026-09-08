@@ -17,9 +17,9 @@ export function AtelierLab() {
   return (
     <Section className="pb-0">
       <Reveal>
-        <div className="grid gap-gutter-lg rounded border border-rule/70 bg-surface-container-low p-inset-card sm:p-gutter-xl md:grid-cols-12">
+        <div className="grid gap-gutter-lg border-t border-rule/70 pt-gutter-lg md:grid-cols-12">
           <div className="md:col-span-7">
-            <Eyebrow withRule>{ATELIER_LAB.eyebrow}</Eyebrow>
+            <Eyebrow className="text-label-sm normal-case">{ATELIER_LAB.eyebrow}</Eyebrow>
             <h2 className="mt-gutter-sm text-headline-md text-cacao">
               {ATELIER_LAB.title}
             </h2>
@@ -44,7 +44,11 @@ export function AtelierLab() {
                 className="min-h-11 w-full rounded border border-rule bg-[#f8f3ec] px-3 text-body-md text-cacao placeholder:text-nutmeg/70 focus:border-terracotta focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
-            <Button disabled aria-describedby="notify-note">
+            <Button
+              disabled
+              aria-describedby="notify-note"
+              className="text-label-md normal-case"
+            >
               {ATELIER_LAB.form.cta}
             </Button>
           </form>
@@ -67,9 +71,7 @@ export function AssuranceBand() {
           const Icon = ICONS[item.icon];
           return (
             <li key={item.title} className="flex gap-gutter-sm">
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded bg-secondary-container text-primary">
-                <Icon className="h-5 w-5" />
-              </span>
+              <Icon className="h-6 w-6 shrink-0 text-terracotta" />
               <div>
                 <h2 className="text-headline-sm text-cacao">{item.title}</h2>
                 <p className="mt-1 text-body-sm text-on-surface-variant">{item.body}</p>

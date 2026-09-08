@@ -17,6 +17,42 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-08 — Shop's last two sections: atelier callout and trust strip
+
+- **Done:** De-carded the "what's coming next" callout, rewrote its copy, and
+  put the trust strip in sentence case with its icon chips removed. **The shop
+  page is now fully through the owner's pass.**
+- **Files:** `content/shop.ts`, `components/shop/atelier-lab.tsx`.
+- **Callout:** `rounded border bg-surface-container-low p-inset-card` →
+  `border-t border-rule/70 pt-gutter-lg`, the same hairline the manifesto stat
+  row and horizon list use. Eyebrow lost `withRule` (that was the dash) and took
+  sentence case; the notify button took `text-label-md normal-case` over the
+  base's caps — the 6px radius already came from the shared button.
+- **Trust strip:** the 40px `bg-secondary-container` chips are gone; each icon
+  now stands alone at 24px in terracotta, matching the Three Pillars fix. The
+  tinted band stays, as asked.
+- **Delivery title still comes from `DELIVERY`.** Only the casing changed —
+  `${minDays}–${maxDays} days nationwide delivery` — so the confirmed 1–5 day
+  window keeps driving the copy rather than being typed in as a literal.
+- **Content-honesty notes:**
+  - The new atelier copy still names unannounced products, but only as things
+    being worked on — no dates, no prices, no promises. That framing is what
+    keeps it out of GAP-004.
+  - **"100% churned butter" is still an unverified ingredient claim.** It was
+    reworded, not confirmed, and the `UNVERIFIED` marker was kept and reworded
+    to say so. The frying copy is now the owner's own words, so that one's
+    marker became an attribution instead.
+- **Verified:** all nine new strings render, all seven old ones gone, the
+  callout container carries only `border-t` with no radius/fill/padding, the
+  three titles read exactly as specified with the en-dash intact, and no icon
+  chip remains. Lint, typecheck, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened; GAP-004 unchanged in status.
+- **Next / open threads:** unchanged — GAP-004's remainder (now: the butter
+  claim here, `MANIFESTO.stats`, `FLAVOURS.items[].body`), landing badge casing,
+  the self-linking gifting button, Flavours/Horizon adjacency, `<ul><div>` in
+  four components, two "chin-chin" in `about.ts`, the pillars jar line.
+
 ## 2026-09-08 — Shop tiles de-carded, matching the landing row
 
 - **Done:** Removed the outer container from each shop product tile, put both
