@@ -12,6 +12,8 @@ import { Pillars } from "@/components/landing/pillars";
 import { JsonLd } from "@/components/seo/json-ld";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
+import { isDatabaseConfigured } from "@/config/server-env";
+import { listPublishedProducts } from "@/server/products/repository";
 
 /*
  * Copy here stays natural and descriptive. The category terms that matter for
@@ -21,9 +23,13 @@ import { breadcrumbSchema } from "@/lib/structured-data";
 export const metadata: Metadata = buildMetadata({
   title: "Premium Nigerian Chinchin",
   description:
-    "Lamie Foods makes small-batch Nigerian chinchin in three flavours — Milky Velvet, Coco Velvet and Cinnamon. Crafted for good taste.",
+    "Lamie Foods makes small-batch Nigerian chinchin, kettle-fried fresh. Crafted for good taste.",
   path: "/",
 });
+
+// Same reasoning as app/shop/page.tsx: a raw Postgres read isn't a Next
+// Request-time API, so this must opt into revalidation explicitly.
+export const revalidate = 60;
 
 /**
  * The landing page.
@@ -32,11 +38,17 @@ export const metadata: Metadata = buildMetadata({
  * sequence and the scroll-reveal wrapper opt into the client, which keeps the
  * page's JavaScript to the parts that genuinely need interaction.
  *
- * No Product structured data yet: prices and availability in the content file
- * are unconfirmed placeholders, and publishing them as machine-readable offers
- * would misrepresent the business to search engines. It lands with real pricing.
+ * `Flavours` shows published products with `featureOnHomepage` set (an admin
+ * toggle — `lib/admin/product-schema.ts`), not the whole catalogue.
+ *
+ * No Product structured data yet: GAP-004 has prices as owner-unverified
+ * placeholders, and publishing them as machine-readable offers would
+ * misrepresent the business to search engines. It lands with real pricing.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+  const featured = products.filter((product) => product.featureOnHomepage);
+
   return (
     <>
       <JsonLd data={breadcrumbSchema([{ name: "Home", path: "/" }])} />
@@ -46,7 +58,7 @@ export default function HomePage() {
         <Manifesto />
         <Pillars />
         <Crunch />
-        <Flavours />
+        <Flavours products={featured} />
         <Moments />
         <Horizon />
         <FinalCta />

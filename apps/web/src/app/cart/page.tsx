@@ -7,6 +7,18 @@ import { CartView } from "@/components/cart/cart-view";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { CART } from "@/content/cart";
 import { buildMetadata } from "@/lib/seo";
+import { isDatabaseConfigured } from "@/config/server-env";
+import { listPublishedProducts } from "@/server/products/repository";
+import { CatalogProvider } from "@/lib/products/catalog-context";
+
+// `listPublishedProducts()` is a raw Postgres query, not a Next Request-time
+// API — unlike `cookies()`, Next does NOT auto-detect it and mark this route
+// dynamic. Left unset, this page would bake stale prices at build time
+// forever. `revalidate` re-reads the DB at most once a minute; ANY staleness
+// here is purely cosmetic — the actual charge is always the server re-price
+// at order-creation time (`server/orders/pricing.ts`), never what this page
+// happened to render.
+export const revalidate = 60;
 
 export const metadata: Metadata = buildMetadata({
   title: "Your Shopping Bag",
@@ -22,11 +34,16 @@ export const metadata: Metadata = buildMetadata({
  *
  * The bag itself is client-rendered because it lives in the browser — there is
  * no server-side cart to prerender, and `useSyncExternalStore` keeps hydration
- * clean. The page shell around it stays a Server Component.
+ * clean. The page shell around it stays a Server Component, which is also
+ * what fetches the published catalogue and wraps the client tree in
+ * `CatalogProvider` — `CartView` needs it to resolve line prices now that
+ * products live in Postgres. See `lib/products/catalog-context.tsx`.
  */
-export default function CartPage() {
+export default async function CartPage() {
+  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+
   return (
-    <>
+    <CatalogProvider products={products}>
       <AnnouncementBar />
       <SiteHeader />
 
@@ -44,6 +61,7 @@ export default function CartPage() {
         </Section>
 
         <ProductSuggestions
+          products={products}
           className="bg-surface-container-low"
           excludeInBag
           eyebrow={CART.recommendations.eyebrow}
@@ -53,6 +71,6 @@ export default function CartPage() {
       </main>
 
       <SiteFooter />
-    </>
+    </CatalogProvider>
   );
 }

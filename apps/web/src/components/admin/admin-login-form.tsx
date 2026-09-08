@@ -1,52 +1,69 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { cn } from "@lamiefoods/ui";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, EyeIcon, ICONS } from "@/components/ui/icons";
 import { ADMIN_LOGIN } from "@/content/admin";
 import { adminLoginSchema, type AdminLoginValues } from "@/lib/admin/login-schema";
+import { adminLogin } from "@/lib/api/admin";
+import { ApiError } from "@/lib/api";
 
 /**
  * Admin sign-in form.
  *
- * Validation is real. Authentication is not, and the form says so: there is no
- * auth backend, so a valid submit reports that plainly instead of pretending a
- * session was created. Faking a signed-in state would be the worst possible
- * outcome here — an operator could believe the admin area is protected when
- * nothing guards it.
+ * `POST /api/admin/login` sets an httpOnly session cookie on success — this
+ * component never touches the cookie itself, and never stores the password
+ * anywhere but transient form state for the lifetime of the component.
  *
- * Credential handling, for whoever wires this up:
- *   - The password lives in form state for the lifetime of the component and
- *     nowhere else. It is never logged, never put in a store, never persisted.
- *   - When this is connected, the session belongs in an **httpOnly cookie set
- *     by the backend**, not in localStorage — a token in localStorage is
- *     readable by any script that reaches the page. If the backend forces a
- *     token into JS-readable storage, record it as a gap rather than hiding it.
- *   - `autoComplete` is set so password managers work; blocking them pushes
- *     staff toward weaker, memorable passwords.
+ * The error message is identical for a wrong email and a wrong password (see
+ * `login-schema.ts` and `server/admin/auth.ts`) — this form must not narrow
+ * that down client-side, or the whole point of the non-specific message on
+ * the server is undone.
+ *
+ * `autoComplete` is set so password managers work; blocking them pushes
+ * staff toward weaker, memorable passwords.
  */
 export function AdminLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [blocked, setBlocked] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const formId = useId();
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<AdminLoginValues>({
     resolver: standardSchemaResolver(adminLoginSchema),
     mode: "onTouched",
     defaultValues: { email: "", password: "", remember: false },
   });
 
-  const onValid = () => {
-    // Where the credential check would go. Nothing is sent, nothing is stored,
-    // and no session exists — see docs/ai-memory/api-integration.md.
-    setBlocked(true);
+  const onValid = async (values: AdminLoginValues) => {
+    setSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      await adminLogin(values);
+      router.push(ADMIN_ROUTES.dashboard);
+    } catch (error) {
+      setSubmitting(false);
+      if (error instanceof ApiError && error.status === 401) {
+        setErrorMessage(ADMIN_LOGIN.invalidCredentials);
+      } else if (error instanceof ApiError && error.status === 503) {
+        setErrorMessage(ADMIN_LOGIN.notConfiguredError);
+      } else if (error instanceof ApiError && error.status === 429) {
+        setErrorMessage("Too many attempts. Please try again later.");
+      } else {
+        setErrorMessage(ADMIN_LOGIN.genericError);
+      }
+    }
   };
 
   const emailId = `${formId}-email`;
@@ -135,16 +152,16 @@ export function AdminLoginForm() {
         {ADMIN_LOGIN.rememberLabel}
       </label>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {ADMIN_LOGIN.submitLabel}
+      <Button type="submit" className="w-full" disabled={submitting}>
+        {submitting ? "Signing in…" : ADMIN_LOGIN.submitLabel}
         <ArrowRightIcon className="h-4 w-4" />
       </Button>
 
       {/* Announced — submitting does not move focus. */}
       <p aria-live="polite" className="text-body-sm text-on-surface-variant">
-        {blocked && (
-          <span className="block rounded border border-rule/70 bg-surface-container p-gutter-sm">
-            {ADMIN_LOGIN.blocked}
+        {errorMessage && (
+          <span className="block rounded border border-error/40 bg-error/10 p-gutter-sm text-error">
+            {errorMessage}
           </span>
         )}
       </p>

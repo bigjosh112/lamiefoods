@@ -2,25 +2,28 @@
 
 import { useState } from "react";
 import { cn } from "@lamiefoods/ui";
-import { PRODUCTS } from "@/content/products";
-import { SHOP_FILTERS, type ShopFilterId } from "@/content/shop";
+import type { Product } from "@lamiefoods/types";
+import { buildShopFilters, type ShopFilterId } from "@/content/shop";
 import { ProductCard } from "./product-card";
 
 /**
  * Category filters plus the product grid.
  *
  * Filtering is genuine client state. Every product is chinchin today, so "All"
- * and "Chinchin" show the same three — that is the catalogue being small, not a
+ * and "Chinchin" show the same ones — that is the catalogue being small, not a
  * stub. The other two categories have no stock and are rendered disabled with
  * their real status, rather than as tabs that filter to an empty grid.
  *
  * Uses the tabs pattern: arrow keys move between filters, which is what a
  * keyboard user expects from a row of toggles.
+ *
+ * `products` arrives as a PROP from the server page
+ * (`listPublishedProducts()`), never imported directly — the products moved
+ * to Postgres and this stays a client component for its own tab state.
  */
-export function ShopCatalogue() {
+export function ShopCatalogue({ products }: { products: Product[] }) {
   const [active, setActive] = useState<ShopFilterId>("all");
-
-  const products = PRODUCTS;
+  const filters = buildShopFilters(products.length);
 
   return (
     <>
@@ -29,7 +32,7 @@ export function ShopCatalogue() {
         aria-label="Filter products by category"
         className="mt-gutter-lg flex flex-wrap gap-gutter-xs"
       >
-        {SHOP_FILTERS.map((filter) => {
+        {filters.map((filter) => {
           const selected = filter.id === active;
           const unavailable = filter.status !== null;
 

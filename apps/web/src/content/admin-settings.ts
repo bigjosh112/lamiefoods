@@ -1,7 +1,7 @@
 import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
+import type { Product } from "@lamiefoods/types";
 import { env } from "@/config/env";
-import { INVENTORY_LINES } from "./admin-inventory";
-import { PRODUCTS } from "./products";
+import { isDatabaseConfigured, isEmailConfigured } from "@/config/server-env";
 
 /**
  * Settings.
@@ -24,19 +24,32 @@ import { PRODUCTS } from "./products";
  * NEVER render a secret here. The environment panel reports only whether an
  * optional variable is *present*, never its value, and the only value printed
  * in full is the site URL — which is public by definition and already appears
- * in every canonical link. Paystack secret keys, database URLs and admin
- * credentials belong to `apps/backend` and must never reach this app at all.
+ * in every canonical link. The backend is now Route Handlers in this same app
+ * (superseding the earlier `apps/backend` plan — see architecture.md), so
+ * DATABASE_URL and RESEND_API_KEY do live here, but strictly on the server
+ * side via `config/server-env.ts`, which is guarded with `server-only` and
+ * never imported by a Client Component. A Paystack *secret* key would follow
+ * the same rule if a server-side Paystack integration is ever added; only the
+ * `pk_` public key belongs in `NEXT_PUBLIC_*`.
  *
  * Deliberately not built, because all of it would be invented:
  *   - A delivery-fee table. Fees are not finalised (see GAP-007); a settings
  *     screen showing a fee is a settings screen someone will quote from.
  *   - A tax/VAT configuration. Nobody has stated one.
- *   - A settlement bank account. Which account the business settles into is
- *     real operational detail nobody has provided.
- *   - A roles-and-permissions matrix. There are no accounts, no roles and no
- *     sessions (GAP-009); a permissions grid implies enforcement that does not
- *     exist anywhere.
+ *   - Paystack's own SETTLEMENT account (where Paystack pays the business
+ *     out to) — a genuinely different thing from the customer-facing
+ *     bank-transfer account below, and real operational detail nobody has
+ *     provided.
+ *   - A roles-and-permissions matrix. There are no multi-user roles (Q21) —
+ *     one shared credential for one owner, real since `server/admin/session.ts`.
  *   - Notification channel toggles. Nothing can send (GAP-010).
+ *
+ * The ONE exception, as of 2026-09-08: the WhatsApp number and
+ * customer-facing bank-transfer account in the "Delivery & payment" panel
+ * ARE admin-editable (`server/settings/repository.ts`, backed by the
+ * `site_settings` table) — the first real form on this page. Everything
+ * else stays exactly as read-only as described above; this is a change to
+ * one panel, not a reversal of the page's whole design.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export interface SettingRow {
@@ -77,41 +90,48 @@ export const SETTINGS_BRAND = {
 
 /* ── Storefront ──────────────────────────────────────────────────────────── */
 
-const packCount = PRODUCTS.reduce(
-  (sum, product) => sum + product.detail.packaging.length,
-  0,
-);
+/**
+ * Takes every product (any status — admin's own view of the catalogue, not
+ * just published ones) so this panel matches what `/admin/products` shows.
+ * As of 2026-09-08 this reads the real Postgres-backed catalogue via
+ * `server/products/repository.ts`, passed down from `page.tsx` — the old
+ * static `content/products.ts`/`content/admin-inventory.ts` this used to
+ * read are both gone.
+ */
+export function settingsStorefront(products: Product[]) {
+  const packCount = products.reduce((sum, product) => sum + product.packs.length, 0);
 
-export const SETTINGS_STOREFRONT = {
-  title: "Storefront",
-  body: "The public site and what it sells.",
-  file: "packages/config/src/routes.ts · src/content/products.ts",
-  rows: [
-    { label: "Site URL", value: env.NEXT_PUBLIC_SITE_URL },
-    {
-      label: "Products",
-      value: `${PRODUCTS.length} products · ${packCount} pack sizes`,
-      note: PRODUCTS.map((product) => product.name).join(", "),
-    },
-    {
-      label: "Stock lines",
-      value: `${INVENTORY_LINES.length}`,
-      note: "Pack sizes plus packaging materials",
-    },
-    {
-      label: "Public routes",
-      value: `${Object.values(ROUTES).filter((route) => typeof route === "string").length} static`,
-      note: "Product pages are generated per product",
-    },
-  ] satisfies SettingRow[],
-};
+  return {
+    title: "Storefront",
+    body: "The public site and what it sells.",
+    file: "packages/config/src/routes.ts · server/products/repository.ts",
+    rows: [
+      { label: "Site URL", value: env.NEXT_PUBLIC_SITE_URL },
+      {
+        label: "Products",
+        value: `${products.length} products · ${packCount} pack sizes`,
+        note: products.map((product) => product.name).join(", ") || "None yet",
+      },
+      {
+        label: "Products with stock tracking",
+        value: `${products.length}`,
+        note: "Stock is tracked per product, not per pack size",
+      },
+      {
+        label: "Public routes",
+        value: `${Object.values(ROUTES).filter((route) => typeof route === "string").length} static`,
+        note: "Product pages are generated per product",
+      },
+    ] satisfies SettingRow[],
+  };
+}
 
 /* ── Delivery & payment ──────────────────────────────────────────────────── */
 
 export const SETTINGS_FULFILMENT = {
   title: "Delivery & payment",
-  body: "Confirmed by the owner. What is missing is listed as missing rather than filled in with a plausible number.",
-  file: "packages/config/src/brand.ts",
+  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number and bank-transfer account below are real and editable — the form saves to the database.",
+  file: "packages/config/src/brand.ts · server/settings/repository.ts",
   rows: [
     {
       label: "Delivery window",
@@ -134,8 +154,8 @@ export const SETTINGS_FULFILMENT = {
       note: "The design mock quoted one. It has never been confirmed and blocks launch (GAP-007).",
     },
     {
-      label: "Settlement account",
-      note: "Which account the business settles into is not something the frontend should hold.",
+      label: "Paystack settlement account",
+      note: "Where Paystack pays the business out to — a different thing from the customer-facing bank-transfer account below, and not something the frontend should hold.",
     },
     {
       label: "Tax / VAT",
@@ -167,10 +187,10 @@ export const SETTINGS_ENVIRONMENT = {
     {
       label: "NEXT_PUBLIC_API_URL",
       value: env.NEXT_PUBLIC_API_URL ? "Configured" : "Not set",
-      state: (env.NEXT_PUBLIC_API_URL ? "ready" : "blocked") as ReadinessState,
+      state: "ready" as ReadinessState,
       note: env.NEXT_PUBLIC_API_URL
-        ? "The API client has a base URL"
-        : "Every API call raises ApiNotConfiguredError until the backend developer supplies this",
+        ? "Requests go to this external base URL instead of the app's own API"
+        : "Unset is normal — the API is this app's own Route Handlers at /api",
     },
     {
       label: "NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY",
@@ -178,11 +198,27 @@ export const SETTINGS_ENVIRONMENT = {
       state: (env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
         ? "ready"
         : "blocked") as ReadinessState,
-      note: "Public key only — it must start with pk_, and the schema rejects anything else",
+      note: "Public key only — it must start with pk_, and the schema rejects anything else. Payment stays disabled on checkout regardless, until Paystack is actually wired in.",
+    },
+    {
+      label: "DATABASE_URL",
+      value: isDatabaseConfigured() ? "Configured" : "Not set",
+      state: (isDatabaseConfigured() ? "ready" : "blocked") as ReadinessState,
+      note: isDatabaseConfigured()
+        ? "Orders can be written and read. Server-only — never sent to the browser."
+        : "Checkout returns an honest 503 and records nothing until this is set.",
+    },
+    {
+      label: "RESEND_API_KEY / ORDER_EMAIL_FROM",
+      value: isEmailConfigured() ? "Configured" : "Not set",
+      state: (isEmailConfigured() ? "ready" : "blocked") as ReadinessState,
+      note: isEmailConfigured()
+        ? "Order confirmation and notification emails send."
+        : "Orders still save without this — the send is skipped, not the order.",
     },
   ],
   warning:
-    "Paystack secret keys, database URLs and admin credentials belong to apps/backend. Anything prefixed NEXT_PUBLIC_ is compiled into the browser bundle and is readable by anyone who visits the site.",
+    "Anything prefixed NEXT_PUBLIC_ is compiled into the browser bundle and is readable by anyone who visits the site. DATABASE_URL and RESEND_API_KEY are server-only (config/server-env.ts, guarded with the server-only package) and must never be re-exported through a file a Client Component imports.",
 };
 
 /* ── Team & access ───────────────────────────────────────────────────────── */
@@ -224,8 +260,8 @@ export const SETTINGS_READINESS = {
     },
     {
       id: "GAP-007",
-      label: "Allergen statement and the free-delivery offer",
-      note: "An allergen declaration is a food-safety matter and is currently withheld rather than invented. The delivery offer is a commercial term customers could hold the business to.",
+      label: "Allergen statement is unconfirmed",
+      note: "An allergen declaration is a food-safety matter and is currently withheld rather than invented, on every product.",
       owner: "Owner",
     },
     {
@@ -242,9 +278,15 @@ export const SETTINGS_READINESS = {
     },
     {
       id: "API",
-      label: "No API contract exists",
-      note: "Orders, payment verification and the catalogue are all unbuilt. The frontend deliberately guesses no request or response shapes.",
-      owner: "Backend",
+      label: "Payment is not connected",
+      note: "Orders now save and email both sides (once DATABASE_URL and RESEND_API_KEY are set). No money moves anywhere yet — there is no Paystack account (see the environment panel), so checkout deliberately stops short of payment.",
+      owner: "Owner",
+    },
+    {
+      id: "PRICING",
+      label: "Delivery fee is not set",
+      note: 'Every order is recorded with delivery cost as "not yet quoted" rather than a guessed figure. Confirming pricing turns this into a real calculation.',
+      owner: "Owner",
     },
   ],
 };

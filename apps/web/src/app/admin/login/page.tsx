@@ -3,6 +3,7 @@ import Image from "next/image";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
 import { ICONS } from "@/components/ui/icons";
 import { ADMIN_LOGIN } from "@/content/admin";
+import { isAdminAuthConfigured } from "@/config/server-env";
 
 export const metadata: Metadata = {
   title: "Admin sign in",
@@ -12,12 +13,14 @@ export const metadata: Metadata = {
 /**
  * Admin sign-in.
  *
- * The page is a Server Component; only the form is client-side. It renders a
- * sign-in screen and nothing else — there is no admin area behind it yet, by
- * design. Shipping dashboards before authentication exists would put order and
- * customer data on public URLs.
+ * The page is a Server Component; only the form is client-side. Sign-in is
+ * real now (`POST /api/admin/login` — see the form), so this page also
+ * checks `isAdminAuthConfigured()` to render an honest notice if the owner's
+ * credential env vars aren't set yet, rather than the form failing silently.
  */
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const configured = isAdminAuthConfigured();
+
   return (
     <main
       id="main"
@@ -52,7 +55,9 @@ export default function AdminLoginPage() {
               {ADMIN_LOGIN.notice.title}
             </p>
             <p className="mt-1 text-body-sm text-on-surface-variant">
-              {ADMIN_LOGIN.notice.body}
+              {configured
+                ? ADMIN_LOGIN.notice.body
+                : ADMIN_LOGIN.notice.bodyNotConfigured}
             </p>
           </div>
         </div>

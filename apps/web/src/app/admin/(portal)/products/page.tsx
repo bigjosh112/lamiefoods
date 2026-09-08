@@ -1,25 +1,36 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getAdminSession } from "@/server/admin/session";
+import { isDatabaseConfigured } from "@/config/server-env";
 
 export const metadata: Metadata = {
   title: "Products & SKUs",
   robots: { index: false, follow: false, nocache: true },
 };
 
+// Security-critical: never let this bake as a static build artifact. See
+// server/admin/session.ts for why relying on cookies() usage alone is
+// too fragile for a gate this important.
+export const dynamic = "force-dynamic";
+
 /**
- * Product catalogue route.
+ * Product catalogue route — real data now.
  *
- * Gated like the rest of the portal. This screen carries less personal data
- * than orders — product names and prices are public — but stock levels and
- * pipeline products are internal, and the whole area stays closed until there
- * is real authentication (GAP-009).
- *
- * The check runs before the dynamic import, so nothing is evaluated when the
- * gate is closed.
+ * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009). The
+ * check runs before the dynamic import AND before the DB read, so nothing is
+ * evaluated when the gate is closed.
  */
 export default async function AdminProductsPage() {
-  if (process.env.NODE_ENV !== "development") notFound();
+  if (!(await getAdminSession())) notFound();
 
   const { ProductsView } = await import("@/components/admin/products-view");
-  return <ProductsView />;
+
+  if (!isDatabaseConfigured()) {
+    return <ProductsView products={[]} />;
+  }
+
+  const { listProductsForAdmin } = await import("@/server/products/repository");
+  const products = await listProductsForAdmin();
+
+  return <ProductsView products={products} />;
 }

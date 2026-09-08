@@ -1,141 +1,89 @@
-import { cn } from "@lamiefoods/ui";
-import { ProductsList } from "@/components/admin/products-list";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
+import type { Product } from "@lamiefoods/types";
+import { ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
-import {
-  ADMIN_PRODUCTS,
-  PRODUCTS_FOOTER,
-  PRODUCTS_PAGE,
-  PRODUCTS_STATS,
-  PRODUCTS_TABS,
-} from "@/content/admin-products";
+import { ProductsList } from "@/components/admin/products-list";
 
 /**
- * Product catalogue & SKU management.
+ * Real product catalogue. Replaces the sample-data screen that used to live
+ * at this route — see `docs/ai-memory/architecture.md`'s 2026-09-07 decision
+ * log ("real product catalog"). The two fictional "pipeline" products
+ * (Spiced Plantain Crisps, Honey Glazed Chin-Chin) are gone: a real,
+ * unpublished product (`storefrontActive: false`) is what "not live yet"
+ * actually looks like now, not a hardcoded placeholder nobody can edit.
  *
- * The three live products come from the shared catalogue, so this view cannot
- * show a different name, image or price from the storefront. Only operational
- * fields — SKU, stock, status — are admin-specific.
- *
- * Chrome comes from `AdminShell`; every write action is disabled.
+ * Rows arrive as PROPS, never imported directly — the exact rule that closed
+ * the client-bundle PII leak documented in GAP-009 for orders; the same
+ * discipline applies here even though product data isn't personal, for
+ * consistency with every other admin list in this app.
  */
-export function ProductsView() {
+export function ProductsView({ products }: { products: Product[] }) {
+  const published = products.filter((product) => product.storefrontActive);
+  const drafts = products.filter((product) => !product.storefrontActive);
+  const lowStock = products.filter(
+    (product) =>
+      product.restockThreshold !== null &&
+      product.stockQuantity <= product.restockThreshold,
+  );
+
   return (
-    <>
-      <div
-        role="note"
-        className="mb-gutter-md flex items-start gap-gutter-sm rounded border border-error/40 bg-error-container p-gutter-sm text-on-error-container"
-      >
-        <ICONS.shield className="mt-0.5 h-5 w-5 shrink-0" />
-        <p className="text-body-sm">
-          <strong className="font-semibold">
-            Product names, images and prices are real catalogue data.
-          </strong>{" "}
-          Stock counts and the two pipeline products are invented, and nothing here can be
-          edited — there is no catalogue service behind it.
-        </p>
-      </div>
-
-      <div className="mb-gutter-md flex flex-wrap items-start justify-between gap-gutter-md">
-        <div className="max-w-2xl">
-          <p className="flex flex-wrap items-center gap-gutter-xs font-label text-label-caps text-terracotta uppercase">
-            {PRODUCTS_PAGE.eyebrow}
-            <span aria-hidden="true" className="text-nutmeg">
-              /
-            </span>
-            <span className="text-nutmeg">{PRODUCTS_PAGE.hub}</span>
-          </p>
-          <h1 className="mt-1 text-headline-lg text-cacao">{PRODUCTS_PAGE.title}</h1>
-          <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-            {PRODUCTS_PAGE.body}
+    <div className="p-gutter-lg">
+      <div className="flex flex-wrap items-baseline justify-between gap-gutter-sm">
+        <div>
+          <h1 className="text-headline-lg text-cacao">Products &amp; SKUs</h1>
+          <p className="mt-1 text-body-sm text-on-surface-variant">
+            Every product, published or draft.
           </p>
         </div>
-
-        <div className="flex flex-wrap justify-end gap-gutter-xs">
-          {PRODUCTS_PAGE.actions.map((action) => {
-            const Icon = ICONS[action.icon];
-
-            // Only the action that leads somewhere real is a link; exporting
-            // needs a catalogue service, so it stays disabled.
-            return action.href ? (
-              <ButtonLink key={action.label} href={action.href}>
-                <Icon className="h-4 w-4" />
-                {action.label}
-              </ButtonLink>
-            ) : (
-              <Button key={action.label} variant="secondary" disabled>
-                <Icon className="h-4 w-4" />
-                {action.label}
-              </Button>
-            );
-          })}
-        </div>
+        <ButtonLink href={ADMIN_ROUTES.newProduct}>
+          <ICONS.gift className="h-4 w-4" />
+          Add new product
+        </ButtonLink>
       </div>
 
-      <ul className="grid gap-gutter-sm sm:grid-cols-2 xl:grid-cols-4">
-        {PRODUCTS_STATS.map((stat) => {
-          const Icon = ICONS[stat.icon];
-          return (
-            <li
-              key={stat.label}
-              className="rounded border border-rule/70 bg-surface p-gutter-md"
-            >
-              <div className="flex items-start justify-between gap-gutter-sm">
-                <div className="min-w-0">
-                  <p className="font-label text-label-sm text-nutmeg uppercase">
-                    {stat.label}
-                  </p>
-                  <p
-                    className={cn(
-                      "mt-gutter-xs font-display text-headline-md",
-                      stat.alert ? "text-error" : "text-cacao",
-                    )}
-                  >
-                    {stat.value}
-                  </p>
-                </div>
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded",
-                    stat.alert
-                      ? "bg-error-container text-on-error-container"
-                      : "bg-secondary-container text-primary",
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                </span>
-              </div>
-              <p className="mt-gutter-xs text-body-sm text-nutmeg">{stat.note}</p>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="mt-gutter-md grid gap-gutter-sm sm:grid-cols-3">
+        <StatCard icon="gift" label="Published" value={String(published.length)} />
+        <StatCard icon="box" label="Drafts" value={String(drafts.length)} />
+        <StatCard
+          icon="shield"
+          label="Low stock"
+          value={lowStock.length > 0 ? `${lowStock.length} alert` : "Healthy"}
+          highlight={lowStock.length > 0}
+        />
+      </div>
 
-      {/* Data passed down, never imported by the client component. */}
-      <ProductsList
-        products={ADMIN_PRODUCTS}
-        tabs={[...PRODUCTS_TABS]}
-        searchPlaceholder={PRODUCTS_PAGE.searchPlaceholder}
-      />
+      <div className="mt-gutter-md">
+        <ProductsList products={products} />
+      </div>
+    </div>
+  );
+}
 
-      <section className="mt-gutter-sm flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface-container p-gutter-md">
-        <div className="flex items-start gap-gutter-sm">
-          <ICONS.board className="mt-0.5 h-5 w-5 shrink-0 text-terracotta" />
-          <div>
-            <p className="font-label text-label-sm text-cacao uppercase">
-              {PRODUCTS_FOOTER.title}
-            </p>
-            <p className="mt-1 max-w-2xl text-body-sm text-on-surface-variant">
-              {PRODUCTS_FOOTER.body}
-            </p>
-          </div>
-        </div>
-        <span className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg">
-          <ICONS.seal className="h-4 w-4" />
-          {PRODUCTS_FOOTER.note}
-        </span>
-      </section>
-    </>
+function StatCard({
+  icon,
+  label,
+  value,
+  highlight,
+}: {
+  icon: keyof typeof ICONS;
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  const Icon = ICONS[icon];
+  return (
+    <div
+      className={
+        highlight
+          ? "rounded border border-terracotta bg-secondary-container/40 p-gutter-sm"
+          : "rounded border border-rule/70 bg-surface-container-low p-gutter-sm"
+      }
+    >
+      <p className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg uppercase">
+        <Icon className="h-4 w-4 text-terracotta" />
+        {label}
+      </p>
+      <p className="mt-1 text-headline-md text-cacao">{value}</p>
+    </div>
   );
 }

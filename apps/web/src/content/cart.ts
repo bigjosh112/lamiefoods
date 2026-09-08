@@ -3,15 +3,19 @@ import { DELIVERY } from "@lamiefoods/config";
 /**
  * Copy for the shopping bag.
  *
- * UNVERIFIED throughout, per GAP-004 and GAP-007: the free-delivery threshold,
- * the gift-packaging threshold, the shelf-life and flour claims.
+ * UNVERIFIED throughout, per GAP-004: the shelf-life and flour claims.
  *
- * Two deliberate departures from the mock:
+ * Departures from the mock, all because the claim would be false:
  *   - It labelled Paystack as "Paystack Escrow · Secured CBN Gateway". Paystack
  *     is a payment gateway, not an escrow service, and "CBN Gateway" implies a
- *     central-bank endorsement that does not exist. Stating either would be a
- *     false financial claim, so this reads "Paystack Secured" instead.
+ *     central-bank endorsement that does not exist.
  *   - The mock quoted "1-3 business days"; the confirmed window is 1–5.
+ *   - No "Paystack verified"/"Paystack Secured" badge anywhere: there is no
+ *     Paystack account yet (owner confirmed), so nothing is Paystack-secured.
+ *   - No free-delivery offer and no gift-packaging offer. Both were invented
+ *     thresholds the mock made up (GAP-007/GAP-008) — delivery pricing is
+ *     still being worked out, and a bag told it "qualifies" for something is a
+ *     commercial promise nobody authorised.
  */
 export const CART = {
   eyebrow: "Batch Reservation",
@@ -22,13 +26,6 @@ export const CART = {
     title: "Your bag is empty",
     body: "Nothing reserved yet. Browse the range and add a batch to get started.",
     cta: "Browse the shop",
-  },
-
-  /** UNVERIFIED — the mock invented this threshold and the offer itself. */
-  giftPackaging: {
-    title: "Complimentary Lagos Gift Packaging",
-    body: "Orders above ₦10,000 include hand-stamped wax kraft wrapping and a botanical tie ribbon.",
-    badge: "Included",
   },
 
   /** UNVERIFIED — process and ingredient claims. */
@@ -44,9 +41,9 @@ export const CART = {
       note: "Small batches",
     },
     {
-      icon: "shield" as const,
-      title: "Paystack Secured",
-      note: "Encrypted payment gateway",
+      icon: "mail" as const,
+      title: "Order Confirmed By Email",
+      note: "Sent the moment you check out",
     },
   ],
 
@@ -54,10 +51,7 @@ export const CART = {
     deliveryNote: `Typical dispatch: ${DELIVERY.minDays}–${DELIVERY.maxDays} business days`,
     /** UNVERIFIED — VAT treatment is a tax question for the owner. */
     totalNote: "Excludes delivery",
-    /** UNVERIFIED — see GAP-007. */
-    freeDeliveryNote:
-      "Free Lagos delivery unlocks automatically when your bag reaches ₦15,000.",
-    badges: ["Paystack verified", "Guest checkout"],
+    badges: ["Guest checkout", "No account needed"],
   },
 
   recommendations: {

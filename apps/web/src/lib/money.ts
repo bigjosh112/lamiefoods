@@ -29,3 +29,19 @@ export function sumKobo(amounts: Kobo[]): Kobo {
 
 /** Naira to kobo, for thresholds expressed in whole naira. */
 export const naira = (amount: number): Kobo => amount * KOBO_PER_NAIRA;
+
+/**
+ * Applies a product's promotional discount to one price. The ONE place this
+ * math happens — the storefront (display) and `server/orders/pricing.ts`
+ * (the actual charge) both call this, so a discounted price can never be
+ * computed two different ways and drift.
+ *
+ * `discountPercent` is `1`–`99` or `null` (no promotion) — see
+ * `Product.discountPercent`'s own comment for why `0` is never used to mean
+ * "no discount". Rounds down (`Math.floor`) so the discounted price never
+ * exceeds what the percentage actually promises.
+ */
+export function applyDiscount(priceKobo: Kobo, discountPercent: number | null): Kobo {
+  if (discountPercent === null) return priceKobo;
+  return Math.floor((priceKobo * (100 - discountPercent)) / 100);
+}

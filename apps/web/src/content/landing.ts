@@ -1,6 +1,5 @@
 import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
 import type { ImageSlot } from "./image-slot";
-import { PRODUCTS } from "./products";
 
 /**
  * Every word and image slot on the landing page, in one file.
@@ -19,7 +18,9 @@ import { PRODUCTS } from "./products";
  *   - "Lamie Foods Enterprise" -> the customer-facing name is "Lamie Foods".
  *   - "hello@lamiefoods.com" -> no address has been supplied, so no mailto link
  *     is fabricated; the row renders as plain text until a real one is given.
- *   - "Website by Basil Studio" -> a credit to a third party we cannot verify.
+ *
+ * "Website by Basil Studio" DOES ship, as plain text (see `FOOTER.credit`
+ * below) — the owner confirmed the credit is welcome.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -154,11 +155,8 @@ export const CRUNCH = {
 
 export const FLAVOURS = {
   eyebrow: "Curated Release",
-  title: "Three Flavours. One Lamie Standard.",
+  title: "Our Featured Flavours",
   link: { label: "View full pantry", href: ROUTES.shop },
-  /** Straight from the shared catalogue, so the shop can never show a
-   *  different name, photograph or price for the same product. */
-  items: PRODUCTS,
   /** UNVERIFIED — pack formats have not been confirmed. */
   formats: {
     title: "Available in Two Mindful Formats",
@@ -251,9 +249,13 @@ export const FINAL_CTA = {
   body: "Experience Nigeria's finest artisanal Chinchin delivered directly from our ovens to your door.",
   primaryCta: { label: "Shop Chinchin Now", href: ROUTES.shop },
   secondaryCta: { label: "Event Gifting Concierge", href: "#contact" },
-  /** Delivery window is the CONFIRMED 1–5 days, not the mock's 1–3. */
+  /**
+   * Delivery window is the CONFIRMED 1–5 days, not the mock's 1–3. No
+   * "Paystack Secured" badge: there is no Paystack account yet, so nothing is
+   * Paystack-secured — see checkout, where payment stays honestly disabled.
+   */
   assurances: [
-    { icon: "shield" as const, label: "Paystack Secured" },
+    { icon: "shield" as const, label: "Guest Checkout" },
     {
       icon: "truck" as const,
       label: `${DELIVERY.minDays}–${DELIVERY.maxDays} Days Delivery`,

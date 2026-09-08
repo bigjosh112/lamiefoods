@@ -17,29 +17,18 @@
 
 <!-- Newest gaps at top of their severity group. Keep critical/high at the top of the file. -->
 
-### GAP-008 — The cart mock's free-delivery figure does not add up
-
-- **Category:** content-risk
-- **Severity:** low
-- **Location:** design mock only; our implementation computes the value.
-- **Found:** 2026-09-06 while building the cart
-- **Problem:** The mock shows a ₦13,000 subtotal against a stated ₦15,000
-  free-delivery threshold, then says "You are **₦4,200** away". ₦15,000 − ₦13,000
-  is ₦2,000. Either the threshold is not ₦15,000 or the figure is wrong; the mock
-  cannot be both. Line items and subtotal in the mock DO reconcile exactly
-  (₦3,600 × 2 + ₦5,800 = ₦13,000), so only this one number is off.
-- **Fix:** Our cart derives the remaining amount from the real subtotal and
-  threshold, so it currently shows ₦2,000 for that basket — correct, but visibly
-  different from the mock. Confirm the real threshold (GAP-007 covers whether the
-  offer exists at all) and the number resolves itself.
-- **Status:** open — no code change expected
-
 ### GAP-010 — No record of who agreed to be contacted
 
 - **Category:** compliance / content-risk
 - **Severity:** high (before any marketing feature ships)
-- **Location:** `apps/web/src/content/admin-customers.ts` (`CUSTOMERS_OUTREACH`)
-  and `apps/web/src/content/admin-order-detail.ts` (`patron.whatsapp`).
+- **Location:** No outreach control exists anywhere as of 2026-09-08 — both
+  files originally cited here (`content/admin-customers.ts`'s
+  `CUSTOMERS_OUTREACH`, `content/admin-order-detail.ts`'s `patron.whatsapp`)
+  were deleted when `/admin/customers` moved to real data (they were sample
+  content, and the real `CustomersView` has no outreach card at all). The
+  underlying compliance problem below is unchanged and stays open for
+  whenever a real outreach feature is next proposed — it is not tied to a
+  specific file.
 - **Found:** 2026-09-06 while building the customer directory
 - **Problem:** The mock had a "Broadcast" button for a batch announcement and a
   patron field reading "WhatsApp: Active & verified · opted in for order
@@ -127,33 +116,76 @@
   the RSC payload, and no patron name, phone or address appears anywhere in
   `/static`. **This screen must be the last thing un-gated**, and only once the
   backend rejects unauthenticated requests server-side.
-- **Status:** open
+- **Update 2026-09-07 — real authentication shipped, plus a THIRD gate failure
+  mode, different from both leaks above.** `NODE_ENV !== "development"` is
+  replaced everywhere with `getAdminSession()` (`server/admin/session.ts`): a
+  stateless, HMAC-signed httpOnly cookie, one shared credential (`ADMIN_EMAIL`
+  + a `scrypt` hash in `ADMIN_PASSWORD_HASH`), rate-limited login. Every rule
+  above was kept — gate in the page before the dynamic import, data as props
+  into client components, never an import.
+  **The new failure mode: availability, not a leak, and just as easy to miss.**
+  A production build run with `ADMIN_SESSION_SECRET` unset baked every
+  `/admin/**` page as a **permanently cached static 404** — Next only detects
+  `cookies()` as a dynamic API on the code path it actually executes, and
+  `getAdminSession()` used to check the secret and return early *before*
+  calling `cookies()`. With the secret unset (this exact build), that early
+  return meant `cookies()` was never reached, so Next never saw a reason to
+  mark the route dynamic, and cached the 404 forever — `initialRevalidateSeconds:
+  false` in the prerender manifest, confirmed by inspecting `.next/server/app/
+  admin.html` directly. In real deployment the secret would be set, so this
+  would self-correct on that build — but a route this security-critical
+  should never depend on an env var happening to be set for its
+  static/dynamic classification to come out right. Fixed two ways: (1)
+  `getAdminSession()` now calls `cookies()` unconditionally, before checking
+  the secret; (2) every `/admin/**` page and its layout also export
+  `dynamic = "force-dynamic"` explicitly, as defense in depth, so this can
+  never again depend on incidental Request-time-API detection. Verified: a
+  clean rebuild shows `ƒ /admin`, `ƒ /admin/orders`, etc. (dynamic), not `○`.
+  **Lesson for any future auth-gated route: never trust that a `cookies()`
+  call somewhere in the function will be enough — export `force-dynamic`
+  explicitly and verify the build's own route table, not just that lint and
+  typecheck pass.**
+- **Update 2026-09-08 — every admin screen is now real; a second bug found
+  in the same auth mechanism, different failure mode from either above.**
+  `/admin` (full dashboard — revenue, orders, customers, best sellers, stock
+  — not just needs-dispatch), `/admin/customers` (derived from `orders`,
+  grouped by email — there is no `customers` table) and `/admin/inventory`
+  (one row per product — stock is tracked per product, not per pack) are all
+  wired to the database now; `/admin/settings`'s one non-real panel
+  (`SETTINGS_STOREFRONT`, previously reading the deleted static
+  `content/products.ts`) now reads the live catalogue too. **While verifying
+  this end-to-end** (placing a real order and clicking the real "mark as
+  paid" action, not just loading pages), a real bug surfaced in
+  `server/admin/session.ts`: the session cookie's `path: "/admin"` is not a
+  prefix of `/api/admin/...` (a sibling path), so the browser silently
+  withheld the cookie from every admin **write** call while every admin
+  **page load** kept working perfectly — a signed-in admin got a confusing
+  401 on every mark-paid/status-update/product-save/sign-out action, with
+  zero signal from lint, typecheck, or successfully rendering every page.
+  Fixed by setting `path: "/"` — full writeup in `architecture.md`'s Gotchas
+  section. **Status:** Authentication mechanism: **resolved**, cookie
+  actually reaches every route that needs it: **resolved**. Real data: every
+  admin screen. Multi-user roles were never asked for (Q21) and are out of
+  scope; this is one shared credential for one owner.
 
-### GAP-007 — Regulated and commercially binding claims need owner sign-off
+### GAP-007 — Allergen statement needs owner sign-off
 
 - **Category:** content-risk / legal
 - **Severity:** high
 - **Location:** `apps/web/src/content/products.ts` (`detail.ingredients.allergens`,
-  set to `null` for all three products) and `apps/web/src/content/shop.ts`
-  (`ANNOUNCEMENT`).
+  set to `null` for all three products).
 - **Found:** 2026-09-06 while building the product detail page
-- **Problem:** Two items in the mock go beyond marketing copy into territory that
-  carries legal weight:
-  1. **Allergens.** The mock printed "Contains: Wheat (Gluten), Milk. Free from
-     preservatives, artificial colourants, or trans fats." That contradicts the
-     landing page's own "whole farm eggs", so the mock's allergen data is
-     demonstrably unreliable — and an allergen declaration is a food-safety and
-     labelling matter, not copy. Publishing an invented one could genuinely harm
-     someone with an allergy. **Deliberately not shipped:** `allergens` is `null`
-     and the page renders "Allergen information to be confirmed before
-     publication."
-  2. **A free-delivery offer.** "Free Lagos delivery on orders over ₦15,000" is an
-     invented commercial term the owner has never quoted, and customers could hold
-     the business to it. It IS currently rendered, because it is a visible design
-     element — but it must be confirmed or removed before launch.
+- **Problem:** The mock printed "Contains: Wheat (Gluten), Milk. Free from
+  preservatives, artificial colourants, or trans fats." That contradicts the
+  landing page's own "whole farm eggs", so the mock's allergen data is
+  demonstrably unreliable — and an allergen declaration is a food-safety and
+  labelling matter, not copy. Publishing an invented one could genuinely harm
+  someone with an allergy. **Deliberately not shipped:** `allergens` is `null`
+  and the page renders "Allergen information to be confirmed before
+  publication."
 - **Fix:** Owner supplies the real allergen statement (and confirms whether eggs
   are an ingredient — the landing and product copy disagree), then set
-  `allergens` per product. Separately, confirm or delete the delivery offer.
+  `allergens` per product.
 - **Update 2026-09-06 — the capture point now exists.** `/admin/products/new`
   has an allergen register, and `lib/admin/product-schema.ts` makes it
   **non-optional**: the form will not validate unless the operator ticks the
@@ -162,7 +194,19 @@
   recorded is precisely this gap. When the catalogue API arrives, the backend
   must enforce the same rule — a browser-side check is a convenience, not a
   control. This does not close the gap: the three existing products still carry
-  `allergens: null`, and nothing about the invented delivery offer has changed.
+  `allergens: null`.
+- **Update 2026-09-07 — the free-delivery half of this gap is resolved, by
+  removal, not confirmation.** This entry originally covered two items: the
+  allergen statement (still open, above) and "Free Lagos delivery on orders over
+  ₦15,000" (`content/shop.ts`, `ANNOUNCEMENT`), which was live on the site. The
+  owner's brand questionnaire (Q16) confirmed delivery pricing is still being
+  worked out, which makes the offer confirmed-false rather than merely
+  unverified. It has been deleted outright — from the announcement bar
+  (`content/shop.ts:ANNOUNCEMENT`), the cart's progress bar and gift-packaging
+  card (`components/cart/cart-view.tsx`, `content/cart.ts`), and the
+  free-delivery note in `order-success` copy — rather than left pending
+  confirmation. This also closed GAP-008, which only existed because of this
+  offer. Allergens remain the sole reason this gap stays open.
 - **Status:** open — blocks public launch alongside GAP-004
 
 ### GAP-004 — Landing page ships unverified product claims from the design mock
@@ -184,6 +228,15 @@
   centralised in one file, so this is an edit pass, not a rebuild. **Do not deploy
   publicly until this is done.** `Product` structured data is deliberately withheld
   from `page.tsx` for the same reason — add it once pricing is real.
+- **Update 2026-09-07 — product prices moved to Postgres, unverified status
+  unchanged.** Prices/crunch scores/ingredient copy now live in
+  `products`/`product_packs` (`migrations/0004_seed_existing_products.sql`,
+  carried over byte-for-byte from the old `content/products.ts`) instead of
+  static content — this is a relocation, not a resolution. The `FLAVOURS.items`
+  reference above is stale (that field no longer exists; the homepage's
+  featured-flavours row is now real product data passed as a prop — see
+  `components/landing/flavours.tsx`). **Fixing this gap now means editing rows
+  in the admin `/admin/products` edit form, not a content file.**
 - **Status:** open — blocks public launch
 
 ### GAP-005 — Supplied photography is below the resolution its slots need
@@ -245,25 +298,223 @@
 ### GAP-001 — No test runner or test infrastructure in any workspace
 
 - **Category:** tests
-- **Severity:** medium
+- **Severity:** high (raised 2026-09-07 — see below; was medium)
 - **Location:** `package.json` (no `test` script), no runner in `apps/web/package.json`, `apps/backend/package.json`, or any `packages/*/package.json`; `turbo.json:6-29` defines no `test` task. Confirmed: `git ls-files` shows no test files, `grep '"test"'` across all workspace manifests returns nothing.
 - **Found:** 2026-09-05 via audit-gaps
 - **Problem:** There is no way to write or run a test today. The moment money/cart/checkout logic lands (kobo arithmetic in `packages/types/src/common.ts:4-13`, `OrderItem.lineTotal` in `order.ts`, the `apiFetch` gateway, Paystack flow), it will ship with zero automated coverage on paths where a bug means mischarging a customer or losing an order. The priority order (security → **code quality/tests** → …) ranks this above tech debt, and CLAUDE.md already acknowledges it informally ("Test: none configured — logged as a gap") without it living in this ledger.
 - **Fix:** Pick a runner (Vitest fits the Vite/TS + Next 16 stack). Add it as a dev dependency at the root, add a `test` script to each workspace that has logic, and add a `test` task to `turbo.json` (`"test": { "dependsOn": ["^build"] }`). Wire `npm run test` into CI alongside `build` and `lint`. First tests to write when logic exists: kobo `Money` arithmetic and `OrderItem` line-total freezing. Verify: `npm run test` runs and a deliberately broken assertion fails the pipeline.
 - **Update 2026-09-06:** no longer hypothetical. `lib/cart/cart-store.ts` and
   `lib/money.ts` now do real money arithmetic (kobo integers, line totals,
-  subtotals, free-delivery thresholds) and `sanitise()` guards untrusted
-  localStorage input. These are exactly the paths where a silent bug mischarges
-  a customer, and none of them has a test. Raise to **high** once checkout lands.
+  subtotals) and `sanitise()` guards untrusted localStorage input. These are
+  exactly the paths where a silent bug mischarges a customer, and none of them
+  has a test. Raise to **high** once checkout lands.
+- **Update 2026-09-07 — checkout landed; raised to high, as flagged above.**
+  `server/orders/pricing.ts` is now the entire server-side trust boundary
+  against a tampered client price, and `server/orders/repository.ts` writes
+  real money to a real database with no automated coverage on either. Highest
+  priority tests to add first: `priceLines()` rejects an unknown slug/pack
+  (`UnknownLineError`) and never trusts a client-sent price; `subtotalOf()`
+  sums correctly; the create-order route returns 409 for a mismatched line and
+  503 when `DATABASE_URL` is unset. Manually verified once at ship time (see
+  `progress.md`), which is exactly the kind of check that should be automated
+  and isn't.
+- **Update 2026-09-07 — payments and admin auth landed; both are now
+  untested.** `server/orders/paystack.ts:confirmPaystackPayment` is the only
+  thing standing between "a customer paid" and "the database says so" — it
+  re-verifies against Paystack, checks amount/currency, and its idempotency
+  guard (`repository.confirmPayment`'s `WHERE payment_status != 'paid'`) is
+  exactly the kind of logic a refactor could silently break without a test
+  catching it. `server/admin/auth.ts:verifyCredentials` and
+  `server/admin/session.ts` (the HMAC sign/verify pair) are the entire admin
+  authentication boundary. Priority tests, in order: the idempotent-confirm
+  path (two calls with the same reference → one email, `newlyConfirmed: false`
+  on the second); the partial-unique-index reuse rejection
+  (`PaymentReferenceReusedError`); session HMAC verification rejects a
+  tampered expiry and an expired-but-correctly-signed cookie; `scrypt`
+  credential verification takes the same time whether the email or the
+  password was wrong (the whole point of the constant-time compare in
+  `verifyCredentials`).
+- **Update 2026-09-07 — the real product catalog adds a third untested trust
+  boundary.** `server/orders/pricing.ts:priceLines` (re-prices every order
+  line from Postgres, applies `discount_percent`, rejects unpublished/unknown
+  products) and `lib/money.ts:applyDiscount` (the one formula both the
+  storefront display and the actual charge use) are exactly the kind of
+  arithmetic a refactor could silently get wrong without a test catching it —
+  a discount computed one kobo off is a real, if small, billing error on
+  every single order for that product. `server/products/repository.ts`'s
+  transactional create/update (packs and images deleted-and-reinserted, not
+  diffed) and `decrementStockInTx`'s clamp-at-zero are the next tier down.
+  Priority tests to add alongside the ones above:
+  `applyDiscount(1000, 20) === 800`, `applyDiscount(1001, 20) === 800`
+  (floors, doesn't round up past what the percentage promises),
+  `applyDiscount(x, null) === x`; `priceLines` rejects a line naming an
+  unpublished product's slug with the same error as an unknown slug (the
+  "can't distinguish draft from missing" property GAP-004's fix depends on).
+- **Update 2026-09-08 — fulfilment transitions are now another untested
+  trust boundary.** `packages/types/src/order.ts` defines the forward-only
+  graph and `server/orders/repository.ts:updateOrderStatus` enforces it under
+  a row lock, synchronises manual bank-transfer confirmation, and derives
+  one-time email flags from permanent milestone timestamps. Add coverage for
+  every allowed edge, rejected skips/reversals/reopening, unpaid advancement,
+  concurrent stale updates, one stock decrement, and one dispatch/delivery
+  notification attempt per order.
+- **Update 2026-09-08 — authenticated dispatch CSV is also untested.**
+  `server/orders/csv.ts` neutralises spreadsheet formulas and
+  `api/admin/orders/export/route.ts` is the PII-bearing download boundary.
+  Add coverage for quotes/commas/newlines/Unicode, every dangerous formula
+  prefix, fixed column order, exclusion of IDs/tokens/payment references,
+  no-store/nosniff attachment headers, and a `401` response containing no
+  customer data.
 - **Status:** open
 
+### GAP-011 — Rate limits are in-memory, not correct across multiple instances
+
+- **Category:** architecture fit
+- **Severity:** medium (raised from low-stakes-only 2026-09-07 — see below)
+- **Location:** `apps/web/src/server/security/rate-limit.ts` (generalised
+  2026-09-07 from `server/orders/rate-limit.ts`, which only guarded order
+  creation)
+- **Found:** 2026-09-07 while building `POST /api/orders`
+- **Problem:** The limiter's state (`Map<key, timestamp[]>`) lives in one
+  serverless instance's memory. On Vercel, concurrent requests can land on
+  different instances that don't share this map, so the real ceiling under
+  concurrent abuse is `max × (number of warm instances)`, not `max`. This was
+  a deliberate trade for now — see the decision log in `architecture.md` —
+  rather than an oversight, but it means every caller of this limiter gets a
+  speed bump, not a guarantee.
+- **Update 2026-09-07 — now guards three endpoints, one of them credential-
+  guessing, not just abuse-of-a-free-endpoint.** `POST /api/admin/login`
+  (`admin-login:${ip}`, 5/15min) reuses this exact limiter. Order creation and
+  payment-verification endpoints being under-limited during a traffic spike is
+  a cost/availability problem; the SAME weakness on the login endpoint is a
+  credential-stuffing problem — an attacker spread across enough warm
+  instances gets `5 × instances` guesses per 15 minutes, not 5. Raised from
+  the original framing (accepted risk for "a guest-checkout endpoint selling
+  three products") because that framing no longer covers what this file
+  protects.
+- **Fix:** If abuse actually shows up, or before deploying with real
+  customers, move the counter to a shared store (Upstash Redis fits Vercel's
+  edge runtime) keyed the same way (`checkRateLimit`'s `key` param already
+  namespaces by endpoint). Do the admin-login endpoint first if only one gets
+  fixed — it is the one where "occasionally works for an attacker" is a
+  meaningfully worse outcome than for the others.
+- **Status:** open
+
+### GAP-012 — Failed order emails are not retried, queued, or surfaced to the owner
+
+- **Category:** reliability
+- **Severity:** low
+- **Location:** `apps/web/src/server/email/send.ts` (`sendMail`)
+- **Found:** 2026-09-07 while building order emails
+- **Problem:** `sendMail` is deliberately best-effort — a Resend outage must
+  never fail or roll back an already-saved order (see the decision log in
+  `architecture.md`). The trade-off: if the send fails, the only record is a
+  `console.error` line. The customer gets no confirmation email and nobody is
+  notified that they didn't; the order is correct in the database but silent
+  everywhere else.
+- **Fix:** At minimum, add an `email_sent boolean` (or a `last_email_error`
+  text column) to `orders` so a failed send is queryable and re-sendable from
+  the admin once `/admin/orders` is real. A retry queue is over-building for
+  the current volume; a visible "resend confirmation" admin action is not.
+- **Update 2026-09-08:** Dispatch/delivery transition flags now use permanent
+  `shipped_at`/`delivered_at` milestone timestamps and the status graph no
+  longer permits reversals, so stale or repeated admin writes cannot duplicate
+  those email attempts. Reliability is unchanged: setting the timestamp and
+  then failing to send still leaves no retry/resend path or owner-visible
+  failure, so this gap remains open.
+- **Status:** open
+
+### GAP-013 — Bank-transfer account details are unset; bank-transfer path still inert
+
+- **Category:** content-risk
+- **Severity:** high (blocks the fallback payment path entirely)
+- **Location:** `site_settings` table (`migrations/0005_settings.sql`) — the
+  `bank_name`/`bank_account_number`/`bank_account_name` columns are `null`.
+  As of 2026-09-08 this is admin-editable at `/admin/settings`, not a code
+  file — `packages/config/src/payment.ts`'s `BANK_TRANSFER` constant is now
+  only the fallback used when no database is configured.
+- **Found:** 2026-09-07 while building the Paystack + bank-transfer payment flow
+- **Problem:** The owner chose to offer a real bank number for anyone who picks
+  it over Paystack. The account details don't exist anywhere confirmed yet —
+  inventing them would mean money sent to a wrong or fictional account, a
+  materially worse mistake than any content error elsewhere in this app.
+  Until set, `components/order/payment-actions.tsx` renders an honest
+  "details are being confirmed" panel instead of the bank-transfer
+  instructions, and the WhatsApp CTA (see below) stays a general contact
+  link rather than a "send payment proof" flow.
+- **Update 2026-09-08 — WhatsApp half resolved.** `WHATSAPP_NUMBER` is now
+  set (`2347059721857`, the owner's stated temporary number — they said
+  they'll swap it for the business's real number later). While building this,
+  a real bug was found and fixed: `BankTransferPanel` gated
+  `WHATSAPP_NUMBER`/`BANK_TRANSFER` independently, so setting only the
+  WhatsApp number would have shown a live "Send payment proof on WhatsApp"
+  button and a "transfer X, then send your screenshot" instruction while the
+  bank-details block right above still said "being confirmed" — telling a
+  customer to wire money with no account number ever shown. Fixed: the
+  "send proof" flow (and its instruction text) now requires BOTH to be set;
+  with only `WHATSAPP_NUMBER` set, the button is a general "Message us on
+  WhatsApp" contact link instead. Bank account details are still the sole
+  remaining blocker on this gap.
+- **Update 2026-09-08 — the fix is now a form, not a code edit.** Owner can
+  sign into `/admin/settings` and enter bank name/account number/account
+  name themselves (validated all-or-nothing — the same three-fields-together
+  rule from the update above, enforced server-side too). Verified end to
+  end: saved via the real admin form, confirmed the value round-trips back
+  into the form on reload, and confirmed a real `/order-success` page picks
+  up the new value immediately with no redeploy. No remaining code work —
+  this gap is now purely "waiting for the owner to type in real numbers."
+- **Fix:** Owner signs into `/admin/settings` and fills in the bank fields.
+  Until then, Paystack is the only payment path that functions end to end.
+- **Status:** open — needs owner input only (bank account details); the
+  mechanism to set them without a code deploy now exists
+
+### GAP-014 — Paystack webhook is unregistered; only tested against Paystack's test mode, not live traffic
+
+- **Category:** architecture fit / payments
+- **Severity:** high until verified against a production Paystack account
+- **Location:** `apps/web/src/app/api/webhooks/paystack/route.ts`
+- **Found:** 2026-09-07 while building the payment flow
+- **Problem:** The webhook exists and its signature verification is written
+  against Paystack's documented HMAC-SHA512 scheme, but it has not been
+  registered in a real Paystack dashboard or received a real event yet — there
+  is no production URL to register it against until this deploys. Without the
+  webhook actually wired up and firing, payment confirmation depends entirely
+  on the client-triggered `POST /api/orders/:token/verify-payment` call
+  succeeding, which it will not if the customer's browser closes or loses
+  connection between the Paystack popup reporting success and that call
+  completing — exactly the gap the webhook exists to cover.
+- **Fix:** Once a production domain exists, register
+  `<domain>/api/webhooks/paystack` in the Paystack dashboard, then place one
+  real test-mode transaction end to end and confirm in the database that
+  `paid_at` gets set even when the client-side verify call is deliberately
+  blocked (e.g. by killing the tab right after the popup closes) — that is the
+  actual scenario this endpoint exists for, not just "does it 200."
+- **Status:** open — needs a production deploy to verify against
+
 <!-- not yet audited (surface does not exist yet — re-run audit-gaps when it lands):
-     real pages/components, live API endpoint modules in apps/web/src/lib/api/,
-     auth on admin routes, Paystack payment flow, apps/backend (owned by backend dev). -->
+     delivery-fee calculation, stock/inventory checks at order time,
+     multi-user admin roles (never asked for — see Q21). apps/backend is
+     retired — see its README; audit apps/web/src/app/api and
+     apps/web/src/server instead. Auth on admin routes and the Paystack
+     payment flow ARE now built and audited — see GAP-009, GAP-013, GAP-014
+     above, not this note. -->
 
 ## Closed
 
 <!-- Move entries here when fixed. Keep them — they document why the code is the way it is. -->
+
+### GAP-008 — The cart mock's free-delivery figure does not add up
+
+- **Category:** content-risk · **Severity:** low · **Found:** 2026-09-06 while building the cart
+- **Was:** The mock showed a ₦13,000 subtotal against a stated ₦15,000
+  free-delivery threshold, then said "You are **₦4,200** away" — arithmetically
+  wrong either way (should be ₦2,000). Depended on GAP-007's free-delivery
+  offer, which the mismatch lived inside.
+- **Fixed:** 2026-09-07, not by correcting the number.
+- **How:** The whole free-delivery offer was deleted (see GAP-007's 2026-09-07
+  update) — the ₦15,000 threshold was never a real quote, so there was no
+  correct figure to compute in the first place. `cart-view.tsx`'s progress bar,
+  `FREE_DELIVERY_THRESHOLD`, and the free-delivery note are all gone.
 
 ### GAP-003 — Two design-system colour pairs failed WCAG AA for text
 

@@ -4,54 +4,68 @@ import Link from "next/link";
 import { useState } from "react";
 import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
-import { Button } from "@/components/ui/button";
-import { ICONS } from "@/components/ui/icons";
-import type { Patron, PatronSegment } from "@/content/admin-customers";
 import { formatKobo } from "@/lib/money";
+import type { AdminOrderSummary } from "@/server/orders/repository";
+
+export interface CustomerRow {
+  email: string;
+  name: string;
+  phone: string;
+  city: string;
+  landmark: string;
+  orderCount: number;
+  totalSpendKobo: number;
+  firstOrderAt: string;
+  favouriteProductName: string | null;
+  orders: AdminOrderSummary[];
+}
+
+export type CustomerSegment = "all" | "repeat";
+
+/** Two-letter monogram for the avatar circle. */
+const monogram = (name: string) =>
+  name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .toUpperCase();
+
+const monthYear = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+const COLUMNS = ["Customer", "Contact", "Delivery locale", "Orders"];
 
 /**
- * Customer directory with a patron dossier.
+ * Customer directory with a dossier.
  *
- * Segment tabs and selecting a patron are genuine client state: filtering and
- * inspecting an already-loaded list works perfectly well before a backend
- * exists, and it is what makes the dossier reviewable at all.
+ * Segment tabs and selecting a customer are genuine client state: filtering
+ * an already-loaded list works fine without a search backend.
  *
- * Everything that would send, export or change something is disabled — search,
- * CSV export, adding a patron, WhatsApp, and creating an order. On a screen
- * holding customer PII, a control that silently does nothing is worse than one
- * plainly not ready.
- *
- * Patrons arrive as PROPS, never imported here. A client component's imports
- * are bundled into client JavaScript, so importing the data module would ship
- * every name, phone number and address into a downloadable chunk — straight
- * past the server-side gate. That has already happened once on this project
- * (see GAP-009); it does not happen again.
+ * Customers arrive as PROPS, never imported here. A client component's
+ * imports are bundled into client JavaScript, so importing the query result
+ * directly would ship every name, phone number and address into a
+ * downloadable chunk — past the server-side gate (see GAP-009).
  */
-const COLUMNS = ["Patron", "Contact", "Delivery locale", "Orders"];
+export function CustomersDirectory({ customers }: { customers: CustomerRow[] }) {
+  const [segment, setSegment] = useState<CustomerSegment>("all");
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
 
-export function CustomersDirectory({
-  patrons,
-  segments,
-  searchPlaceholder,
-  showing,
-}: {
-  patrons: Patron[];
-  segments: { label: string; segment: PatronSegment; count: number }[];
-  searchPlaceholder: string;
-  showing: string;
-}) {
-  const [segment, setSegment] = useState<PatronSegment>("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const visible = customers.filter((customer) =>
+    segment === "all" ? true : customer.orderCount >= 2,
+  );
 
-  const visible = patrons.filter((patron) => {
-    if (segment === "all") return true;
-    if (segment === "repeat") return patron.repeat;
-    if (segment === "lagos") return patron.city === "Lagos";
-    return patron.city !== "Lagos";
-  });
+  // A customer filtered out of view must not stay open in the dossier.
+  const selected = visible.find((customer) => customer.email === selectedEmail) ?? null;
 
-  // A patron filtered out of view must not stay open in the dossier.
-  const selected = visible.find((patron) => patron.id === selectedId) ?? null;
+  const segments: { label: string; segment: CustomerSegment; count: number }[] = [
+    { label: "All customers", segment: "all", count: customers.length },
+    {
+      label: "Repeat customers",
+      segment: "repeat",
+      count: customers.filter((c) => c.orderCount >= 2).length,
+    },
+  ];
 
   return (
     <div className="mt-gutter-sm grid gap-gutter-sm xl:grid-cols-[1fr_22rem]">
@@ -59,7 +73,7 @@ export function CustomersDirectory({
         <section className="flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-md">
           <div
             role="tablist"
-            aria-label="Filter patrons"
+            aria-label="Filter customers"
             className="flex flex-wrap gap-gutter-xs"
           >
             {segments.map((tab) => (
@@ -90,18 +104,12 @@ export function CustomersDirectory({
               </button>
             ))}
           </div>
-
-          {/* Disabled: searching needs a customer service behind it. */}
-          <span className="flex min-h-11 items-center gap-gutter-xs rounded border border-rule/70 bg-surface-container-low px-gutter-sm text-body-sm text-nutmeg/70">
-            <ICONS.seal className="h-4 w-4 shrink-0" />
-            {searchPlaceholder}
-          </span>
         </section>
 
         <div className="mt-gutter-sm overflow-x-auto rounded border border-rule/70 bg-surface">
           <table className="w-full min-w-3xl border-collapse text-left">
             <caption className="sr-only">
-              Sample patrons. Select one to open their dossier.
+              Customers derived from real orders. Select one to open their dossier.
             </caption>
             <thead>
               <tr className="border-b border-rule/70">
@@ -117,11 +125,11 @@ export function CustomersDirectory({
               </tr>
             </thead>
             <tbody>
-              {visible.map((patron) => {
-                const open = selected?.id === patron.id;
+              {visible.map((customer) => {
+                const open = selected?.email === customer.email;
                 return (
                   <tr
-                    key={patron.id}
+                    key={customer.email}
                     className={cn(
                       "border-b border-rule/70 last:border-b-0",
                       open
@@ -132,7 +140,7 @@ export function CustomersDirectory({
                     <th scope="row" className="px-gutter-sm py-3 text-left font-normal">
                       <button
                         type="button"
-                        onClick={() => setSelectedId(open ? null : patron.id)}
+                        onClick={() => setSelectedEmail(open ? null : customer.email)}
                         aria-expanded={open}
                         className="flex items-center gap-gutter-sm text-left"
                       >
@@ -140,35 +148,35 @@ export function CustomersDirectory({
                           aria-hidden="true"
                           className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary-container font-label text-label-sm text-on-secondary-fixed"
                         >
-                          {patron.initials}
+                          {monogram(customer.name)}
                         </span>
                         <span className="min-w-0">
                           <span className="block text-body-md font-semibold text-cacao">
-                            {patron.name}
+                            {customer.name}
                           </span>
                           <span className="block text-body-sm text-nutmeg">
-                            {patron.tier} · since {patron.since}
+                            Customer since {monthYear(customer.firstOrderAt)}
                           </span>
                         </span>
                       </button>
                     </th>
 
                     <td className="px-gutter-sm py-3 text-body-sm text-on-surface-variant">
-                      <span className="block">{patron.email}</span>
-                      <span className="block text-nutmeg">{patron.phone}</span>
+                      <span className="block">{customer.email}</span>
+                      <span className="block text-nutmeg">{customer.phone}</span>
                     </td>
 
                     <td className="px-gutter-sm py-3 text-body-sm">
-                      <span className="block text-cacao">{patron.area}</span>
-                      <span className="block text-nutmeg">{patron.city}</span>
+                      <span className="block text-cacao">{customer.city}</span>
+                      <span className="block text-nutmeg">{customer.landmark}</span>
                     </td>
 
                     <td className="px-gutter-sm py-3 text-body-sm">
                       <span className="block font-label text-label-md text-cacao">
-                        {patron.orders}
+                        {customer.orderCount}
                       </span>
                       <span className="block text-nutmeg">
-                        {formatKobo(patron.spend)}
+                        {formatKobo(customer.totalSpendKobo)}
                       </span>
                     </td>
                   </tr>
@@ -179,28 +187,30 @@ export function CustomersDirectory({
 
           {visible.length === 0 && (
             <p className="p-gutter-xl text-center text-body-sm text-nutmeg">
-              No patrons in this segment.
+              No customers in this segment.
             </p>
           )}
         </div>
 
-        {/* No pager: there is no second page to go to. */}
-        <p className="mt-gutter-xs text-body-sm text-nutmeg">{showing}</p>
+        <p className="mt-gutter-xs text-body-sm text-nutmeg">
+          Showing all {visible.length} of {customers.length} customer
+          {customers.length === 1 ? "" : "s"}
+        </p>
       </div>
 
       {selected ? (
         <Dossier
-          key={selected.id}
-          patron={selected}
-          onClose={() => setSelectedId(null)}
+          key={selected.email}
+          customer={selected}
+          onClose={() => setSelectedEmail(null)}
         />
       ) : (
         <aside className="h-fit rounded border border-rule/70 bg-surface p-gutter-md">
           <h2 className="font-label text-label-caps text-nutmeg uppercase">
-            Patron dossier
+            Customer dossier
           </h2>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-            Select a patron to see their contact details, delivery landmark and order
+            Select a customer to see their contact details, delivery landmark and order
             history.
           </p>
         </aside>
@@ -209,12 +219,12 @@ export function CustomersDirectory({
   );
 }
 
-function Dossier({ patron, onClose }: { patron: Patron; onClose: () => void }) {
+function Dossier({ customer, onClose }: { customer: CustomerRow; onClose: () => void }) {
   return (
     <aside className="h-fit rounded border border-rule/70 bg-surface p-gutter-md xl:sticky xl:top-0">
       <div className="flex items-start justify-between gap-gutter-sm">
         <h2 className="font-label text-label-caps text-nutmeg uppercase">
-          Patron dossier
+          Customer dossier
         </h2>
         <button
           type="button"
@@ -231,14 +241,13 @@ function Dossier({ patron, onClose }: { patron: Patron; onClose: () => void }) {
           aria-hidden="true"
           className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary-container font-label text-label-md text-on-secondary-fixed"
         >
-          {patron.initials}
+          {monogram(customer.name)}
         </span>
         <div className="min-w-0">
-          <p className="text-headline-sm text-cacao">{patron.name}</p>
-          <p className="font-label text-label-sm text-terracotta uppercase">
-            {patron.tier}
+          <p className="text-headline-sm text-cacao">{customer.name}</p>
+          <p className="text-body-sm text-nutmeg">
+            Customer since {monthYear(customer.firstOrderAt)}
           </p>
-          <p className="text-body-sm text-nutmeg">Patron since {patron.since}</p>
         </div>
       </div>
 
@@ -246,51 +255,44 @@ function Dossier({ patron, onClose }: { patron: Patron; onClose: () => void }) {
         <div className="rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
           <dt className="font-label text-label-sm text-nutmeg uppercase">Spend</dt>
           <dd className="mt-1 font-label text-label-md text-terracotta">
-            {formatKobo(patron.spend)}
+            {formatKobo(customer.totalSpendKobo)}
           </dd>
         </div>
         <div className="rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
           <dt className="font-label text-label-sm text-nutmeg uppercase">Orders</dt>
-          <dd className="mt-1 font-label text-label-md text-cacao">{patron.orders}</dd>
+          <dd className="mt-1 font-label text-label-md text-cacao">
+            {customer.orderCount}
+          </dd>
         </div>
       </dl>
+
+      {customer.favouriteProductName && (
+        <p className="mt-gutter-sm text-body-sm text-nutmeg">
+          Most ordered:{" "}
+          <span className="text-cacao">{customer.favouriteProductName}</span>
+        </p>
+      )}
 
       <section className="mt-gutter-md">
         <h3 className="font-label text-label-caps text-nutmeg uppercase">Contact</h3>
         <dl className="mt-gutter-xs space-y-2 text-body-sm">
-          <div className="flex items-start gap-gutter-xs">
-            <ICONS.mail className="mt-0.5 h-4 w-4 shrink-0 text-nutmeg" />
-            <div className="min-w-0">
-              <dt className="sr-only">Email</dt>
-              <dd className="break-words text-cacao">{patron.email}</dd>
-            </div>
+          <div className="min-w-0">
+            <dt className="sr-only">Email</dt>
+            <dd className="break-words text-cacao">{customer.email}</dd>
           </div>
-          <div className="flex items-start gap-gutter-xs">
-            <ICONS.chat className="mt-0.5 h-4 w-4 shrink-0 text-nutmeg" />
-            <div className="min-w-0">
-              <dt className="sr-only">Mobile</dt>
-              <dd className="text-cacao">{patron.phone}</dd>
-            </div>
+          <div className="min-w-0">
+            <dt className="sr-only">Phone</dt>
+            <dd className="text-cacao">{customer.phone}</dd>
           </div>
         </dl>
-        {/* Disabled: there is no WhatsApp integration, and these numbers are
-            deliberately unroutable sample numbers. */}
-        <span
-          aria-disabled="true"
-          title="No messaging provider is connected"
-          className="mt-gutter-xs flex min-h-11 cursor-not-allowed items-center justify-center gap-gutter-xs rounded border border-rule bg-surface-container-low font-label text-label-sm text-nutmeg/70"
-        >
-          <ICONS.chat className="h-4 w-4" />
-          Message on WhatsApp
-        </span>
       </section>
 
       <section className="mt-gutter-md">
         <h3 className="font-label text-label-caps text-nutmeg uppercase">
           Delivery landmark
         </h3>
-        <p className="mt-gutter-xs text-body-sm text-cacao">{patron.area}</p>
-        <p className="text-body-sm text-nutmeg">{patron.landmark}</p>
+        <p className="mt-gutter-xs text-body-sm text-cacao">{customer.city}</p>
+        <p className="text-body-sm text-nutmeg">{customer.landmark}</p>
       </section>
 
       <section className="mt-gutter-md">
@@ -298,58 +300,32 @@ function Dossier({ patron, onClose }: { patron: Patron; onClose: () => void }) {
           Order history
         </h3>
         <ul className="mt-gutter-xs space-y-2">
-          {patron.history.map((order) => {
-            const body = (
-              <>
+          {customer.orders.map((order) => (
+            <li key={order.id}>
+              <Link
+                href={ADMIN_ROUTES.order(order.reference)}
+                className="block rounded border border-rule/70 bg-surface-container-low p-gutter-sm transition-colors hover:border-cacao"
+              >
                 <span className="flex flex-wrap items-center justify-between gap-gutter-xs">
-                  <span className="font-label text-label-sm text-cacao">#{order.id}</span>
-                  <span
-                    className={cn(
-                      "rounded-sm px-2 py-0.5 font-label text-label-sm",
-                      order.status === "Dispatched"
-                        ? "bg-tertiary-container text-on-tertiary-container"
-                        : "bg-secondary-container text-on-secondary-fixed",
-                    )}
-                  >
+                  <span className="font-label text-label-sm text-cacao">
+                    #{order.reference}
+                  </span>
+                  <span className="rounded-sm bg-secondary-container px-2 py-0.5 font-label text-label-sm text-on-secondary-fixed">
                     {order.status}
                   </span>
                 </span>
                 <span className="mt-1 block text-body-sm text-on-surface-variant">
-                  {order.summary}
+                  {order.itemSummary || "—"}
                 </span>
                 <span className="mt-1 flex flex-wrap justify-between text-body-sm text-nutmeg">
-                  <span>{order.when}</span>
-                  <span className="text-cacao">{formatKobo(order.total)}</span>
+                  <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                  <span className="text-cacao">{formatKobo(order.subtotal.amount)}</span>
                 </span>
-              </>
-            );
-
-            return (
-              <li key={order.id}>
-                {/* Only orders that exist on the ledger open a dossier. */}
-                {order.onLedger ? (
-                  <Link
-                    href={ADMIN_ROUTES.order(order.id)}
-                    className="block rounded border border-rule/70 bg-surface-container-low p-gutter-sm transition-colors hover:border-cacao"
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <div className="rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
-                    {body}
-                  </div>
-                )}
-              </li>
-            );
-          })}
+              </Link>
+            </li>
+          ))}
         </ul>
       </section>
-
-      {/* Disabled: placing an order on someone's behalf needs an orders API. */}
-      <Button className="mt-gutter-md w-full" disabled>
-        <ICONS.gift className="h-4 w-4" />
-        Create an order
-      </Button>
     </aside>
   );
 }

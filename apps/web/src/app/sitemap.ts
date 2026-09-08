@@ -1,21 +1,28 @@
 import type { MetadataRoute } from "next";
 import { ROUTES } from "@lamiefoods/config";
-import { PRODUCTS } from "@/content/products";
 import { absoluteUrl } from "@/lib/seo";
+import { isDatabaseConfigured } from "@/config/server-env";
+import { listPublishedProducts } from "@/server/products/repository";
 
 /**
  * Only routes that actually render today. Advertising a page before it exists
  * hands search engines a 404, which erodes trust in the whole sitemap. Add each
  * entry back the moment its route ships:
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+// Same reasoning as app/shop/page.tsx: a raw Postgres read isn't a Next
+// Request-time API, so this needs an explicit revalidation window or it
+// would bake today's product list into the sitemap forever.
+export const revalidate = 60;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
+  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
 
   return [
     { url: absoluteUrl(ROUTES.home), lastModified, priority: 1 },
     { url: absoluteUrl(ROUTES.shop), lastModified, priority: 0.8 },
     { url: absoluteUrl(ROUTES.about), lastModified, priority: 0.6 },
-    ...PRODUCTS.map((product) => ({
+    ...products.map((product) => ({
       url: absoluteUrl(ROUTES.product(product.slug)),
       lastModified,
       priority: 0.7,

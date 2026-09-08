@@ -7,13 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { BRAND, ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
 import { ButtonLink } from "@/components/ui/button";
-import {
-  BagIcon,
-  CloseIcon,
-  MenuIcon,
-  SearchIcon,
-  UserIcon,
-} from "@/components/ui/icons";
+import { BagIcon, CloseIcon, MenuIcon } from "@/components/ui/icons";
 import { NAV_LINKS } from "@/content/landing";
 import { useCart } from "@/lib/cart/use-cart";
 
@@ -108,10 +102,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-gutter-xs">
-            <IconButton label="Search products">
-              <SearchIcon className="h-5 w-5" />
-            </IconButton>
-
             {/* Real bag count. useSyncExternalStore renders 0 on the server and
                 swaps in the persisted count after hydration, so no mismatch. */}
             <Link
@@ -133,10 +123,6 @@ export function SiteHeader() {
             <ButtonLink href={ROUTES.shop} className="hidden sm:inline-flex">
               Shop Chinchin
             </ButtonLink>
-
-            <IconButton label="Your account" className="hidden sm:inline-flex">
-              <UserIcon className="h-5 w-5" />
-            </IconButton>
 
             <button
               ref={toggleRef}
@@ -187,33 +173,5 @@ export function SiteHeader() {
         </ButtonLink>
       </div>
     </header>
-  );
-}
-
-/**
- * Icon-only control. These are placeholders until search, cart and accounts
- * exist — they render as buttons with real accessible names rather than links
- * to routes that would 404.
- */
-function IconButton({
-  label,
-  className,
-  children,
-}: {
-  label: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "inline-flex h-11 w-11 items-center justify-center rounded text-cacao transition-colors hover:bg-surface-container hover:text-terracotta",
-        className,
-      )}
-    >
-      <span className="sr-only">{label}</span>
-      {children}
-    </button>
   );
 }

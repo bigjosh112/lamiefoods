@@ -1,234 +1,132 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
-import { Button } from "@/components/ui/button";
-import { ICONS } from "@/components/ui/icons";
-import { ImageSlot } from "@/components/ui/image-slot";
-import type { AdminProduct, ProductFilter } from "@/content/admin-products";
-import { formatKobo } from "@/lib/money";
+import type { Product } from "@lamiefoods/types";
+import { applyDiscount, formatKobo } from "@/lib/money";
 
 /**
- * Filterable product list.
+ * Real product table with client-side search — genuine local state, no
+ * backend needed for filtering a list already fully loaded.
  *
- * The tabs are real client state — filtering an already-loaded list is a UI
- * concern that works fine without a backend, and it is what makes the counts
- * meaningful to review. Search, edit, sold-out and launch controls are disabled:
- * they need somewhere to write to.
- *
- * Products arrive as props rather than being imported here, keeping the client
- * bundle free of catalogue internals — the same rule that stopped customer PII
- * shipping from the orders table.
+ * Rows arrive as PROPS from the server page, never imported here — see
+ * `products-view.tsx`'s comment for why that discipline holds even for
+ * non-personal data.
  */
-export function ProductsList({
-  products,
-  tabs,
-  searchPlaceholder,
-}: {
-  products: AdminProduct[];
-  tabs: { label: string; count: number; filter: ProductFilter }[];
-  searchPlaceholder: string;
-}) {
-  const [filter, setFilter] = useState<ProductFilter>("all");
+export function ProductsList({ products }: { products: Product[] }) {
+  const [query, setQuery] = useState("");
 
-  const visible = products.filter((product) => {
-    if (filter === "all") return true;
-    if (filter === "live") return product.status !== "development";
-    if (filter === "development") return product.status === "development";
-    return false; // seasonal — nothing carries that flag yet
-  });
+  const filtered = products.filter((product) =>
+    `${product.name} ${product.slug}`.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
   return (
-    <>
-      <section className="mt-gutter-sm flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-md">
-        <div
-          role="tablist"
-          aria-label="Filter products"
-          className="flex flex-wrap gap-gutter-xs"
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.filter}
-              type="button"
-              role="tab"
-              aria-selected={filter === tab.filter}
-              onClick={() => setFilter(tab.filter)}
-              className={cn(
-                "inline-flex min-h-11 items-center gap-gutter-xs rounded border px-3 font-label text-label-sm transition-colors",
-                filter === tab.filter
-                  ? "border-primary-container bg-primary-container text-linen"
-                  : "border-rule bg-surface-container-low text-cacao hover:border-cacao",
-              )}
-            >
-              {tab.label}
-              <span
-                className={cn(
-                  "rounded-sm px-1.5",
-                  filter === tab.filter
-                    ? "bg-linen/20"
-                    : "bg-secondary-container text-on-secondary-fixed",
-                )}
-              >
-                {tab.count}
-              </span>
-            </button>
-          ))}
+    <div>
+      <input
+        type="search"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search by product title or slug"
+        className="mb-gutter-sm min-h-11 w-full max-w-sm rounded border border-rule bg-[#f8f3ec] px-3 text-body-md text-cacao placeholder:text-nutmeg/70 focus:border-terracotta focus:outline-none"
+      />
+
+      {filtered.length === 0 ? (
+        <div className="rounded border border-rule/70 bg-surface-container-low p-gutter-xl text-center">
+          <p className="text-body-md text-on-surface-variant">
+            {products.length === 0
+              ? "No products yet."
+              : "No products match that search."}
+          </p>
         </div>
-
-        {/* Disabled: searching needs a catalogue service behind it. */}
-        <span className="flex min-h-11 items-center gap-gutter-xs rounded border border-rule/70 bg-surface-container-low px-gutter-sm text-body-sm text-nutmeg/70">
-          <ICONS.seal className="h-4 w-4 shrink-0" />
-          {searchPlaceholder}
-        </span>
-      </section>
-
-      {visible.length === 0 ? (
-        <p className="mt-gutter-sm rounded border border-rule/70 bg-surface p-gutter-xl text-center text-body-sm text-nutmeg">
-          Nothing in this category yet.
-        </p>
       ) : (
-        <ul className="mt-gutter-sm space-y-3">
-          {visible.map((product) => (
-            <li
-              key={product.sku}
-              className={cn(
-                "flex flex-wrap items-start gap-gutter-md rounded border border-rule/70 p-gutter-md",
-                product.status === "development"
-                  ? "bg-surface-container-low"
-                  : "bg-surface",
-              )}
-            >
-              <div className="relative aspect-square w-20 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
-                <ImageSlot slot={product.image} sizes="80px" />
-              </div>
+        <div className="overflow-x-auto rounded border border-rule/70">
+          <table className="w-full min-w-[720px] text-left text-body-sm">
+            <thead className="bg-surface-container-low text-label-sm text-nutmeg uppercase">
+              <tr>
+                <th className="px-gutter-sm py-2 font-label">Product</th>
+                <th className="px-gutter-sm py-2 font-label">Category</th>
+                <th className="px-gutter-sm py-2 font-label">Price</th>
+                <th className="px-gutter-sm py-2 font-label">Stock</th>
+                <th className="px-gutter-sm py-2 font-label">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((product) => {
+                const lowest = product.packs.reduce(
+                  (min, pack) => Math.min(min, pack.price.amount),
+                  Infinity,
+                );
+                const lowStock =
+                  product.restockThreshold !== null &&
+                  product.stockQuantity <= product.restockThreshold;
 
-              <div className="min-w-56 flex-1">
-                <div className="flex flex-wrap items-center gap-gutter-xs">
-                  <span className="font-label text-label-sm text-nutmeg uppercase">
-                    {product.category}
-                  </span>
-                  <span className="rounded-sm border border-rule/70 px-2 py-0.5 font-label text-label-sm text-cacao">
-                    SKU: {product.sku}
-                  </span>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-gutter-xs rounded-sm px-2 py-0.5 font-label text-label-sm",
-                      product.status === "low-stock"
-                        ? "bg-error-container text-on-error-container"
-                        : "bg-secondary-container text-on-secondary-fixed",
-                    )}
+                return (
+                  <tr
+                    key={product.id}
+                    className="border-t border-rule/50 hover:bg-surface-container-low"
                   >
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "h-1.5 w-1.5 rounded-full",
-                        product.status === "low-stock" ? "bg-error" : "bg-terracotta",
+                    <td className="px-gutter-sm py-2">
+                      <Link
+                        href={ADMIN_ROUTES.editProduct(product.slug)}
+                        className="font-label text-label-md text-terracotta hover:underline"
+                      >
+                        {product.name}
+                      </Link>
+                      <p className="text-body-sm text-nutmeg">{product.slug}</p>
+                    </td>
+                    <td className="px-gutter-sm py-2 text-on-surface-variant capitalize">
+                      {product.category.replace("-", " ")}
+                    </td>
+                    <td className="px-gutter-sm py-2 font-label text-label-md text-cacao">
+                      {Number.isFinite(lowest) ? (
+                        product.discountPercent ? (
+                          <span>
+                            <span className="mr-1 text-nutmeg line-through">
+                              {formatKobo(lowest)}
+                            </span>
+                            {formatKobo(applyDiscount(lowest, product.discountPercent))}
+                          </span>
+                        ) : (
+                          formatKobo(lowest)
+                        )
+                      ) : (
+                        "—"
                       )}
-                    />
-                    {product.statusLabel}
-                  </span>
-                </div>
-
-                <h3 className="mt-1 flex flex-wrap items-center gap-gutter-xs text-headline-sm text-cacao">
-                  {product.name}
-                  {product.pipeline && (
-                    <span className="rounded-sm bg-tertiary-container px-2 py-0.5 font-label text-label-sm text-on-tertiary-container">
-                      {product.pipeline.chip}
-                    </span>
-                  )}
-                </h3>
-
-                <p className="mt-1 text-body-sm text-on-surface-variant">
-                  {product.body}
-                </p>
-
-                <p className="mt-gutter-xs flex flex-wrap items-center gap-gutter-xs text-body-sm text-nutmeg">
-                  {product.sizes ? (
-                    <>
-                      <ICONS.box className="h-4 w-4" />
-                      {product.prices?.length} sizes active · {product.sizes}
-                    </>
-                  ) : (
-                    <>
-                      <ICONS.timer className="h-4 w-4" />
-                      {product.pipeline?.detail}
-                    </>
-                  )}
-                </p>
-              </div>
-
-              <div className="flex shrink-0 flex-col items-end gap-gutter-sm">
-                {product.prices ? (
-                  <div className="flex flex-wrap justify-end gap-gutter-md">
-                    <div className="text-right">
-                      <p className="font-label text-label-sm text-nutmeg uppercase">
-                        Tiered price
-                      </p>
-                      <p className="font-label text-label-md text-cacao">
-                        {product.prices.map((price) => formatKobo(price)).join(" / ")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-label text-label-sm text-nutmeg uppercase">
-                        Inventory
-                      </p>
-                      <p
-                        className={cn(
-                          "flex items-center justify-end gap-gutter-xs font-label text-label-md",
-                          product.status === "low-stock" ? "text-error" : "text-cacao",
-                        )}
-                      >
-                        <ICONS.box className="h-4 w-4" />
-                        {product.stock} units
-                        {product.status === "low-stock" && " left"}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-right">
-                    <p className="font-label text-label-sm text-nutmeg uppercase">
-                      Catalogue visibility
-                    </p>
-                    <p className="text-body-sm text-cacao">
-                      {product.pipeline?.visibility}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap justify-end gap-gutter-xs">
-                  {product.pipeline ? (
-                    <>
-                      <Button disabled>
-                        <ICONS.sparkle className="h-4 w-4" />
-                        Configure launch
-                      </Button>
-                      <Button variant="secondary" disabled>
-                        Edit
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button variant="secondary" disabled>
-                        Edit
-                      </Button>
-                      <Button variant="secondary" disabled>
-                        Mark sold out
-                      </Button>
-                      <span
-                        aria-disabled="true"
-                        title="More actions need a backend"
-                        className="inline-flex h-11 w-11 cursor-not-allowed items-center justify-center rounded border border-rule font-label text-nutmeg/70"
-                      >
-                        …
+                    </td>
+                    <td className="px-gutter-sm py-2">
+                      <span className={cn(lowStock && "font-semibold text-error")}>
+                        {product.stockQuantity}
                       </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+                    </td>
+                    <td className="px-gutter-sm py-2">
+                      <Badge
+                        tone={product.storefrontActive ? "positive" : "neutral"}
+                        label={product.storefrontActive ? "Published" : "Draft"}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
-    </>
+    </div>
+  );
+}
+
+function Badge({ label, tone }: { label: string; tone: "positive" | "neutral" }) {
+  return (
+    <span
+      className={cn(
+        "inline-block rounded-sm px-2 py-0.5 font-label text-label-sm uppercase",
+        tone === "positive" && "bg-cacao text-tertiary-fixed-dim",
+        tone === "neutral" && "bg-secondary-container text-on-secondary-fixed",
+      )}
+    >
+      {label}
+    </span>
   );
 }

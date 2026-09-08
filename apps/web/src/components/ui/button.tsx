@@ -47,6 +47,25 @@ interface ButtonProps extends ComponentPropsWithoutRef<"button"> {
   children: ReactNode;
 }
 
+interface ButtonAnchorProps extends ComponentPropsWithoutRef<"a"> {
+  variant?: Variant;
+  children: ReactNode;
+}
+
+/** Native anchor treatment for downloads and other non-router resources. */
+export function ButtonAnchor({
+  variant = "primary",
+  className,
+  children,
+  ...props
+}: ButtonAnchorProps) {
+  return (
+    <a className={cn(base, variants[variant], className)} {...props}>
+      {children}
+    </a>
+  );
+}
+
 export function Button({
   variant = "primary",
   className,

@@ -1,78 +1,75 @@
+import type { Product } from "@lamiefoods/types";
 import { cn } from "@lamiefoods/ui";
 import { InventoryTable } from "@/components/admin/inventory-table";
-import { Button } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
-import { ImageSlot } from "@/components/ui/image-slot";
-import {
-  INVENTORY_ADJUST_NOTE,
-  INVENTORY_HIGHLIGHTS,
-  INVENTORY_LINES,
-  INVENTORY_PAGE,
-  INVENTORY_STATS,
-  INVENTORY_TABS,
-  STATUS_LABEL,
-  stockStatus,
-} from "@/content/admin-inventory";
+import { stockStatus } from "@/lib/admin/stock-status";
 
 /**
- * Inventory & kettles.
+ * Inventory.
  *
- * Product names, pack sizes and imagery come from the shared catalogue, so a
- * pack size cannot appear here that a customer cannot buy, and the chinchin
- * shown is the chinchin on the shop. Every total is computed from the lines in
- * the table, so no card can contradict the rows beneath it.
+ * As of 2026-09-08 this is real: `stockQuantity`/`restockThreshold` are
+ * columns on `products`, fetched by `page.tsx` via
+ * `server/products/repository.ts` and passed down as props — the same rule
+ * every other admin data screen follows (never import PII/operational data
+ * directly into a client component; see GAP-009).
  *
- * Not shipped from the mock: an "auto-sync with Paystack orders active" badge
- * (orders are not connected to stock), "real-time" tracking (nothing is), a
- * "100% SKU fulfilment rate" (nothing measures fulfilment), and live kettle
- * telemetry — a vessel number, a named lead and a 185°C reading, which no
- * sensor produces.
+ * The old sample version modeled stock per PACK SIZE and included a
+ * "packaging materials" section (kraft pouches, glass jars). Neither has a
+ * real data source: the schema only tracks stock per PRODUCT, and there is no
+ * table for raw packaging consumables. Both were dropped rather than kept as
+ * invented figures — see `docs/ai-memory/gaps.md` GAP-009's 2026-09-08 update.
  *
  * Chrome comes from `AdminShell`.
  */
-export function InventoryView() {
-  const lines = INVENTORY_LINES.map((line) => ({
-    ...line,
-    status: stockStatus(line),
-  }));
+export function InventoryView({ products }: { products: Product[] }) {
+  const finishedUnits = products.reduce((sum, p) => sum + p.stockQuantity, 0);
+  const lowStock = products.filter((p) => stockStatus(p) === "low-stock");
+  const outOfStock = products.filter((p) => stockStatus(p) === "out-of-stock");
+
+  const stats = [
+    {
+      label: "Total stock on hand",
+      value: finishedUnits.toLocaleString("en-NG"),
+      note: `Across ${products.length} product${products.length === 1 ? "" : "s"}`,
+      icon: "box" as const,
+      alert: false,
+    },
+    {
+      label: "Low stock",
+      value: `${lowStock.length}`,
+      note: lowStock.length > 0 ? lowStock.map((p) => p.name).join(", ") : "Nothing low",
+      icon: "shield" as const,
+      alert: lowStock.length > 0,
+    },
+    {
+      label: "Out of stock",
+      value: `${outOfStock.length}`,
+      note:
+        outOfStock.length > 0
+          ? outOfStock.map((p) => p.name).join(", ")
+          : "Everything available",
+      icon: "seal" as const,
+      alert: outOfStock.length > 0,
+    },
+  ];
 
   return (
     <>
-      <div
-        role="note"
-        className="mb-gutter-md flex items-start gap-gutter-sm rounded border border-error/40 bg-error-container p-gutter-sm text-on-error-container"
-      >
-        <ICONS.shield className="mt-0.5 h-5 w-5 shrink-0" />
-        <p className="text-body-sm">
-          <strong className="font-semibold">
-            Nothing counts stock — every quantity here is invented.
-          </strong>{" "}
-          There is no inventory service, no kettle sensor and no link between orders and
-          stock levels. Product names and pack sizes are real catalogue data; the numbers
-          against them are not, and nothing can be adjusted.
-        </p>
-      </div>
-
       <div className="mb-gutter-md flex flex-wrap items-start justify-between gap-gutter-md">
         <div className="max-w-2xl">
           <p className="font-label text-label-caps text-terracotta uppercase">
-            {INVENTORY_PAGE.eyebrow}
+            Kitchen stock
           </p>
-          <h1 className="mt-1 text-headline-lg text-cacao">{INVENTORY_PAGE.title}</h1>
+          <h1 className="mt-1 text-headline-lg text-cacao">Inventory</h1>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-            {INVENTORY_PAGE.body}
+            Stock on hand across published and draft products. Edit a product to change
+            its stock or restock threshold.
           </p>
         </div>
-
-        {/* Disabled: logging a batch writes to an inventory service. */}
-        <Button variant="secondary" disabled>
-          <ICONS.timer className="h-4 w-4" />
-          {INVENTORY_PAGE.action.label}
-        </Button>
       </div>
 
-      <ul className="grid gap-gutter-sm sm:grid-cols-2 xl:grid-cols-4">
-        {INVENTORY_STATS.map((stat) => {
+      <ul className="grid gap-gutter-sm sm:grid-cols-3">
+        {stats.map((stat) => {
           const Icon = ICONS[stat.icon];
           return (
             <li
@@ -114,35 +111,8 @@ export function InventoryView() {
         })}
       </ul>
 
-      <ul className="mt-gutter-sm grid gap-gutter-sm lg:grid-cols-3">
-        {INVENTORY_HIGHLIGHTS.map((card) => (
-          <li
-            key={card.title}
-            className="flex items-center gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-sm"
-          >
-            <span className="relative aspect-square w-20 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
-              <ImageSlot slot={card.image} sizes="80px" />
-            </span>
-            <div className="min-w-0">
-              <p className="font-label text-label-sm text-terracotta uppercase">
-                {card.eyebrow}
-              </p>
-              <p className="mt-1 text-headline-sm text-cacao">{card.title}</p>
-              <p className="mt-1 text-body-sm text-nutmeg">{card.body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-
       {/* Data passed down, never imported by the client component. */}
-      <InventoryTable
-        lines={lines}
-        tabs={[...INVENTORY_TABS]}
-        statusLabels={STATUS_LABEL}
-        searchPlaceholder={INVENTORY_PAGE.searchPlaceholder}
-        adjustNote={INVENTORY_ADJUST_NOTE}
-        footer={INVENTORY_PAGE.footer}
-      />
+      <InventoryTable products={products} />
     </>
   );
 }

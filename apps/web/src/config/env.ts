@@ -19,10 +19,17 @@ const clientEnvSchema = z.object({
     .optional(),
 });
 
+/** An env var that's merely present-but-blank (`KEY=` in a .env file) must be
+ *  treated the same as unset, not parsed as a value in its own right. */
+const emptyToUndefined = (value: string | undefined) =>
+  value === "" ? undefined : value;
+
 const parsed = clientEnvSchema.safeParse({
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+  NEXT_PUBLIC_SITE_URL: emptyToUndefined(process.env.NEXT_PUBLIC_SITE_URL),
+  NEXT_PUBLIC_API_URL: emptyToUndefined(process.env.NEXT_PUBLIC_API_URL),
+  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: emptyToUndefined(
+    process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+  ),
 });
 
 if (!parsed.success) {

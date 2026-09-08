@@ -1,6 +1,3 @@
-import { cn } from "@lamiefoods/ui";
-import { ADMIN_REVENUE_SERIES } from "@/content/admin-dashboard";
-
 /**
  * Revenue trend, drawn as inline SVG.
  *
@@ -21,9 +18,17 @@ const SERIES_COLOURS = [
   "var(--color-saffron)",
 ];
 
-export function RevenueChart() {
-  const { days, series, unit } = ADMIN_REVENUE_SERIES;
-  const max = Math.max(...series.flatMap((entry) => entry.values));
+export interface RevenueChartSeries {
+  days: string[];
+  series: { name: string; values: number[] }[];
+  /** e.g. "₦'000" — the values above are already scaled for a readable axis. */
+  unit: string;
+}
+
+/** Real data with no orders yet is legitimately all zeros — rendered as flat
+ *  lines at the bottom of the chart, not specially handled as an error. */
+export function RevenueChart({ days, series, unit }: RevenueChartSeries) {
+  const max = Math.max(1, ...series.flatMap((entry) => entry.values));
 
   const plotWidth = WIDTH - PADDING.left - PADDING.right;
   const plotHeight = HEIGHT - PADDING.top - PADDING.bottom;
@@ -130,23 +135,5 @@ export function RevenueChart() {
         </tbody>
       </table>
     </div>
-  );
-}
-
-/** Small delta label — green-free, since this palette has no success tone. */
-export function Delta({ value, className }: { value: string; className?: string }) {
-  const negative = value.trim().startsWith("-");
-  return (
-    <span
-      className={cn(
-        "rounded-sm px-1.5 py-0.5 font-label text-label-sm",
-        negative
-          ? "bg-error-container text-on-error-container"
-          : "bg-secondary-container text-on-secondary-fixed",
-        className,
-      )}
-    >
-      {value}
-    </span>
   );
 }

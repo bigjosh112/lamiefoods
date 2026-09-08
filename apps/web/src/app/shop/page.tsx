@@ -9,26 +9,39 @@ import { Eyebrow, Section } from "@/components/ui/section";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
 import { SHOP } from "@/content/shop";
+import { isDatabaseConfigured } from "@/config/server-env";
+import { listPublishedProducts } from "@/server/products/repository";
 
 export const metadata: Metadata = buildMetadata({
   title: "Shop Chinchin",
   description:
-    "Browse Lamie Foods chinchin — Milky Velvet, Coco Velvet and Cinnamon, kettle-fried in small batches and shipped nationwide.",
+    "Browse Lamie Foods chinchin, kettle-fried in small batches and shipped nationwide.",
   path: "/shop",
 });
 
 /**
- * The shop.
+ * The shop — real products from Postgres now, not the static `content/
+ * products.ts` catalogue.
+ *
+ * A published catalogue this small changes rarely enough that ISR fits
+ * better than `force-dynamic`: `revalidate` re-fetches at most once a minute,
+ * so a newly-published product appears within a minute of saving rather than
+ * only on the next deploy, without paying a full server round trip on every
+ * single request the way the security-critical admin pages must.
  *
  * The header block and assurances are Server Components; only the catalogue
  * opts into the client, for its filters and per-card size selection.
  *
- * No ItemList or Product structured data yet. Prices and availability in the
- * catalogue are unconfirmed placeholders, and publishing them as machine-
- * readable offers would misrepresent the business to search engines. Breadcrumbs
- * are safe because they describe navigation, not commerce.
+ * No ItemList or Product structured data yet — see GAP-004 for why prices are
+ * still owner-unverified, which is the actual blocker for machine-readable
+ * Offers, not the data source. Breadcrumbs are safe because they describe
+ * navigation, not commerce.
  */
-export default function ShopPage() {
+export const revalidate = 60;
+
+export default async function ShopPage() {
+  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+
   return (
     <>
       <JsonLd
@@ -66,7 +79,7 @@ export default function ShopPage() {
             </ul>
           </div>
 
-          <ShopCatalogue />
+          <ShopCatalogue products={products} />
         </Section>
 
         <AtelierLab />

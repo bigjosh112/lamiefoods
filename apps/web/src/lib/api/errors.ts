@@ -10,11 +10,3 @@ export class ApiError extends Error {
     this.body = body;
   }
 }
-
-/** Raised when NEXT_PUBLIC_API_URL is unset — the backend is not wired up yet. */
-export class ApiNotConfiguredError extends ApiError {
-  constructor() {
-    super("No API base URL is configured (set NEXT_PUBLIC_API_URL).", 0);
-    this.name = "ApiNotConfiguredError";
-  }
-}

@@ -1,4 +1,7 @@
 import { cn } from "@lamiefoods/ui";
+import type { Product } from "@lamiefoods/types";
+import type { PaymentSettings } from "@lamiefoods/config";
+import { PaymentSettingsForm } from "@/components/admin/payment-settings-form";
 import { SettingsTabs } from "@/components/admin/settings-tabs";
 import { Button } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
@@ -10,7 +13,7 @@ import {
   SETTINGS_FULFILMENT,
   SETTINGS_PAGE,
   SETTINGS_READINESS,
-  SETTINGS_STOREFRONT,
+  settingsStorefront,
   type ReadinessState,
   type SettingRow,
 } from "@/content/admin-settings";
@@ -34,7 +37,14 @@ import {
  *
  * Chrome comes from `AdminShell`.
  */
-export function SettingsView() {
+export function SettingsView({
+  products,
+  paymentSettings,
+}: {
+  products: Product[];
+  paymentSettings: PaymentSettings;
+}) {
+  const SETTINGS_STOREFRONT = settingsStorefront(products);
   return (
     <>
       <div
@@ -108,6 +118,15 @@ export function SettingsView() {
                 file={SETTINGS_FULFILMENT.file}
               >
                 <Rows rows={SETTINGS_FULFILMENT.rows} />
+
+                <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
+                  Customer contact for payment
+                </h3>
+                <p className="mt-1 text-body-sm text-nutmeg">
+                  Shown on the order-success page for the bank-transfer payment method.
+                  Editable — saves to the database.
+                </p>
+                <PaymentSettingsForm settings={paymentSettings} />
 
                 <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
                   Not configured
