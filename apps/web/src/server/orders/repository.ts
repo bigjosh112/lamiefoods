@@ -461,9 +461,7 @@ export interface AdminOrderExportRow {
 
 /** Complete order ledger for the admin's dispatch export, newest first.
  * Unlike the on-screen query, this intentionally has no 50-row UI limit. */
-export async function listOrdersForDispatchExport(): Promise<
-  AdminOrderExportRow[]
-> {
+export async function listOrdersForDispatchExport(): Promise<AdminOrderExportRow[]> {
   const sql = db();
   const rows = await sql`
     select
@@ -631,10 +629,8 @@ export async function updateOrderStatus(
     }
 
     const nextPaymentStatus = confirmingPayment ? "paid" : currentPaymentStatus;
-    const justShipped =
-      nextStatus === "shipped" && before.shipped_at === null;
-    const justDelivered =
-      nextStatus === "delivered" && before.delivered_at === null;
+    const justShipped = nextStatus === "shipped" && before.shipped_at === null;
+    const justDelivered = nextStatus === "delivered" && before.delivered_at === null;
     const justPaid = confirmingPayment && before.paid_at === null;
 
     const [row] = await tx`

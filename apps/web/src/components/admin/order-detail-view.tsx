@@ -169,7 +169,7 @@ export function OrderDetailView({ order }: { order: Order }) {
                   Delivery address
                 </dt>
                 <dd className="mt-1">
-                  <address className="not-italic text-on-surface-variant">
+                  <address className="text-on-surface-variant not-italic">
                     {order.customer.deliveryAddress.addressLine}
                     <br />
                     {order.customer.deliveryAddress.city},{" "}

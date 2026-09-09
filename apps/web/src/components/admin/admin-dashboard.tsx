@@ -244,11 +244,7 @@ export function AdminDashboard({
               <h2 className="mt-1 text-headline-sm text-cacao">Recent orders</h2>
             </div>
             <div className="flex items-center gap-gutter-xs">
-              <ButtonAnchor
-                href="/api/admin/orders/export"
-                variant="secondary"
-                download
-              >
+              <ButtonAnchor href="/api/admin/orders/export" variant="secondary" download>
                 Export CSV
               </ButtonAnchor>
               <Link

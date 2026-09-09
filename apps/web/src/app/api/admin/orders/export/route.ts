@@ -31,9 +31,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[api/admin/orders/export] Failed to export orders:", error);
-    return NextResponse.json(
-      { error: "Could not export orders." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Could not export orders." }, { status: 500 });
   }
 }

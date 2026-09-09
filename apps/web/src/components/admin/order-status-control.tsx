@@ -3,17 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { allowedOrderStatusTransitions } from "@lamiefoods/types";
-import type {
-  OrderStatus,
-  PaymentMethod,
-  PaymentStatus,
-} from "@lamiefoods/types";
+import type { OrderStatus, PaymentMethod, PaymentStatus } from "@lamiefoods/types";
 import { cn } from "@lamiefoods/ui";
 import { Button } from "@/components/ui/button";
-import {
-  updateOrderStatus,
-  type AdminOrderUpdate,
-} from "@/lib/api/admin-orders";
+import { updateOrderStatus, type AdminOrderUpdate } from "@/lib/api/admin-orders";
 import { ApiError } from "@/lib/api";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -89,9 +82,7 @@ export function OrderStatusControl({
   return (
     <div
       className={cn(
-        compact
-          ? "min-w-40"
-          : "rounded border border-rule/70 bg-surface p-gutter-sm",
+        compact ? "min-w-40" : "rounded border border-rule/70 bg-surface p-gutter-sm",
       )}
       aria-busy={saving}
     >

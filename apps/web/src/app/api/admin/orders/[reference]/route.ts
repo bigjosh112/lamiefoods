@@ -20,9 +20,12 @@ const bodySchema = z
     status: z.enum(ORDER_STATUSES).optional(),
     paymentStatus: z.literal("paid").optional(),
   })
-  .refine((value) => (value.status === undefined) !== (value.paymentStatus === undefined), {
-    message: "Provide exactly one of status or paymentStatus.",
-  });
+  .refine(
+    (value) => (value.status === undefined) !== (value.paymentStatus === undefined),
+    {
+      message: "Provide exactly one of status or paymentStatus.",
+    },
+  );
 
 /**
  * PATCH /api/admin/orders/:reference — the one write path the admin order
