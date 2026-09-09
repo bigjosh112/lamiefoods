@@ -12,9 +12,10 @@ import { FOOTER_COLUMNS } from "@/content/shop";
  * Links whose destination does not exist yet render as plain text rather than
  * as links to a 404 — see `FOOTER_COLUMNS`, where those carry `href: null`.
  *
- * Two deliberate departures from the design mock: the copyright uses "Lamie
- * Foods", not "Lamie Foods Enterprise" (the customer-facing name), and the
- * third-party studio credit is omitted because it cannot be verified.
+ * One deliberate departure from the design mock: the copyright uses "Lamie
+ * Foods", not "Lamie Foods Enterprise" (the customer-facing name). The
+ * "Website by Basil Studio" credit ships as plain text, not a link — the owner
+ * confirmed it but supplied no URL to link to.
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();

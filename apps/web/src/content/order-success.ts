@@ -1,4 +1,5 @@
 import { BRAND } from "@lamiefoods/config";
+import type { OrderStatus } from "@lamiefoods/types";
 
 /**
  * Copy for the order confirmation.
@@ -17,6 +18,19 @@ export const ORDER_SUCCESS = {
 
   statusLabel: "Kitchen status",
   statusValue: "Batch in progress",
+
+  /**
+   * Header for a REAL, just-placed order (`?token=`). Deliberately more modest
+   * than the preview copy above: payment is not connected, so nothing has been
+   * charged and the kitchen has not necessarily started — saying otherwise
+   * would be exactly the kind of claim this app does not make.
+   */
+  real: {
+    eyebrow: "Order received",
+    title: "Thank you — we have your order.",
+    body: "We've recorded your order and sent a confirmation to your email. We'll be in touch to confirm delivery and arrange payment.",
+    statusLabel: "Status",
+  },
 
   referenceLabel: "Order reference",
   itemsLabel: "Reserved delicacies",
@@ -40,7 +54,7 @@ export const ORDER_SUCCESS = {
 
   continueCta: "Continue shopping",
   receiptCta: "Download receipt (PDF)",
-  receiptNote: "Receipts become available once ordering is live.",
+  receiptNote: "Receipts become available once payment is connected.",
 
   community: {
     title: "Share your Lamie moment.",
@@ -61,13 +75,30 @@ export const ORDER_SUCCESS = {
    */
   preview: {
     title: "Preview — sample order",
-    body: "This is placeholder data so the layout can be reviewed. No order exists, nothing has been paid, and checkout does not yet submit. Real orders appear here once the ordering API and Paystack are connected.",
+    body: "This is placeholder data so the layout can be reviewed. No order exists and nothing has been paid. Real orders now save — see /order-success?token=… — but payment is still not connected.",
   },
 
-  /** What a visitor sees when there is no order to show, which is every real visit. */
+  /** What a visitor sees when the link has no token, or the token matches nothing. */
   none: {
     title: "No order to show",
-    body: "We could not find an order for this link. If you have just tried to check out, note that ordering is not live yet — nothing has been charged.",
+    body: "We could not find an order for this link. Check the link from your confirmation email, or start a new order from the shop.",
     cta: "Back to the shop",
   },
+
+  /** What shows if ordering itself is not configured (no DATABASE_URL yet). */
+  notConfigured: {
+    title: "Ordering is not connected yet",
+    body: "This order link cannot be looked up right now. Nothing has been charged. Please contact us directly if you need help with an order.",
+    cta: "Back to the shop",
+  },
+};
+
+/** Status copy for a REAL order, derived from its actual `OrderStatus`. */
+export const ORDER_STATUS_COPY: Record<OrderStatus, string> = {
+  pending: "Received — awaiting confirmation",
+  paid: "Payment confirmed",
+  processing: "Batch in progress",
+  shipped: "Out for delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
 };

@@ -1,39 +1,45 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getAdminSession } from "@/server/admin/session";
+import { isDatabaseConfigured } from "@/config/server-env";
 
 export const metadata: Metadata = {
   title: "Order detail",
   robots: { index: false, follow: false, nocache: true },
 };
 
+// Security-critical: never let this bake as a static build artifact. See
+// server/admin/session.ts for why relying on cookies() usage alone is
+// too fragile for a gate this important.
+export const dynamic = "force-dynamic";
+
 /**
- * One order.
+ * One order — real data now.
  *
- * Same gate as the rest of the portal, and for the sharpest reason yet: this
- * screen carries a customer's name, email, phone, full delivery address, gate
- * instructions and a courier's number. There is still no authentication
- * (GAP-009).
+ * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009). This
+ * screen carries a customer's name, email, phone, and full delivery address —
+ * the check runs before the dynamic import AND before the DB lookup, so
+ * nothing is read, let alone rendered, without a valid session.
  *
- * The check runs BEFORE the dynamic import, so neither the detail module nor
- * the order data is evaluated when the gate is closed — a `notFound()` in the
- * layout is not enough, because Next still renders the page and the data comes
- * back in the RSC payload of the 404.
- *
- * REMOVE ONLY in the same change that adds server-side session checking.
+ * The `[id]` segment holds the order's human REFERENCE (e.g. "LF-7K2QX4"),
+ * not its database id — safe here specifically because this lookup only
+ * happens after the session gate above; see
+ * `server/orders/repository.ts:getOrderByReferenceForAdmin`'s own comment.
  */
 export default async function AdminOrderDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  if (process.env.NODE_ENV !== "development") notFound();
+  if (!(await getAdminSession())) notFound();
+  if (!isDatabaseConfigured()) notFound();
 
   const { id } = await params;
-  const { buildOrderDetail, findOrderRow } = await import("@/content/admin-order-detail");
+  const { getOrderByReferenceForAdmin } = await import("@/server/orders/repository");
 
-  const row = findOrderRow(id);
-  if (!row) notFound();
+  const found = await getOrderByReferenceForAdmin(id);
+  if (!found) notFound();
 
   const { OrderDetailView } = await import("@/components/admin/order-detail-view");
-  return <OrderDetailView detail={buildOrderDetail(row)} />;
+  return <OrderDetailView order={found.order} />;
 }

@@ -33,7 +33,7 @@ Monorepo for the Lamie Foods product: a Next.js customer-facing web app plus a n
 7. After every completed task, append an entry to `docs/ai-memory/progress.md` (log-progress skill).
 8. Persist `/security-review` and `/code-review` findings into `docs/ai-memory/gaps.md` — findings must never vanish with the session.
 9. **Respect workspace boundaries.** Shared code belongs in `packages/*` (`config`, `types`, `ui`, `eslint-config`, `typescript-config`), not copied into an app. `apps/web` has its own `CLAUDE.md`/`AGENTS.md` for Next 16 specifics — read them before writing framework code.
-10. **Do not implement `apps/backend`** without checking in — it is owned by the backend developer. Capture its contract in `api-integration.md` before `apps/web` consumes anything.
+10. **The backend is Next.js Route Handlers in `apps/web/src/app/api/`**, not `apps/backend` — the owner overrode the original separate-backend plan on 2026-09-07 (see `architecture.md`). `apps/backend` is retired in place as a stub; do not add sources there without checking in again first. Every endpoint's contract is still recorded in `api-integration.md` before `apps/web` consumes it — that discipline didn't change, only where the server code lives.
 11. `save-exact=true` and npm install scripts stay enabled (see `.npmrc` for why). Audit every new dependency before adding it.
 
 ## Memory docs (read on demand — never inline their content here)

@@ -4,14 +4,11 @@ import Link from "next/link";
 import { ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
 import { ButtonLink } from "@/components/ui/button";
-import { ArrowRightIcon, CheckIcon, ICONS, TruckIcon } from "@/components/ui/icons";
+import { ArrowRightIcon, CheckIcon, ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { CART } from "@/content/cart";
-import { formatKobo, naira } from "@/lib/money";
+import { formatKobo } from "@/lib/money";
 import { MAX_QUANTITY, useCart, useCartActions } from "@/lib/cart/use-cart";
-
-/** UNVERIFIED — the mock's free-delivery threshold. See GAP-007. */
-const FREE_DELIVERY_THRESHOLD = naira(15000);
 
 export function CartView() {
   const { items, count, subtotal, isEmpty } = useCart();
@@ -19,38 +16,8 @@ export function CartView() {
 
   if (isEmpty) return <EmptyBag />;
 
-  const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal);
-  const progress = Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100);
-
   return (
     <>
-      <div className="mb-gutter-lg flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
-        <p className="flex items-center gap-gutter-xs text-body-sm text-on-surface-variant">
-          <TruckIcon className="h-4 w-4 shrink-0 text-terracotta" />
-          {remaining > 0 ? (
-            <span>
-              You are <strong className="text-terracotta">{formatKobo(remaining)}</strong>{" "}
-              away from complimentary Lagos doorstep delivery.
-            </span>
-          ) : (
-            <span>Complimentary Lagos doorstep delivery unlocked.</span>
-          )}
-        </p>
-        <div
-          className="h-1.5 w-full max-w-56 overflow-hidden rounded-sm bg-rule/50"
-          role="progressbar"
-          aria-valuenow={Math.round(progress)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Progress toward free delivery"
-        >
-          <div
-            className="h-full rounded-sm bg-terracotta transition-[width] duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
       <div className="grid gap-gutter-lg lg:grid-cols-12">
         <div className="lg:col-span-8">
           <div className="hidden border-b border-rule/70 pb-2 font-label text-label-sm text-nutmeg uppercase lg:grid lg:grid-cols-12">
@@ -61,83 +28,74 @@ export function CartView() {
           </div>
 
           <ul>
-            {items.map(({ line, product, packNote, unitPrice, lineTotal }) => (
-              <li
-                key={`${line.slug}-${line.pack}`}
-                className="mt-gutter-sm grid items-center gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm lg:grid-cols-12"
-              >
-                <div className="flex items-start gap-gutter-sm lg:col-span-6">
-                  <div className="relative aspect-square w-20 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
-                    <ImageSlot slot={product.image} sizes="80px" />
+            {items.map(({ line, product, unitPrice, lineTotal }) => {
+              const hero =
+                product.images.find((image) => image.role === "hero") ??
+                product.images[0];
+              return (
+                <li
+                  key={`${line.slug}-${line.pack}`}
+                  className="mt-gutter-sm grid items-center gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm lg:grid-cols-12"
+                >
+                  <div className="flex items-start gap-gutter-sm lg:col-span-6">
+                    <div className="relative aspect-square w-20 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
+                      <ImageSlot
+                        slot={{
+                          src: hero?.url ?? null,
+                          alt: hero?.alt ?? product.name,
+                          note: "Product photography",
+                        }}
+                        sizes="80px"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-headline-sm text-cacao">
+                        <Link
+                          href={ROUTES.product(product.slug)}
+                          className="transition-colors hover:text-terracotta"
+                        >
+                          {product.name}
+                        </Link>
+                      </h2>
+                      <p className="text-body-sm text-on-surface-variant">
+                        Size: {line.pack}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-label text-label-sm text-tertiary uppercase">
-                      {product.kicker}
-                    </p>
-                    <h2 className="text-headline-sm text-cacao">
-                      <Link
-                        href={ROUTES.product(product.slug)}
-                        className="transition-colors hover:text-terracotta"
-                      >
-                        {product.name}
-                      </Link>
-                    </h2>
-                    <p className="text-body-sm text-on-surface-variant">
-                      Size: {line.pack}
-                    </p>
-                    <p className="text-body-sm text-nutmeg">{packNote}</p>
-                  </div>
-                </div>
 
-                <p className="font-label text-label-md text-on-surface-variant lg:col-span-2">
-                  <span className="text-nutmeg lg:hidden">Unit price: </span>
-                  {formatKobo(unitPrice)}
-                </p>
-
-                <div className="lg:col-span-2">
-                  <QuantityStepper
-                    label={`${product.name}, ${line.pack}`}
-                    quantity={line.quantity}
-                    onChange={(next) => setQuantity(line.slug, line.pack, next)}
-                  />
-                </div>
-
-                <div className="lg:col-span-2 lg:text-right">
-                  <p className="font-label text-label-md text-terracotta">
-                    {formatKobo(lineTotal)}
+                  <p className="font-label text-label-md text-on-surface-variant lg:col-span-2">
+                    <span className="text-nutmeg lg:hidden">Unit price: </span>
+                    {formatKobo(unitPrice)}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => removeLine(line.slug, line.pack)}
-                    className="mt-1 inline-flex min-h-9 items-center text-body-sm text-nutmeg transition-colors hover:text-error"
-                  >
-                    Remove
-                    <span className="sr-only">
-                      {" "}
-                      {product.name}, {line.pack}, from bag
-                    </span>
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
 
-          <div className="mt-gutter-md flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface-container p-gutter-sm">
-            <div className="flex items-start gap-gutter-sm">
-              <ICONS.gift className="mt-0.5 h-5 w-5 shrink-0 text-terracotta" />
-              <div>
-                <h2 className="text-body-md font-semibold text-cacao">
-                  {CART.giftPackaging.title}
-                </h2>
-                <p className="max-w-md text-body-sm text-on-surface-variant">
-                  {CART.giftPackaging.body}
-                </p>
-              </div>
-            </div>
-            <span className="rounded-sm bg-primary-container px-2 py-1 font-label text-label-sm text-linen uppercase">
-              {CART.giftPackaging.badge}
-            </span>
-          </div>
+                  <div className="lg:col-span-2">
+                    <QuantityStepper
+                      label={`${product.name}, ${line.pack}`}
+                      quantity={line.quantity}
+                      onChange={(next) => setQuantity(line.slug, line.pack, next)}
+                    />
+                  </div>
+
+                  <div className="lg:col-span-2 lg:text-right">
+                    <p className="font-label text-label-md text-terracotta">
+                      {formatKobo(lineTotal)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => removeLine(line.slug, line.pack)}
+                      className="mt-1 inline-flex min-h-9 items-center text-body-sm text-nutmeg transition-colors hover:text-error"
+                    >
+                      Remove
+                      <span className="sr-only">
+                        {" "}
+                        {product.name}, {line.pack}, from bag
+                      </span>
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
 
           <ul className="mt-gutter-md grid gap-gutter-xs sm:grid-cols-3">
             {CART.assurances.map((item) => {
@@ -158,21 +116,13 @@ export function CartView() {
           </ul>
         </div>
 
-        <OrderSummary count={count} subtotal={subtotal} remaining={remaining} />
+        <OrderSummary count={count} subtotal={subtotal} />
       </div>
     </>
   );
 }
 
-function OrderSummary({
-  count,
-  subtotal,
-  remaining,
-}: {
-  count: number;
-  subtotal: number;
-  remaining: number;
-}) {
+function OrderSummary({ count, subtotal }: { count: number; subtotal: number }) {
   return (
     <aside className="lg:col-span-4">
       <div className="rounded border border-rule/70 bg-surface-container p-inset-card">
@@ -208,13 +158,6 @@ function OrderSummary({
             {CART.summary.totalNote}
           </p>
         </div>
-
-        {remaining > 0 && (
-          <p className="mt-gutter-md flex items-start gap-gutter-xs rounded border border-rule/70 bg-surface p-gutter-sm text-body-sm text-on-surface-variant">
-            <ICONS.seal className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
-            {CART.summary.freeDeliveryNote}
-          </p>
-        )}
 
         <ButtonLink href={ROUTES.checkout} className="mt-gutter-md w-full">
           Proceed to checkout

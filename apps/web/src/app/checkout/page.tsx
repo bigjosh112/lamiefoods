@@ -7,8 +7,16 @@ import { ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { CHECKOUT } from "@/content/checkout";
-import { PRODUCTS } from "@/content/products";
 import { buildMetadata } from "@/lib/seo";
+import { isDatabaseConfigured } from "@/config/server-env";
+import { listPublishedProducts } from "@/server/products/repository";
+import { CatalogProvider } from "@/lib/products/catalog-context";
+
+// See the identical comment in app/cart/page.tsx: a raw Postgres read isn't a
+// Next Request-time API, so this must opt into revalidation explicitly or it
+// would bake stale prices at build time forever. Cosmetic staleness only —
+// the actual charge is always the server re-price at order creation.
+export const revalidate = 60;
 
 export const metadata: Metadata = buildMetadata({
   title: "Checkout",
@@ -21,19 +29,19 @@ export const metadata: Metadata = buildMetadata({
 /**
  * Guest checkout.
  *
- * Form validation and the order summary are real. Placing the order is not:
- * there is no API contract for it and no Paystack integration, so the submit
- * path says so plainly rather than faking a redirect to a payment page.
- *
- * When the backend contract lands, record it in `docs/ai-memory/api-integration.md`
- * first, then wire `lib/api` — the details are already shaped as `CustomerDetails`
- * from `@lamiefoods/types`, so nothing here needs to be reshaped.
+ * Form validation, the order summary and placing the order are all real —
+ * see `checkout-form.tsx` and `docs/ai-memory/api-integration.md`. Payment
+ * itself happens on `/order-success`, not here (see that page's design
+ * decision) — this page's only job is collecting details and creating the
+ * order record.
  */
-export default function CheckoutPage() {
-  const guaranteeImage = PRODUCTS[0]?.image;
+export default async function CheckoutPage() {
+  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+  const guaranteeImage =
+    products[0]?.images.find((image) => image.role === "hero") ?? products[0]?.images[0];
 
   return (
-    <>
+    <CatalogProvider products={products}>
       <SiteHeader />
 
       <main id="main">
@@ -85,7 +93,14 @@ export default function CheckoutPage() {
           <div className="mt-gutter-md flex flex-wrap items-center gap-gutter-md rounded border border-rule/70 bg-surface-container-low p-inset-card">
             {guaranteeImage && (
               <div className="relative aspect-square w-20 shrink-0 overflow-hidden rounded border border-rule/70">
-                <ImageSlot slot={guaranteeImage} sizes="80px" />
+                <ImageSlot
+                  slot={{
+                    src: guaranteeImage.url,
+                    alt: guaranteeImage.alt,
+                    note: "Product photography",
+                  }}
+                  sizes="80px"
+                />
               </div>
             )}
             <div className="min-w-64 flex-1">
@@ -101,6 +116,6 @@ export default function CheckoutPage() {
       </main>
 
       <SiteFooter />
-    </>
+    </CatalogProvider>
   );
 }

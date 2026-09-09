@@ -1,37 +1,27 @@
 # @lamiefoods/backend
 
-Reserved workspace for the Lamie Foods API. **Owned by the backend developer** —
-the frontend work in this repo does not implement it.
+**Retired in place, 2026-09-07.** This workspace was reserved for a separately
+owned backend; the owner overrode that plan (see `docs/ai-memory/architecture.md`
+decision log) and the API now lives in `apps/web/src/app/api/` as Next.js Route
+Handlers, in the same app and the same deploy. See `apps/web/src/lib/api/README.md`
+for how it's structured, and `docs/ai-memory/api-integration.md` for the recorded
+contract.
 
-Nothing here is implemented on purpose. The scripts are no-op stubs so
-`turbo run build|lint|typecheck` succeeds across the whole monorepo today and
-starts exercising this workspace the moment real sources land.
+This workspace is kept — not deleted — as a placeholder so the scripts stay
+no-op stubs and `turbo run build|lint|typecheck` stays green. **Do not build
+anything here.** If server-side logic outgrows `apps/web` later (a genuinely
+separate service, a different deploy cadence), that is a new decision to make
+deliberately, not a default to drift back into.
 
-## Scope (backend developer)
+## Where things actually are now
 
-Database, server-side business logic, API implementation, authentication,
-order processing, Paystack payment verification, inventory persistence,
-customer data persistence, admin authorization.
+| Was going to live here | Actually lives at |
+|---|---|
+| API routes | `apps/web/src/app/api/` |
+| DB access | `apps/web/src/server/db/`, `apps/web/src/server/orders/` |
+| Server secrets | `apps/web/src/config/server-env.ts` (guarded with `server-only`) |
+| Email sending | `apps/web/src/server/email/` |
+| DB schema | `apps/web/migrations/` (plain SQL, plain Postgres — Supabase today, Railway later) |
 
-## What the frontend needs from you
-
-The frontend cannot be wired to real data until the API contract exists. When
-you are ready, please supply:
-
-1. Base URL(s) per environment.
-2. Endpoint list with method, path, request shape and response shape.
-3. Error shape and status-code conventions.
-4. Auth scheme for the admin routes (the frontend prefers httpOnly cookies over
-   tokens in `localStorage`).
-5. The Paystack flow: which side initialises the transaction, what the frontend
-   receives, and how verification is confirmed.
-6. Pagination and filtering conventions for list endpoints.
-
-`packages/types` holds the frontend's **provisional** understanding of the
-domain. It is a starting point for discussion, not a contract — where your
-implementation differs, your implementation wins and we update the package.
-
-## Freedom of choice
-
-The stack here is deliberately unchosen. Any runtime works as long as the
-contract is documented. Replace this README and the stub scripts when you start.
+`packages/types` holds the domain shapes; `Order`/`OrderItem` are backed by a
+real schema now, not just provisional guesses.

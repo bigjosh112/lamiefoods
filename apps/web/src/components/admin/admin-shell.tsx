@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ADMIN_ROUTES, BRAND, ROUTES } from "@lamiefoods/config";
 import { ICONS } from "@/components/ui/icons";
-import { ADMIN_USER } from "@/content/admin-dashboard";
+import { SignOutButton } from "./sign-out-button";
 import { AdminNav } from "./admin-nav";
 
 /**
@@ -16,8 +16,9 @@ import { AdminNav } from "./admin-nav";
  * Below `lg` it reverts to normal document flow with the nav as a horizontal
  * scroller. Pinning chrome on a phone eats the viewport.
  *
- * Every nav item except Dashboard points at a route that does not exist yet, so
- * they render disabled rather than as links to a 404.
+ * Dashboard, Orders, Products, Customers, Inventory and Settings are all real
+ * routes now (`ADMIN_NAV_SECTIONS`' `BUILT_ROUTES` in `admin-nav.tsx`); only
+ * routes with no page behind them still render disabled.
  */
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
@@ -91,15 +92,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               >
                 <ICONS.people className="h-4 w-4" />
               </span>
-              <span className="hidden sm:block">
-                <span className="block text-body-sm leading-tight text-cacao">
-                  {ADMIN_USER.name}
-                </span>
-                <span className="block text-body-sm leading-tight text-nutmeg">
-                  {ADMIN_USER.location}
-                </span>
-              </span>
+              {/* No stored admin profile exists beyond one shared credential
+                  (Q21 — no team accounts), so "Signed in" is all that's true
+                  to show — never a fabricated name. */}
+              <span className="hidden text-body-sm text-cacao sm:block">Signed in</span>
             </span>
+
+            <SignOutButton className="inline-flex min-h-11 items-center gap-gutter-xs rounded border border-rule/70 bg-surface-container-low px-gutter-sm text-body-sm text-on-surface-variant transition-colors hover:text-error" />
           </div>
         </header>
 
@@ -114,8 +113,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Signed-in operator. Sample only — nobody is signed in, because there is no
- * authentication, so sign-out is disabled: there is no session to end.
+ * Signed-in operator. There is one shared credential, not a per-user
+ * profile (Q21 — no team accounts), so this shows a real session state
+ * rather than a fabricated name — and a real, working sign-out.
  */
 function OperatorCard({ className }: { className?: string }) {
   return (
@@ -127,21 +127,13 @@ function OperatorCard({ className }: { className?: string }) {
         >
           <ICONS.people className="h-4 w-4" />
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-body-sm leading-tight font-semibold text-cacao">
-            {ADMIN_USER.name}
-          </span>
-          <span className="block text-body-sm leading-tight text-nutmeg">
-            {ADMIN_USER.location}
-          </span>
+        <span className="min-w-0 flex-1 text-body-sm leading-tight font-semibold text-cacao">
+          Signed in
         </span>
-        <span
-          aria-disabled="true"
-          title="No session to sign out of"
-          className="inline-flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center text-nutmeg/70"
-        >
-          <ICONS.signOut className="h-4 w-4" />
-        </span>
+        <SignOutButton
+          iconOnly
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center text-nutmeg transition-colors hover:text-error"
+        />
       </div>
     </div>
   );

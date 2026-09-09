@@ -1,5 +1,4 @@
 import { DELIVERY, ROUTES } from "@lamiefoods/config";
-import { PRODUCTS } from "./products";
 
 /**
  * Copy for the shop page. Products themselves come from `products.ts`.
@@ -23,20 +22,27 @@ export const SHOP = {
  * Category filters. Only Chinchin has stock; the other two are announced but
  * not orderable, so they are shown as disabled with their real status rather
  * than as tabs that filter to an empty grid.
+ *
+ * `count` used to be `PRODUCTS.length` from the static catalogue; products
+ * now live in Postgres, so it's built from the real published count instead
+ * (`buildShopFilters`, called by `/shop`'s Server Component with what
+ * `listPublishedProducts()` actually returned).
  */
-export const SHOP_FILTERS = [
-  { id: "all", label: "All", count: PRODUCTS.length, status: null },
-  { id: "chinchin", label: "Chinchin", count: PRODUCTS.length, status: null },
-  { id: "gift-sets", label: "Gift sets", count: 0, status: "Coming soon" },
-  {
-    id: "packaged-foods",
-    label: "Packaged foods",
-    count: 0,
-    status: "In development",
-  },
-] as const;
+export function buildShopFilters(publishedCount: number) {
+  return [
+    { id: "all", label: "All", count: publishedCount, status: null },
+    { id: "chinchin", label: "Chinchin", count: publishedCount, status: null },
+    { id: "gift-sets", label: "Gift sets", count: 0, status: "Coming soon" },
+    {
+      id: "packaged-foods",
+      label: "Packaged foods",
+      count: 0,
+      status: "In development",
+    },
+  ] as const;
+}
 
-export type ShopFilterId = (typeof SHOP_FILTERS)[number]["id"];
+export type ShopFilterId = ReturnType<typeof buildShopFilters>[number]["id"];
 
 export const ATELIER_LAB = {
   eyebrow: "What's coming next",
@@ -82,22 +88,23 @@ export const ASSURANCES = [
  * text instead of links, because a footer full of 404s is worse than one that
  * is honest about what has shipped. Fill in the href as each page lands.
  *
- * The Shop column lists the real catalogue rather than the mock's invented
- * product names, so it can never advertise something the brand does not sell.
+ * The Shop column links to the real shop page rather than listing individual
+ * product names: those now live in Postgres and can change (new flavours,
+ * discontinued ones) without a code deploy, and `SiteFooter` renders on
+ * every page — hardcoding names here would drift from the catalogue exactly
+ * the way the old static-content version eventually would have.
  */
 export const FOOTER_COLUMNS = [
   {
     title: "Shop",
     links: [
-      ...PRODUCTS.map((product) => ({
-        label: product.name.replace(" Chinchin", ""),
-        href: null,
-      })),
+      { label: "Shop Chinchin", href: ROUTES.shop },
       /*
         "Gift Jars & Bundles" was removed on 2026-09-08. The owner states the
-        brand sells pouches only, in three sizes — so a jar listing advertised a
-        format that does not exist. The catalogue was corrected on the same day
-        (100g / 300g / 500g pouches), closing GAP-011.
+        brand sells pouches only, in three sizes, so a jar listing advertised a
+        format that does not exist. The per-flavour links that used to sit here
+        came from the static catalogue and went with it — the shop link covers
+        them now that products are database-backed.
       */
     ],
   },
@@ -135,20 +142,23 @@ export const FOOTER_COLUMNS = [
 /**
  * Promotional bar above the header on the product page.
  *
- * UNVERIFIED and commercially binding: the mock invented a free-delivery
- * threshold. The owner has never quoted a delivery fee, let alone a waiver, and
- * publishing an offer customers could hold you to is worse than publishing a
- * wrong tasting note. Confirm or remove before this page is public.
+ * REMOVED: a free-delivery offer with an invented ₦15,000 threshold. The owner
+ * has never quoted a delivery fee, let alone a waiver (see Q16 in the brand
+ * questionnaire — delivery pricing is still being worked out), and publishing
+ * an offer customers could hold the business to is worse than a wrong tasting
+ * note.
  */
 export const ANNOUNCEMENT = {
-  items: ["Free Lagos delivery on orders over ₦15,000", "Freshly made in small batches"],
+  items: ["Freshly made in small batches"],
 };
 
 /**
  * The three promises beside the buy button.
  *
- * Delivery window and Paystack are CONFIRMED facts. The freshness claim is
- * UNVERIFIED mock copy.
+ * Delivery window is a CONFIRMED fact. The freshness claim is UNVERIFIED mock
+ * copy. Paystack is deliberately NOT claimed here: there is no Paystack account
+ * yet (owner confirmed), so "secure Paystack checkout" would be false — see
+ * checkout, where payment is honestly disabled instead.
  */
 export const PRODUCT_ASSURANCES = [
   {
@@ -156,8 +166,8 @@ export const PRODUCT_ASSURANCES = [
     label: `Fast nationwide delivery (${DELIVERY.minDays}–${DELIVERY.maxDays} business days)`,
   },
   {
-    icon: "shield" as const,
-    label: "Secure Paystack checkout with Nigerian debit card, USSD or bank transfer",
+    icon: "mail" as const,
+    label: "Order confirmation sent straight to your email",
   },
   {
     icon: "seal" as const,

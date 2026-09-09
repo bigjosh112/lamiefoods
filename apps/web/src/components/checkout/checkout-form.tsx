@@ -1,21 +1,29 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { cn } from "@lamiefoods/ui";
+import type { PaymentMethod } from "@lamiefoods/types";
 import { Button } from "@/components/ui/button";
-import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
+import { ArrowRightIcon, CheckIcon, ICONS } from "@/components/ui/icons";
 import { CHECKOUT, NIGERIAN_STATES } from "@/content/checkout";
 import {
   checkoutSchema,
   toCustomerDetails,
   type CheckoutInput,
 } from "@/lib/checkout/schema";
-import { useCart } from "@/lib/cart/use-cart";
+import { useCart, useCartActions } from "@/lib/cart/use-cart";
+import { createOrder } from "@/lib/api/orders";
+import { ApiError } from "@/lib/api";
+import { ROUTES } from "@lamiefoods/config";
+
+type SubmitStatus = "idle" | "submitting" | "error" | "success";
 
 /**
- * Guest checkout form: react-hook-form driving the zod schema.
+ * Guest checkout form: react-hook-form driving the zod schema, then a real
+ * order submission — no account is created or required (Q12/Q13).
  *
  * The resolver keeps one definition of what "valid" means, shared with
  * `toCustomerDetails`, so the form can never accept something the domain type
@@ -23,15 +31,20 @@ import { useCart } from "@/lib/cart/use-cart";
  * has failed — correcting a mistake gives immediate feedback, but you are not
  * scolded while first typing.
  *
- * Submission is deliberately NOT implemented. There is no API contract for
- * placing an order and no Paystack integration, so a valid submit says exactly
- * that rather than faking a redirect to a payment page. Inventing that flow
- * would mean guessing request shapes the backend has not defined and — far
- * worse — implying to a customer that money had moved.
+ * Payment method is chosen here but never ACTED on here — actually paying
+ * happens on `/order-success`, once the order exists, since that page is
+ * where a retry or a method switch also needs to work. This form's only job
+ * is "create the order, redirect." All four required UI states are here —
+ * loading, error with retry, empty, success — per
+ * `docs/ai-memory/api-integration.md`.
  */
 export function CheckoutForm() {
-  const [submitted, setSubmitted] = useState(false);
-  const { isEmpty } = useCart();
+  const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const { isEmpty, lines } = useCart();
+  const { clearCart } = useCartActions();
+  const router = useRouter();
   const formId = useId();
 
   const {
@@ -53,12 +66,28 @@ export function CheckoutForm() {
     },
   });
 
-  const onValid = (values: CheckoutInput) => {
-    // Where the order would be created. The details are already shaped as
-    // `CustomerDetails` from @lamiefoods/types, so nothing needs reshaping when
-    // the endpoint lands — see docs/ai-memory/api-integration.md.
-    void toCustomerDetails(checkoutSchema.parse(values));
-    setSubmitted(true);
+  const onValid = async (values: CheckoutInput) => {
+    if (isEmpty) return;
+
+    const customer = toCustomerDetails(checkoutSchema.parse(values));
+    setStatus("submitting");
+    setErrorMessage(null);
+
+    try {
+      const { token } = await createOrder(customer, lines, paymentMethod);
+      // Cleared only on confirmed success — a failed submit must leave the bag
+      // intact so the customer is not asked to rebuild it.
+      clearCart();
+      setStatus("success");
+      router.push(`${ROUTES.orderSuccess}?token=${encodeURIComponent(token)}`);
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof ApiError
+          ? "We could not save your order. Nothing has been charged — please try again."
+          : "Something went wrong. Nothing has been charged — please try again.",
+      );
+    }
   };
 
   const fieldId = (name: keyof CheckoutInput) => `${formId}-${name}`;
@@ -167,9 +196,38 @@ export function CheckoutForm() {
         </div>
       </Fieldset>
 
+      <Fieldset
+        index={3}
+        step={CHECKOUT.paymentMethod.step}
+        title={CHECKOUT.paymentMethod.title}
+      >
+        <div
+          className="grid gap-gutter-xs sm:grid-cols-2"
+          role="radiogroup"
+          aria-label={CHECKOUT.paymentMethod.title}
+        >
+          <PaymentMethodOption
+            selected={paymentMethod === "paystack"}
+            onSelect={() => setPaymentMethod("paystack")}
+            label={CHECKOUT.paymentMethod.paystack.label}
+            note={CHECKOUT.paymentMethod.paystack.note}
+          />
+          <PaymentMethodOption
+            selected={paymentMethod === "whatsapp_transfer"}
+            onSelect={() => setPaymentMethod("whatsapp_transfer")}
+            label={CHECKOUT.paymentMethod.whatsappTransfer.label}
+            note={CHECKOUT.paymentMethod.whatsappTransfer.note}
+          />
+        </div>
+      </Fieldset>
+
       <div>
-        <Button type="submit" className="w-full" disabled={isEmpty}>
-          {CHECKOUT.summary.cta}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isEmpty || status === "submitting"}
+        >
+          {status === "submitting" ? "Placing your order…" : CHECKOUT.summary.cta}
           <ArrowRightIcon className="h-4 w-4" />
         </Button>
 
@@ -179,12 +237,16 @@ export function CheckoutForm() {
           className="mt-gutter-xs text-body-sm text-on-surface-variant"
         >
           {isEmpty && <p>Your bag is empty — add something before checking out.</p>}
-          {submitted && !isEmpty && (
+          {status === "error" && !isEmpty && (
+            <p className="rounded border border-error/40 bg-error/10 p-gutter-sm text-error">
+              <strong>{errorMessage}</strong>
+            </p>
+          )}
+          {(status === "submitting" || status === "success") && !isEmpty && (
             <p className="rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
-              <strong className="text-cacao">Your details are valid.</strong> Payment is
-              not connected yet, so no order has been placed and nothing has been charged.
-              Once the ordering API and Paystack keys are in place, this button will take
-              you to the payment page.
+              {status === "submitting"
+                ? "Saving your order…"
+                : "Order saved — taking you to your confirmation."}
             </p>
           )}
         </div>
@@ -198,6 +260,49 @@ const inputClasses = (invalid: boolean) =>
     "mt-1 min-h-11 w-full rounded border bg-[#f8f3ec] px-3 text-body-md text-cacao placeholder:text-nutmeg/70 focus:outline-none",
     invalid ? "border-error focus:border-error" : "border-rule focus:border-terracotta",
   );
+
+/** Same visual pattern as the pack-size selector on the product page
+ *  (`product-purchase.tsx`) — a radio card, not a native `<select>`, since
+ *  there are only ever two options and both benefit from a visible note. */
+function PaymentMethodOption({
+  selected,
+  onSelect,
+  label,
+  note,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  label: string;
+  note: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={cn(
+        "rounded border p-gutter-sm text-left transition-colors",
+        selected
+          ? "border-terracotta bg-secondary-container/40"
+          : "border-rule bg-surface hover:border-cacao",
+      )}
+    >
+      <span className="flex items-start justify-between gap-gutter-xs">
+        <span className="font-label text-label-md text-cacao">{label}</span>
+        {selected && (
+          <span
+            aria-hidden="true"
+            className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-terracotta text-linen"
+          >
+            <CheckIcon className="h-3 w-3" />
+          </span>
+        )}
+      </span>
+      <span className="mt-1 block text-body-sm text-on-surface-variant">{note}</span>
+    </button>
+  );
+}
 
 function Fieldset({
   index,

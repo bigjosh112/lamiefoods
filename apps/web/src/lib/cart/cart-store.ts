@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { Kobo } from "@lamiefoods/types";
-import { findPack, findProduct, type Product } from "@/content/products";
-import { sumKobo } from "@/lib/money";
+import type { Kobo, Product } from "@lamiefoods/types";
+import { applyDiscount, sumKobo } from "@/lib/money";
 
 /**
  * The shopping bag, as a zustand store.
@@ -17,8 +16,9 @@ import { sumKobo } from "@/lib/money";
  * starts empty on both sides and `CartHydration` rehydrates it after mount.
  *
  * Only `{slug, pack, quantity}` is persisted. Names, prices and images are
- * looked up from the catalogue on read, so a price change can never be served
- * from a stale copy sitting in someone's browser.
+ * looked up from the catalogue on read (`resolveLines`, below), so a price or
+ * discount change can never be served from a stale copy sitting in someone's
+ * browser.
  */
 export interface CartLine {
   slug: string;
@@ -43,7 +43,18 @@ interface CartState {
 const clampQuantity = (value: number) =>
   Math.min(MAX_QUANTITY, Math.max(1, Math.trunc(value)));
 
-/** Drop anything that no longer matches the catalogue or is malformed. */
+/**
+ * Structural validation only — shape and type, nothing catalogue-aware.
+ *
+ * This used to also check a line's product/pack still existed in the
+ * catalogue, back when the catalogue was a static import available
+ * synchronously at rehydration time. Products now live in Postgres, and
+ * rehydration (zustand's `persist` `merge`) runs before any React render, so
+ * no catalogue fetch could possibly have resolved yet — there's nothing to
+ * check against here. `resolveLines()` below is the real safety net: it
+ * already drops any line whose product/pack no longer resolves, the exact
+ * behaviour a since-removed product always needed anyway.
+ */
 function sanitise(raw: unknown): CartLine[] {
   if (!Array.isArray(raw)) return [];
 
@@ -51,11 +62,9 @@ function sanitise(raw: unknown): CartLine[] {
   for (const entry of raw) {
     if (typeof entry !== "object" || entry === null) continue;
     const { slug, pack, quantity } = entry as Partial<CartLine>;
-    if (typeof slug !== "string" || typeof pack !== "string") continue;
+    if (typeof slug !== "string" || !slug) continue;
+    if (typeof pack !== "string" || !pack) continue;
     if (typeof quantity !== "number" || !Number.isFinite(quantity)) continue;
-
-    const product = findProduct(slug);
-    if (!product || !findPack(product, pack)) continue;
 
     lines.push({ slug, pack, quantity: clampQuantity(quantity) });
   }
@@ -138,24 +147,31 @@ export const useCartStore = create<CartState>()(
 export interface ResolvedLine {
   line: CartLine;
   product: Product;
-  packNote: string;
+  /** Already discount-adjusted — never the pre-discount price. */
   unitPrice: Kobo;
   lineTotal: Kobo;
 }
 
-/** Resolve lines against the catalogue, skipping anything since removed. */
-export function resolveLines(lines: CartLine[]): ResolvedLine[] {
+/**
+ * Resolve lines against a catalogue, skipping anything since removed or
+ * unpublished. `catalog` comes from `useCatalog()` (React context, populated
+ * by a Server Component page fetching `listPublishedProducts()`) — see
+ * `lib/products/catalog-context.tsx` for why this isn't a static import or a
+ * client-side fetch.
+ */
+export function resolveLines(lines: CartLine[], catalog: Product[]): ResolvedLine[] {
   return lines.flatMap((line) => {
-    const product = findProduct(line.slug);
-    const pack = product && findPack(product, line.pack);
+    const product = catalog.find((candidate) => candidate.slug === line.slug);
+    const pack = product?.packs.find((candidate) => candidate.name === line.pack);
     if (!product || !pack) return [];
+
+    const unitPrice = applyDiscount(pack.price.amount, product.discountPercent);
     return [
       {
         line,
         product,
-        packNote: pack.note,
-        unitPrice: pack.price,
-        lineTotal: pack.price * line.quantity,
+        unitPrice,
+        lineTotal: unitPrice * line.quantity,
       },
     ];
   });

@@ -36,31 +36,41 @@ export function CheckoutSummary() {
         </p>
       ) : (
         <ul className="mt-gutter-md space-y-3">
-          {items.map(({ line, product, unitPrice, lineTotal }) => (
-            <li
-              key={`${line.slug}-${line.pack}`}
-              className="flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-xs"
-            >
-              <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
-                <ImageSlot slot={product.image} sizes="56px" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-gutter-xs">
-                  <p className="text-body-md font-semibold text-cacao">{product.name}</p>
-                  <p className="shrink-0 font-label text-label-md text-terracotta">
-                    {formatKobo(lineTotal)}
+          {items.map(({ line, product, unitPrice, lineTotal }) => {
+            const hero =
+              product.images.find((image) => image.role === "hero") ?? product.images[0];
+            return (
+              <li
+                key={`${line.slug}-${line.pack}`}
+                className="flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-xs"
+              >
+                <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
+                  <ImageSlot
+                    slot={{
+                      src: hero?.url ?? null,
+                      alt: hero?.alt ?? product.name,
+                      note: "Product photography",
+                    }}
+                    sizes="56px"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-gutter-xs">
+                    <p className="text-body-md font-semibold text-cacao">
+                      {product.name}
+                    </p>
+                    <p className="shrink-0 font-label text-label-md text-terracotta">
+                      {formatKobo(lineTotal)}
+                    </p>
+                  </div>
+                  <p className="text-body-sm text-on-surface-variant">{line.pack}</p>
+                  <p className="text-body-sm text-nutmeg">
+                    Quantity: {line.quantity} · {formatKobo(unitPrice)} each
                   </p>
                 </div>
-                <p className="text-body-sm text-on-surface-variant">{line.pack}</p>
-                <p className="text-body-sm text-nutmeg">
-                  Quantity: {line.quantity} · {formatKobo(unitPrice)} each
-                </p>
-                <p className="mt-1 font-label text-label-sm text-tertiary uppercase">
-                  {product.crunch.label}
-                </p>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -100,19 +110,9 @@ export function CheckoutSummary() {
         <p className="font-label text-label-sm text-cacao uppercase">
           {CHECKOUT.summary.paymentTitle}
         </p>
-        <ul className="mt-gutter-xs flex flex-wrap gap-gutter-xs">
-          {CHECKOUT.summary.methods.map((method) => (
-            <li
-              key={method}
-              className="rounded-sm border border-rule/70 bg-surface-container-low px-2 py-1 font-label text-label-sm text-cacao"
-            >
-              {method}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-gutter-sm flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg">
-          <ICONS.shield className="h-4 w-4 text-terracotta" />
-          {CHECKOUT.summary.gateway}
+        <p className="mt-gutter-xs flex items-start gap-gutter-xs text-body-sm text-on-surface-variant">
+          <ICONS.shield className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
+          {CHECKOUT.summary.paymentNote}
         </p>
       </div>
 

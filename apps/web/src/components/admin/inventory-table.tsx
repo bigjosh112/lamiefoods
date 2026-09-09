@@ -1,43 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
+import type { Product } from "@lamiefoods/types";
+import { ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
-import type {
-  InventoryFilter,
-  InventoryLine,
-  StockStatus,
-} from "@/content/admin-inventory";
-
-/**
- * Stock table with filter tabs.
- *
- * The tabs are real client state — filtering an already-loaded list is a UI
- * concern that works fine without a backend, and it is what makes the counts
- * meaningful to check.
- *
- * Quick adjustment is deliberately disabled. It is a write to authoritative
- * business data, and letting the number move on screen without saving it
- * anywhere is worse than not offering the control: the operator would walk away
- * believing the count had been corrected. Same reasoning as the disabled write
- * controls on the products and orders screens.
- *
- * Lines arrive as PROPS. A client component's imports are bundled into client
- * JavaScript, so importing the data module would ship internal stock levels
- * into a downloadable chunk, past the server-side gate (see GAP-009).
- */
-const COLUMNS = [
-  "Item",
-  "SKU",
-  "Category",
-  "Pack",
-  "Available",
-  "Threshold",
-  "Status",
-  "Last batch",
-  "Adjust",
-];
+import { STATUS_LABEL, stockStatus, type StockStatus } from "@/lib/admin/stock-status";
 
 const STATUS_STYLES: Record<StockStatus, string> = {
   "in-stock": "bg-secondary-container text-on-secondary-fixed",
@@ -45,35 +15,60 @@ const STATUS_STYLES: Record<StockStatus, string> = {
   "out-of-stock": "bg-error-container text-on-error-container",
 };
 
-export function InventoryTable({
-  lines,
-  tabs,
-  statusLabels,
-  searchPlaceholder,
-  adjustNote,
-  footer,
-}: {
-  lines: (InventoryLine & { status: StockStatus })[];
-  tabs: { label: string; filter: InventoryFilter; count: number }[];
-  statusLabels: Record<StockStatus, string>;
-  searchPlaceholder: string;
-  adjustNote: string;
-  footer: string;
-}) {
+export type InventoryFilter = "all" | StockStatus;
+
+const COLUMNS = ["Product", "Category", "Available", "Threshold", "Status", ""];
+
+/**
+ * Stock table, one row per product — real inventory is tracked per product
+ * (`products.stock_quantity`/`restock_threshold`), not per pack size, so
+ * there is no per-pack or packaging-materials breakdown to show; the old
+ * sample data invented both.
+ *
+ * The filter tabs are real client state — filtering an already-loaded list
+ * works fine without a backend. Stock itself is edited on the product's real
+ * edit form (`/admin/products/:slug/edit`, where `stockQuantity` is a real,
+ * saved field) rather than an inline +/- control here: a number that moves on
+ * screen without being saved is worse than no control at all.
+ *
+ * Products arrive as PROPS, not imported — same rule as every other admin
+ * table holding operational data (see GAP-009).
+ */
+export function InventoryTable({ products }: { products: Product[] }) {
   const [filter, setFilter] = useState<InventoryFilter>("all");
 
-  const visible = lines.filter((line) => {
-    if (filter === "all") return true;
-    if (filter === "materials") return line.category === "Packaging materials";
-    return line.status === filter;
-  });
+  const withStatus = products.map((product) => ({
+    product,
+    status: stockStatus(product),
+  }));
+
+  const tabs: { label: string; filter: InventoryFilter; count: number }[] = [
+    { label: "All products", filter: "all", count: withStatus.length },
+    {
+      label: "In stock",
+      filter: "in-stock",
+      count: withStatus.filter((p) => p.status === "in-stock").length,
+    },
+    {
+      label: "Low stock",
+      filter: "low-stock",
+      count: withStatus.filter((p) => p.status === "low-stock").length,
+    },
+    {
+      label: "Out of stock",
+      filter: "out-of-stock",
+      count: withStatus.filter((p) => p.status === "out-of-stock").length,
+    },
+  ];
+
+  const visible = withStatus.filter((p) => filter === "all" || p.status === filter);
 
   return (
     <>
       <section className="mt-gutter-sm flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-md">
         <div
           role="tablist"
-          aria-label="Filter stock lines"
+          aria-label="Filter products"
           className="flex flex-wrap gap-gutter-xs"
         >
           {tabs.map((tab) => (
@@ -104,19 +99,11 @@ export function InventoryTable({
             </button>
           ))}
         </div>
-
-        {/* Disabled: searching needs an inventory service behind it. */}
-        <span className="flex min-h-11 items-center gap-gutter-xs rounded border border-rule/70 bg-surface-container-low px-gutter-sm text-body-sm text-nutmeg/70">
-          <ICONS.seal className="h-4 w-4 shrink-0" />
-          {searchPlaceholder}
-        </span>
       </section>
 
       <div className="mt-gutter-sm overflow-x-auto rounded border border-rule/70 bg-surface">
-        <table className="w-full min-w-5xl border-collapse text-left">
-          <caption className="sr-only">
-            Stock on hand by pack size and packaging material.
-          </caption>
+        <table className="w-full min-w-4xl border-collapse text-left">
+          <caption className="sr-only">Stock on hand by product.</caption>
           <thead>
             <tr className="border-b border-rule/70">
               {COLUMNS.map((column) => (
@@ -131,12 +118,15 @@ export function InventoryTable({
             </tr>
           </thead>
           <tbody>
-            {visible.map((line) => {
-              const low = line.status !== "in-stock";
+            {visible.map(({ product, status }) => {
+              const low = status !== "in-stock";
+              const heroImage =
+                product.images.find((image) => image.role === "hero") ??
+                product.images[0];
 
               return (
                 <tr
-                  key={line.id}
+                  key={product.id}
                   className={cn(
                     "border-b border-rule/70 last:border-b-0",
                     low && "bg-error-container/30",
@@ -145,29 +135,28 @@ export function InventoryTable({
                   <th scope="row" className="px-gutter-sm py-3 text-left font-normal">
                     <span className="flex items-center gap-gutter-sm">
                       <span className="relative aspect-square w-11 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
-                        <ImageSlot slot={line.image} sizes="44px" />
+                        <ImageSlot
+                          slot={{
+                            src: heroImage?.url ?? null,
+                            alt: heroImage?.alt ?? product.name,
+                            note: "Product photography",
+                          }}
+                          sizes="44px"
+                        />
                       </span>
                       <span className="min-w-0">
                         <span className="block text-body-md font-semibold text-cacao">
-                          {line.name}
+                          {product.name}
                         </span>
                         <span className="block text-body-sm text-nutmeg">
-                          {line.variant} · {line.note}
+                          {product.storefrontActive ? "Published" : "Draft"}
                         </span>
                       </span>
                     </span>
                   </th>
 
-                  <td className="px-gutter-sm py-3 font-label text-label-sm whitespace-nowrap text-cacao">
-                    {line.sku}
-                  </td>
-
                   <td className="px-gutter-sm py-3 text-body-sm text-on-surface-variant">
-                    {line.category}
-                  </td>
-
-                  <td className="px-gutter-sm py-3 text-body-sm text-on-surface-variant">
-                    {line.pack}
+                    {product.category}
                   </td>
 
                   <td className="px-gutter-sm py-3 whitespace-nowrap">
@@ -177,20 +166,19 @@ export function InventoryTable({
                         low ? "text-error" : "text-cacao",
                       )}
                     >
-                      {line.available.toLocaleString("en-NG")}
-                    </span>{" "}
-                    <span className="text-body-sm text-nutmeg">{line.unit}</span>
+                      {product.stockQuantity.toLocaleString("en-NG")}
+                    </span>
                   </td>
 
                   <td className="px-gutter-sm py-3 text-body-sm whitespace-nowrap text-nutmeg">
-                    {line.threshold.toLocaleString("en-NG")}
+                    {product.restockThreshold?.toLocaleString("en-NG") ?? "—"}
                   </td>
 
                   <td className="px-gutter-sm py-3">
                     <span
                       className={cn(
                         "inline-flex items-center gap-gutter-xs rounded-sm px-2 py-0.5 font-label text-label-sm whitespace-nowrap",
-                        STATUS_STYLES[line.status],
+                        STATUS_STYLES[status],
                       )}
                     >
                       <span
@@ -200,26 +188,19 @@ export function InventoryTable({
                           low ? "bg-error" : "bg-terracotta",
                         )}
                       />
-                      {statusLabels[line.status]}
+                      {STATUS_LABEL[status]}
                     </span>
                   </td>
 
-                  <td className="px-gutter-sm py-3 text-body-sm">
-                    <span className="block text-cacao">{line.lastBatch ?? "—"}</span>
-                    <span className="block text-nutmeg">{line.lastBatchWhen}</span>
-                  </td>
-
-                  {/* Disabled: see the note under the table. */}
                   <td className="px-gutter-sm py-3">
-                    <span
-                      aria-disabled="true"
-                      title={adjustNote}
-                      className="inline-flex cursor-not-allowed items-center gap-gutter-xs rounded border border-rule bg-surface-container-low px-2 py-1 font-label text-label-sm text-nutmeg/70"
+                    <ButtonLink
+                      href={ADMIN_ROUTES.editProduct(product.slug)}
+                      variant="secondary"
+                      className="inline-flex"
                     >
-                      <span aria-hidden="true">−</span>
-                      {line.available.toLocaleString("en-NG")}
-                      <span aria-hidden="true">+</span>
-                    </span>
+                      <ICONS.timer className="h-4 w-4" />
+                      Edit stock
+                    </ButtonLink>
                   </td>
                 </tr>
               );
@@ -234,10 +215,9 @@ export function InventoryTable({
         )}
       </div>
 
-      <div className="mt-gutter-xs flex flex-wrap items-start justify-between gap-gutter-sm text-body-sm text-nutmeg">
-        <p className="max-w-2xl">{adjustNote}</p>
-        <p className="shrink-0 font-label text-label-sm uppercase">{footer}</p>
-      </div>
+      <p className="mt-gutter-xs text-body-sm text-nutmeg">
+        {products.length} product{products.length === 1 ? "" : "s"}
+      </p>
     </>
   );
 }

@@ -1,10 +1,9 @@
 import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
-import type { Order, OrderStatus } from "@lamiefoods/types";
+import type { Order, OrderStatus, Product } from "@lamiefoods/types";
 import { cn } from "@lamiefoods/ui";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ArrowRightIcon, CheckIcon, ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
-import { findProduct } from "@/content/products";
 import { ORDER_SUCCESS } from "@/content/order-success";
 import { formatKobo } from "@/lib/money";
 
@@ -32,7 +31,16 @@ const STAGES: { label: string; statuses: OrderStatus[] }[] = [
   { label: "Delivered", statuses: ["delivered"] },
 ];
 
-export function OrderConfirmation({ order }: { order: Order }) {
+export function OrderConfirmation({
+  order,
+  products = [],
+}: {
+  order: Order;
+  /** For the per-item photo lookup below — a live product's current image,
+   *  not part of the frozen `OrderItem` itself. Optional: an order still
+   *  renders correctly (just without photos) if the caller has none handy. */
+  products?: Product[];
+}) {
   const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
   const { deliveryAddress } = order.customer;
 
@@ -65,7 +73,13 @@ export function OrderConfirmation({ order }: { order: Order }) {
                 : "bg-secondary-container text-on-secondary-fixed",
             )}
           >
-            {order.paymentStatus === "paid" ? "Paid via Paystack" : "Awaiting payment"}
+            {order.paymentStatus === "paid"
+              ? order.paymentMethod === "paystack"
+                ? "Paid via Paystack"
+                : "Payment confirmed"
+              : order.paymentMethod === "paystack"
+                ? "Awaiting payment"
+                : "Awaiting bank transfer"}
           </span>
         </div>
 
@@ -76,15 +90,21 @@ export function OrderConfirmation({ order }: { order: Order }) {
 
           <ul className="mt-gutter-sm space-y-3">
             {order.items.map((item) => {
-              const product = findProduct(item.slug);
+              const product = products.find((candidate) => candidate.slug === item.slug);
+              const hero =
+                product?.images.find((image) => image.role === "hero") ??
+                product?.images[0];
               return (
                 <li
                   key={`${item.slug}-${item.unitPrice.amount}`}
                   className="flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-xs"
                 >
-                  {product && (
+                  {hero && (
                     <div className="relative aspect-square w-14 shrink-0 overflow-hidden rounded border border-rule/70 bg-surface-container">
-                      <ImageSlot slot={product.image} sizes="56px" />
+                      <ImageSlot
+                        slot={{ src: hero.url, alt: hero.alt || item.name, note: "" }}
+                        sizes="56px"
+                      />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
@@ -97,11 +117,6 @@ export function OrderConfirmation({ order }: { order: Order }) {
                     <p className="text-body-sm text-on-surface-variant">
                       {formatKobo(item.unitPrice.amount)} × {item.quantity}
                     </p>
-                    {product && (
-                      <p className="mt-1 font-label text-label-sm text-tertiary uppercase">
-                        {product.notes.join(" · ")}
-                      </p>
-                    )}
                   </div>
                 </li>
               );
@@ -121,7 +136,7 @@ export function OrderConfirmation({ order }: { order: Order }) {
           <div className="flex items-baseline justify-between gap-gutter-sm">
             <dt className="text-body-sm text-on-surface-variant">Delivery</dt>
             <dd className="shrink-0 font-label text-label-sm text-nutmeg uppercase">
-              {order.deliveryFee.amount > 0
+              {order.deliveryFee !== null
                 ? formatKobo(order.deliveryFee.amount)
                 : ORDER_SUCCESS.deliveryPending}
             </dd>
@@ -135,7 +150,12 @@ export function OrderConfirmation({ order }: { order: Order }) {
         <div className="mt-gutter-md flex items-baseline justify-between border-t border-rule/70 pt-gutter-sm">
           <span className="text-headline-sm text-cacao">{ORDER_SUCCESS.totalLabel}</span>
           <span className="font-display text-headline-md text-terracotta">
-            {formatKobo(order.total.amount)}
+            {/* Total is only known once delivery is quoted — see @lamiefoods/types
+                Order.total. Showing the subtotal as if it were final would
+                understate what the customer will actually be asked to pay. */}
+            {order.total !== null
+              ? formatKobo(order.total.amount)
+              : `${formatKobo(order.subtotal.amount)} + delivery`}
           </span>
         </div>
 

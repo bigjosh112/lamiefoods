@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
+import type { Product } from "@lamiefoods/types";
 import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon, CheckIcon } from "@/components/ui/icons";
-import type { Product } from "@/content/products";
-import { formatKobo } from "@/lib/money";
+import { applyDiscount, formatKobo } from "@/lib/money";
 import { useCartActions } from "@/lib/cart/use-cart";
 
 const MAX_QUANTITY = 20;
@@ -18,16 +19,20 @@ const MAX_QUANTITY = 20;
  * Selection and quantity are genuine client state — they are UI concerns that
  * work perfectly well before a cart exists, so they are live.
  *
- * "Add to bag" is live — the bag is browser state, so it works today. "Instant
- * checkout" stays disabled: payments are not connected, and a button that
- * silently does nothing is worse than one honestly unavailable.
+ * Both buttons are live: "Add to bag" writes to the browser cart, and
+ * "Instant checkout" does the same and then goes straight to `/checkout`.
+ * Both are disabled once stock reaches zero — a real state now that stock
+ * actually decrements on payment (`server/products/repository.ts:
+ * decrementStockInTx`).
  */
 export function ProductPurchase({ product }: { product: Product }) {
   const [pack, setPack] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const { addLine } = useCartActions();
-  const selected = product.detail.packaging[pack];
+  const router = useRouter();
+  const selected = product.packs[pack];
+  const soldOut = product.stockQuantity <= 0;
 
   return (
     <div>
@@ -38,8 +43,9 @@ export function ProductPurchase({ product }: { product: Product }) {
       {/* Three across from `sm`. A two-column grid left the third pack
           orphaned on its own row once the range went from two sizes to three. */}
       <div className="mt-gutter-xs grid gap-gutter-xs sm:grid-cols-3" role="radiogroup">
-        {product.detail.packaging.map((option, index) => {
+        {product.packs.map((option, index) => {
           const isSelected = index === pack;
+          const discounted = applyDiscount(option.price.amount, product.discountPercent);
           return (
             <button
               key={option.name}
@@ -65,12 +71,20 @@ export function ProductPurchase({ product }: { product: Product }) {
                   </span>
                 )}
               </span>
-              <span className="mt-1 block text-body-sm text-on-surface-variant">
-                {option.note}
-              </span>
-              <span className="mt-1 block font-label text-label-md text-terracotta">
-                {formatKobo(option.price)}
-              </span>
+              {product.discountPercent ? (
+                <span className="mt-1 flex items-baseline gap-gutter-xs">
+                  <span className="font-label text-label-sm text-nutmeg line-through">
+                    {formatKobo(option.price.amount)}
+                  </span>
+                  <span className="font-label text-label-md text-terracotta">
+                    {formatKobo(discounted)}
+                  </span>
+                </span>
+              ) : (
+                <span className="mt-1 block font-label text-label-md text-terracotta">
+                  {formatKobo(option.price.amount)}
+                </span>
+              )}
             </button>
           );
         })}
@@ -107,28 +121,38 @@ export function ProductPurchase({ product }: { product: Product }) {
         </div>
       </div>
 
-      <div className="mt-gutter-md grid gap-gutter-xs sm:grid-cols-2">
-        <Button
-          onClick={() => {
-            if (!selected) return;
-            addLine(product.slug, selected.name, quantity);
-            setAdded(true);
-          }}
-          className="text-label-md normal-case"
-          aria-label={`Add ${quantity} ${selected?.name} of ${product.name} to bag`}
-        >
-          <BagIcon className="h-4 w-4" />
-          Add to bag
-        </Button>
-        <Button
-          disabled
-          aria-describedby="purchase-note"
-          className="bg-cacao text-label-md normal-case hover:bg-primary-container"
-        >
-          Instant checkout
-          <ArrowRightIcon className="h-4 w-4" />
-        </Button>
-      </div>
+      {soldOut ? (
+        <p className="mt-gutter-md rounded border border-rule/70 bg-surface-container p-gutter-sm text-center font-label text-label-md text-cacao uppercase">
+          Sold out
+        </p>
+      ) : (
+        <div className="mt-gutter-md grid gap-gutter-xs sm:grid-cols-2">
+          <Button
+            onClick={() => {
+              if (!selected) return;
+              addLine(product.slug, selected.name, quantity);
+              setAdded(true);
+            }}
+            className="text-label-md normal-case"
+            aria-label={`Add ${quantity} ${selected?.name} of ${product.name} to bag`}
+          >
+            <BagIcon className="h-4 w-4" />
+            Add to bag
+          </Button>
+          <Button
+            onClick={() => {
+              if (!selected) return;
+              addLine(product.slug, selected.name, quantity);
+              router.push(ROUTES.checkout);
+            }}
+            aria-describedby="purchase-note"
+            className="bg-cacao text-label-md normal-case hover:bg-primary-container"
+          >
+            Instant checkout
+            <ArrowRightIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Announced, not just shown: the button keeps focus, so a screen reader
           would otherwise get no confirmation that anything happened. */}
@@ -143,7 +167,7 @@ export function ProductPurchase({ product }: { product: Product }) {
       </p>
 
       <p id="purchase-note" className="text-body-sm text-nutmeg">
-        Checkout opens once payments are connected.
+        Pay online with Paystack, or by bank transfer — you&apos;ll choose at checkout.
       </p>
     </div>
   );

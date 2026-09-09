@@ -1,71 +1,99 @@
-import type { Money, Order } from "@lamiefoods/types";
-import { findPack, findProduct } from "@/content/products";
+import "server-only";
+
+import type { Money, Order, OrderItem } from "@lamiefoods/types";
+import { getProductBySlug } from "@/server/products/repository";
 
 /**
- * A SAMPLE order, for reviewing the confirmation page.
+ * A SAMPLE order, for reviewing the confirmation page via `?preview=1`.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * THIS IS NOT A REAL ORDER AND NOTHING HAS BEEN PAID.
  *
- * No order can exist yet: checkout does not submit, there is no ordering API and
- * Paystack is not integrated. The confirmation page therefore has nothing real
- * to display. Rather than fabricate a receipt — a page that says "Total Paid"
- * and "Paid via Paystack" is the single most dangerous thing to fake on this
- * site — the page renders this sample behind a permanent, non-dismissible
- * preview banner, purely so the layout can be reviewed.
+ * Real orders exist now (`/order-success?token=…`), but this sample stays for
+ * design review — reviewing the layout shouldn't require a real order in the
+ * database. Rather than fabricate a receipt — a page that says "Total Paid"
+ * and "Paid via Paystack" when nothing was actually paid is the single most
+ * dangerous thing to fake on this site — this renders behind a permanent,
+ * non-dismissible preview banner, and stays `unpaid` even though Paystack is
+ * genuinely connected now.
  *
- * It is typed as `Order` from `@lamiefoods/types`, the same type the backend
- * will return, so the page needs no rework when real orders arrive: fetch by
- * reference, drop the sample, remove the banner.
+ * As of the real product catalogue (2026-09-07), building this needs a
+ * database read (`getProductBySlug`, same source of truth the storefront
+ * uses) rather than a synchronous static-content lookup — hence this is now
+ * an async function, not a constant, and its one caller (`order-success/
+ * page.tsx`) only calls it when `?preview=1` AND a database is configured.
+ *
+ * Typed as `Order` from `@lamiefoods/types`, the same type the backend
+ * returns, so nothing here needs rework as the type evolves.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 const ngn = (amount: number): Money => ({ amount, currency: "NGN" });
 
-/** Prices come from the catalogue, so the sample cannot contradict the shop. */
-function sampleItem(slug: string, packName: string, quantity: number) {
-  const product = findProduct(slug);
-  const pack = product && findPack(product, packName);
+async function sampleItem(
+  slug: string,
+  packName: string,
+  quantity: number,
+): Promise<OrderItem | null> {
+  const product = await getProductBySlug(slug);
+  const pack = product?.packs.find((candidate) => candidate.name === packName);
   if (!product || !pack) return null;
 
   return {
     productId: product.slug,
     name: product.name,
     slug: product.slug,
-    unitPrice: ngn(pack.price),
+    pack: pack.name,
+    unitPrice: ngn(pack.price.amount),
     quantity,
-    lineTotal: ngn(pack.price * quantity),
+    lineTotal: ngn(pack.price.amount * quantity),
   };
 }
 
-const items = [
-  sampleItem("milky-velvet-chinchin", "300g Pouch", 2),
-  sampleItem("coco-velvet-chinchin", "500g Pouch", 1),
-].filter((item) => item !== null);
+/** Falls back gracefully to an empty item list if the sample products (or
+ *  the database itself) aren't there — the preview banner already says this
+ *  is not real, so an empty sample is a degraded preview, not a broken page.
+ *
+ *  The pack names below must exist in the catalogue or `sampleItem` returns
+ *  null and the preview silently renders an empty, zero-total order. They are
+ *  the owner's confirmed pouches, not the retired "250g Pouch" /
+ *  "500g Gourmet Jar" this file used to name. */
+export async function buildSampleOrder(): Promise<Order> {
+  const candidates = await Promise.all([
+    sampleItem("milky-velvet-chinchin", "300g Pouch", 2),
+    sampleItem("coco-velvet-chinchin", "500g Pouch", 1),
+  ]);
+  const items = candidates.filter((item): item is OrderItem => item !== null);
+  const subtotal = items.reduce((total, item) => total + item.lineTotal.amount, 0);
 
-const subtotal = items.reduce((total, item) => total + item.lineTotal.amount, 0);
-
-export const SAMPLE_ORDER: Order = {
-  id: "sample",
-  reference: "LF-SAMPLE",
-  items,
-  customer: {
-    fullName: "Sample Customer",
-    email: "sample@example.com",
-    phone: "+2348000000000",
-    deliveryAddress: {
-      addressLine: "1 Sample Street",
-      landmark: "Sample landmark",
-      city: "Lekki",
-      state: "Lagos",
+  return {
+    id: "sample",
+    reference: "LF-SAMPLE",
+    items,
+    customer: {
+      fullName: "Sample Customer",
+      email: "sample@example.com",
+      phone: "+2348000000000",
+      deliveryAddress: {
+        addressLine: "1 Sample Street",
+        landmark: "Sample landmark",
+        city: "Lekki",
+        state: "Lagos",
+      },
     },
-  },
-  subtotal: ngn(subtotal),
-  // Delivery pricing is genuinely unset, so the sample carries zero rather than
-  // inventing a fee. The page shows "confirmed at dispatch" for it.
-  deliveryFee: ngn(0),
-  total: ngn(subtotal),
-  status: "processing",
-  paymentStatus: "paid",
-  createdAt: "2026-09-06T09:00:00.000Z",
-  updatedAt: "2026-09-06T09:00:00.000Z",
-};
+    subtotal: ngn(subtotal),
+    // Delivery pricing is genuinely unset, so this is null rather than a zero
+    // that would read as a quote of free delivery. The page renders "not yet
+    // quoted".
+    deliveryFee: null,
+    total: null,
+    // Mirrors what a freshly captured order actually looks like: recorded,
+    // unpaid. Payment happens on a real order via Paystack or bank transfer,
+    // and a sample claiming "paid" would misrepresent the one thing on this
+    // page that must never be faked.
+    status: "pending",
+    paymentStatus: "unpaid",
+    paymentMethod: "paystack",
+    createdAt: "2026-09-06T09:00:00.000Z",
+    updatedAt: "2026-09-06T09:00:00.000Z",
+  };
+}

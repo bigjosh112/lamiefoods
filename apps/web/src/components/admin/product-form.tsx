@@ -1,73 +1,97 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { cn } from "@lamiefoods/ui";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
+import { PRODUCT_CATEGORIES, type Product } from "@lamiefoods/types";
 import { Button } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
+import { ImageUpload } from "@/components/admin/image-upload";
 import {
+  CATEGORY_LABELS,
   CRUNCH_SCALE,
+  EDIT_PRODUCT,
   NEW_PRODUCT,
-  PHOTO_SLOTS,
-  PRODUCT_CATEGORIES,
 } from "@/content/admin-new-product";
 import {
   ALLERGENS,
+  fromProduct,
   productSchema,
+  slugify,
   TEASER_LIMIT,
+  toProductInput,
   type ProductFormValues,
 } from "@/lib/admin/product-schema";
+import { createProduct, updateProduct } from "@/lib/api/admin-products";
+import { ApiError } from "@/lib/api";
 
 /**
- * Create a product.
+ * Create or edit a product.
  *
- * The form is genuinely functional — typing, tasting-note chips, the crunch
- * slider, packaging tiers you can add and remove, allergen ticks and visibility
- * toggles are all real client state that works without a backend. Validation
- * runs against the same schema throughout.
+ * Real end to end now: validation, packaging tiers, allergen register,
+ * discount, image upload and the actual save all work. `product` being
+ * present is what distinguishes edit from create — everything else about the
+ * form is identical either way.
  *
- * Saving is not. There is no catalogue service, so "Save & publish" reports that
- * plainly instead of pretending a product was created.
- *
- * Two things from the mock are deliberately absent, both because the claim would
- * be false: a "Paystack realtime settlement — CONNECTED" badge (Paystack is not
- * connected to anything) and a promise to generate a "SHA-256 verifiable batch
- * stamp" on publish (nothing generates one).
+ * Two things from the mock are deliberately absent, both because the claim
+ * would be false: a "Paystack realtime settlement — CONNECTED" badge
+ * (Paystack has nothing to do with the catalogue) and a promise to generate
+ * a "SHA-256 verifiable batch stamp" on publish (nothing generates one).
  */
-export function ProductForm() {
+export function ProductForm({
+  product,
+  blobConfigured,
+}: {
+  /** Present for edit, absent for create. */
+  product?: Product;
+  /** Whether image upload is actually connected — see `isBlobStorageConfigured()`. */
+  blobConfigured: boolean;
+}) {
   const formId = useId();
+  const isEditing = Boolean(product);
   const [notes, setNotes] = useState<string[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
-  const [blocked, setBlocked] = useState(false);
+  const [slugTouched, setSlugTouched] = useState(isEditing);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: standardSchemaResolver(productSchema),
     mode: "onTouched",
-    defaultValues: {
-      title: "",
-      category: "",
-      teaser: "",
-      narrative: "",
-      pairings: "",
-      crunch: 8,
-      ingredients: "",
-      allergens: [],
-      allergensConfirmed: false,
-      shelfLife: "",
-      storage: "",
-      tiers: [{ name: "250g pouch", price: "", sku: "" }],
-      initialStock: "",
-      restockThreshold: "",
-      storefrontActive: true,
-      featureOnHomepage: false,
-      seasonalEdition: false,
-    },
+    defaultValues: product
+      ? fromProduct(product)
+      : {
+          title: "",
+          slug: "",
+          category: "chinchin",
+          teaser: "",
+          narrative: "",
+          pairings: "",
+          crunch: 8,
+          ingredients: "",
+          allergens: [],
+          allergensConfirmed: false,
+          shelfLife: "",
+          storage: "",
+          tiers: [{ name: "250g pouch", price: "", sku: "" }],
+          initialStock: "",
+          restockThreshold: "",
+          storefrontActive: true,
+          featureOnHomepage: false,
+          seasonalEdition: false,
+          discountPercent: null,
+          images: [],
+        },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "tiers" });
@@ -76,6 +100,8 @@ export function ProductForm() {
   // handing back a function the React Compiler has to bail out on.
   const teaser = useWatch({ control, name: "teaser" }) ?? "";
   const crunch = useWatch({ control, name: "crunch" });
+  const discountPercent = useWatch({ control, name: "discountPercent" });
+  const images = useWatch({ control, name: "images" }) ?? [];
 
   const addNote = () => {
     const value = noteDraft.trim();
@@ -84,41 +110,61 @@ export function ProductForm() {
     setNoteDraft("");
   };
 
+  const onValid = async (values: ProductFormValues) => {
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      const parsed = productSchema.parse(values);
+      const input = toProductInput(parsed);
+      const saved = isEditing
+        ? await updateProduct(product!.slug, input)
+        : await createProduct(input);
+
+      router.push(ADMIN_ROUTES.editProduct(saved.slug));
+      router.refresh();
+    } catch (error) {
+      setSaving(false);
+      setSaveError(
+        error instanceof ApiError
+          ? error.status === 409
+            ? "That URL slug is already used by another product."
+            : "Could not save the product — please try again."
+          : "Something went wrong — please try again.",
+      );
+    }
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(() => setBlocked(true))}
+      onSubmit={handleSubmit(onValid)}
       noValidate
       className="flex flex-col gap-gutter-sm"
     >
       <header className="flex flex-wrap items-start justify-between gap-gutter-md rounded border border-rule/70 bg-surface-container-low p-gutter-md">
         <div className="max-w-2xl">
           <p className="font-label text-label-caps text-terracotta uppercase">
-            {NEW_PRODUCT.eyebrow}
+            {isEditing ? EDIT_PRODUCT.eyebrow : NEW_PRODUCT.eyebrow}
           </p>
-          <h1 className="mt-1 text-headline-lg text-cacao">{NEW_PRODUCT.title}</h1>
+          <h1 className="mt-1 text-headline-lg text-cacao">
+            {isEditing ? EDIT_PRODUCT.title : NEW_PRODUCT.title}
+          </h1>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-            {NEW_PRODUCT.body}
+            {isEditing ? EDIT_PRODUCT.body : NEW_PRODUCT.body}
           </p>
         </div>
         <div className="flex flex-wrap justify-end gap-gutter-xs">
-          {/* Nothing to discard to and nothing to save to — the draft lives in
-              this form's state only. */}
-          <Button type="button" variant="secondary" disabled>
-            Discard draft
-          </Button>
-          <Button type="submit">
+          <Button type="submit" disabled={saving}>
             <ICONS.seal className="h-4 w-4" />
-            Save &amp; publish
+            {saving ? "Saving…" : isEditing ? "Save changes" : "Save & publish"}
           </Button>
         </div>
       </header>
 
       <div aria-live="polite">
-        {blocked && (
-          <p className="rounded border border-rule/70 bg-surface-container p-gutter-sm text-body-sm text-on-surface-variant">
-            <strong className="font-semibold text-cacao">Everything checks out.</strong>{" "}
-            The product was not saved — there is no catalogue service yet, so nothing was
-            created or published.
+        {saveError && (
+          <p className="rounded border border-error/40 bg-error/10 p-gutter-sm text-body-sm text-error">
+            {saveError}
           </p>
         )}
       </div>
@@ -132,8 +178,31 @@ export function ProductForm() {
               required
               error={errors.title?.message}
               placeholder="e.g. Roasted Nutmeg & Wild Honey Chinchin"
-              {...register("title")}
+              {...register("title", {
+                onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                  if (!slugTouched) setValue("slug", slugify(event.target.value));
+                },
+              })}
             />
+
+            <div>
+              <Label htmlFor={`${formId}-slug`} required>
+                URL slug
+              </Label>
+              <input
+                id={`${formId}-slug`}
+                placeholder="roasted-nutmeg-wild-honey-chinchin"
+                className={inputClasses(Boolean(errors.slug))}
+                {...register("slug", {
+                  onChange: () => setSlugTouched(true),
+                })}
+              />
+              <p className="mt-1 text-body-sm text-nutmeg">
+                Shown in the product&apos;s URL — changing this on a live product changes
+                its address.
+              </p>
+              <FieldError>{errors.slug?.message}</FieldError>
+            </div>
 
             <div>
               <Label htmlFor={`${formId}-category`} required>
@@ -144,9 +213,10 @@ export function ProductForm() {
                 className={inputClasses(Boolean(errors.category))}
                 {...register("category")}
               >
-                <option value="">Choose a category</option>
                 {PRODUCT_CATEGORIES.map((category) => (
-                  <option key={category}>{category}</option>
+                  <option key={category} value={category}>
+                    {CATEGORY_LABELS[category]}
+                  </option>
                 ))}
               </select>
               <FieldError>{errors.category?.message}</FieldError>
@@ -344,30 +414,12 @@ export function ProductForm() {
         </div>
 
         <div className="flex flex-col gap-gutter-sm">
-          <Panel title="Photography" note="0 of 5 assets">
-            <div className="flex aspect-square items-center justify-center rounded border border-rule/70 bg-surface-container">
-              <p className="font-label text-label-sm text-nutmeg/70 uppercase">
-                Hero image
-              </p>
-            </div>
-            <div className="mt-gutter-xs grid grid-cols-4 gap-gutter-xs">
-              {PHOTO_SLOTS.map((label) => (
-                <div
-                  key={label}
-                  className="flex aspect-square items-center justify-center rounded border border-rule/70 bg-surface-container"
-                >
-                  <span className="font-label text-label-sm text-nutmeg/70">{label}</span>
-                </div>
-              ))}
-              {/* Disabled: uploads need somewhere to store a file. */}
-              <span
-                aria-disabled="true"
-                title="Image upload needs storage"
-                className="flex aspect-square cursor-not-allowed items-center justify-center rounded border border-dashed border-rule/70 font-label text-label-sm text-nutmeg/70"
-              >
-                Add
-              </span>
-            </div>
+          <Panel title="Photography" note={`${images.length} of 5 assets`}>
+            <ImageUpload
+              images={images}
+              onChange={(next) => setValue("images", next, { shouldDirty: true })}
+              disabled={!blobConfigured}
+            />
           </Panel>
 
           <Panel
@@ -434,6 +486,36 @@ export function ProductForm() {
             </ul>
           </Panel>
 
+          <Panel title="Promotion">
+            <div>
+              <Label htmlFor={`${formId}-discount`}>Discount</Label>
+              <div className="relative">
+                <input
+                  id={`${formId}-discount`}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="e.g. 20"
+                  className={cn(inputClasses(Boolean(errors.discountPercent)), "pr-10")}
+                  {...register("discountPercent", {
+                    setValueAs: (value) =>
+                      value === "" || value === null || value === undefined
+                        ? null
+                        : Number(value),
+                  })}
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center font-label text-label-md text-nutmeg">
+                  %
+                </span>
+              </div>
+              <p className="mt-1 text-body-sm text-nutmeg">
+                {discountPercent
+                  ? `Customers see ${discountPercent}% off every packaging tier.`
+                  : "Leave blank for no promotion."}
+              </p>
+              <FieldError>{errors.discountPercent?.message}</FieldError>
+            </div>
+          </Panel>
+
           <Panel title="Stock">
             <div className="grid gap-gutter-sm sm:grid-cols-2">
               <Field
@@ -456,10 +538,10 @@ export function ProductForm() {
               />
             </div>
             {/* The mock badged this "Paystack realtime settlement — CONNECTED".
-              Paystack is not connected to anything, so no such badge. */}
+              Paystack is not connected to the catalogue, so no such badge. */}
             <p className="mt-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm text-body-sm text-nutmeg">
-              Stock will decrement automatically once the ordering API and payment
-              webhooks are connected. Neither exists yet.
+              Stock decrements automatically the moment an order for this product is
+              confirmed paid — by Paystack or by a manually-confirmed bank transfer.
             </p>
           </Panel>
 

@@ -1,6 +1,5 @@
 import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
 import type { ImageSlot } from "./image-slot";
-import { PRODUCTS } from "./products";
 
 /**
  * Every word and image slot on the landing page, in one file.
@@ -19,7 +18,9 @@ import { PRODUCTS } from "./products";
  *   - "Lamie Foods Enterprise" -> the customer-facing name is "Lamie Foods".
  *   - "hello@lamiefoods.com" -> no address has been supplied, so no mailto link
  *     is fabricated; the row renders as plain text until a real one is given.
- *   - "Website by Basil Studio" -> a credit to a third party we cannot verify.
+ *
+ * "Website by Basil Studio" DOES ship, as plain text (see `FOOTER.credit`
+ * below) — the owner confirmed the credit is welcome.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -166,11 +167,8 @@ export const CRUNCH = {
 
 export const FLAVOURS = {
   eyebrow: "Curated Release",
-  title: "Three Flavours. One Lamie Standard.",
+  title: "Our Featured Flavours",
   link: { label: "View full pantry", href: ROUTES.shop },
-  /** Straight from the shared catalogue, so the shop can never show a
-   *  different name, photograph or price for the same product. */
-  items: PRODUCTS,
   /* Confirmed by the owner on 2026-09-08 — three pouch sizes, no jars. */
   formats: {
     title: "Available in three sizes",

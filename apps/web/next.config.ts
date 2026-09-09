@@ -9,8 +9,15 @@ const nextConfig: NextConfig = {
   images: {
     // Modern formats first; Next falls back automatically for older browsers.
     formats: ["image/avif", "image/webp"],
-    // Remote product photography hosts get added here once assets are supplied.
-    remotePatterns: [],
+    remotePatterns: [
+      // Uploaded product photography — every Vercel Blob store's public URL
+      // is a subdomain of this host, e.g.
+      // https://<store-id>.public.blob.vercel-storage.com/<path>.
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+      },
+    ],
   },
 
   // Fail the production build on type errors rather than shipping them.

@@ -1,5 +1,7 @@
+import type { ProductCategory } from "@lamiefoods/types";
+
 /**
- * Copy and option lists for the create-product screen.
+ * Copy and option lists for the create/edit-product screen.
  *
  * Nothing here is customer-facing product data — these are the choices an
  * operator picks from, not claims about a product. The claims themselves get
@@ -18,14 +20,25 @@ export const NEW_PRODUCT = {
   breadcrumb: ["Products & SKUs", "New product"],
 };
 
-export const PRODUCT_CATEGORIES = [
-  "Signature chinchin",
-  "Snacks",
-  "Packaged foods",
-  "Pastries",
-  "Seasonal reserve",
-  "Other",
-];
+export const EDIT_PRODUCT = {
+  eyebrow: "Catalogue / Edit product",
+  title: "Edit product",
+  body: "Changes apply immediately once saved — including to orders already in your checkout for a customer mid-session.",
+};
+
+/**
+ * Human-readable labels for the real `ProductCategory` enum
+ * (`@lamiefoods/types`) — the form's `<select>` shows these; the value
+ * submitted is always the real enum member, since that's what's now
+ * persisted and validated (`lib/admin/product-schema.ts`).
+ */
+export const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  chinchin: "Chinchin",
+  snacks: "Snacks",
+  "packaged-foods": "Packaged foods",
+  pastries: "Pastries",
+  other: "Other",
+};
 
 /** Anchors for the 1–10 crunch slider used on the product page. */
 export const CRUNCH_SCALE = [
@@ -33,6 +46,3 @@ export const CRUNCH_SCALE = [
   { value: 5, label: "Classic snap" },
   { value: 10, label: "Brittle shatter" },
 ];
-
-/** Placeholder image roles — uploads need storage, which does not exist yet. */
-export const PHOTO_SLOTS = ["Pack", "Texture", "Serve"];

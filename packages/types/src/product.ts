@@ -14,24 +14,64 @@ export const PRODUCT_CATEGORIES = [
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
-export type ProductAvailability = "in-stock" | "out-of-stock" | "coming-soon";
-
-export interface Product {
+/** One packaging option and its price, e.g. "250g Pouch" at ₦3,600. */
+export interface ProductPack {
   id: string;
   name: string;
-  slug: string;
-  description: string;
   price: Money;
-  images: ImageAsset[];
+  sku: string | null;
+}
+
+/** `role` distinguishes the single hero shot from the rest of the gallery. */
+export interface ProductImage extends ImageAsset {
+  id: string;
+  role: "hero" | "gallery";
+}
+
+/**
+ * A real, database-backed product (superseding the earlier provisional shape
+ * — see `architecture.md`'s decision log, 2026-09-07 "real product catalog").
+ * Field names mirror what the admin form actually captures
+ * (`lib/admin/product-schema.ts`) — this is the one true shape for a product,
+ * not a narrower "summary" carved out of a richer marketing-copy structure
+ * nobody could edit.
+ */
+export interface Product {
+  id: string;
+  slug: string;
+  name: string;
   category: ProductCategory;
-  /** Pack size as presented to the customer, e.g. "250g". */
-  size: string | null;
-  ingredients: string[];
-  flavour: string | null;
-  storageInformation: string | null;
+  /** ≤140 chars — the shop-grid card copy. */
+  teaser: string;
+  /** Longer detail-page body copy. */
+  narrative: string | null;
+  pairings: string | null;
+  /** 1–10, the sensory "crunch" scale shown on the shop grid. */
+  crunchScore: number;
+  ingredients: string;
+  allergens: string[];
+  /**
+   * True once someone has explicitly confirmed the allergen list is complete
+   * (even if empty) — distinguishes "no allergens" from "nobody checked yet".
+   * See the admin schema's own comment: silence is not an answer.
+   */
+  allergensConfirmed: boolean;
   shelfLife: string | null;
+  storageNote: string | null;
   stockQuantity: number;
-  availability: ProductAvailability;
+  restockThreshold: number | null;
+  /** Draft vs published — false means the storefront never shows it. */
+  storefrontActive: boolean;
+  featureOnHomepage: boolean;
+  seasonalEdition: boolean;
+  /**
+   * 1–99, or `null` for no promotion. `null`, never `0` — a `0` would read as
+   * an authorised discount nobody actually offered, the same reasoning
+   * `Order.deliveryFee: null` uses for "not yet quoted".
+   */
+  discountPercent: number | null;
+  packs: ProductPack[];
+  images: ProductImage[];
   createdAt: IsoDateString;
   updatedAt: IsoDateString;
 }
@@ -39,7 +79,8 @@ export interface Product {
 /** Trimmed shape for grids and listings, where full detail is not needed. */
 export type ProductSummary = Pick<
   Product,
-  "id" | "name" | "slug" | "price" | "category" | "availability"
+  "id" | "slug" | "name" | "category" | "teaser" | "crunchScore" | "discountPercent"
 > & {
-  image: ImageAsset | null;
+  packs: ProductPack[];
+  heroImage: ProductImage | null;
 };

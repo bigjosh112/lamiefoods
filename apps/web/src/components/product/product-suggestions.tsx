@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { ROUTES } from "@lamiefoods/config";
+import type { Product } from "@lamiefoods/types";
 import { Button, StoryLink } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
-import { lowestPrice, PRODUCTS } from "@/content/products";
-import { formatKobo } from "@/lib/money";
+import { applyDiscount, formatKobo } from "@/lib/money";
 import { useCart, useCartActions } from "@/lib/cart/use-cart";
 
 /**
@@ -16,11 +16,13 @@ import { useCart, useCartActions } from "@/lib/cart/use-cart";
  * and which products to leave out, so those are props rather than a second copy
  * of the component.
  *
- * Products come from the real catalogue. Both mocks filled this row with items
- * the brand does not sell ("Nutmeg Reserve Crunch", "Heritage Trio Collection"),
- * and advertising something unbuyable is worse than showing fewer cards.
+ * `products` arrives as a PROP from the server page (`listPublishedProducts()`),
+ * never imported directly — the catalogue moved to Postgres. Both call sites
+ * (`app/cart/page.tsx`, `app/order-success/page.tsx`) wrap this in
+ * `CatalogProvider` too, since `useCart()` needs it for `lines`.
  */
 export function ProductSuggestions({
+  products,
   eyebrow,
   title,
   linkLabel,
@@ -29,6 +31,7 @@ export function ProductSuggestions({
   excludeInBag = false,
   className,
 }: {
+  products: Product[];
   eyebrow: string;
   title: string;
   linkLabel: string;
@@ -45,7 +48,7 @@ export function ProductSuggestions({
     ...exclude,
     ...(excludeInBag ? lines.map((line) => line.slug) : []),
   ]);
-  const suggestions = PRODUCTS.filter((product) => !hidden.has(product.slug));
+  const suggestions = products.filter((product) => !hidden.has(product.slug));
 
   if (suggestions.length === 0) return null;
 
@@ -64,7 +67,9 @@ export function ProductSuggestions({
 
       <ul className="mt-gutter-lg grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
         {suggestions.map((product) => {
-          const pack = product.detail.packaging[0];
+          const pack = product.packs[0];
+          const hero =
+            product.images.find((image) => image.role === "hero") ?? product.images[0];
           return (
             <li
               key={product.slug}
@@ -72,12 +77,13 @@ export function ProductSuggestions({
             >
               <div className="relative aspect-4/3 bg-surface-container">
                 <ImageSlot
-                  slot={product.image}
+                  slot={{
+                    src: hero?.url ?? null,
+                    alt: hero?.alt ?? product.name,
+                    note: "Product photography",
+                  }}
                   sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
                 />
-                <span className="absolute top-3 left-3 rounded-sm bg-cacao/85 px-2 py-1 font-label text-label-sm text-linen uppercase backdrop-blur-sm">
-                  {product.badges.shop}
-                </span>
               </div>
 
               <div className="flex flex-1 flex-col p-inset-card">
@@ -90,12 +96,16 @@ export function ProductSuggestions({
                   </Link>
                 </h3>
                 <p className="mt-gutter-xs flex-1 text-body-sm text-on-surface-variant">
-                  {product.body}
+                  {product.teaser}
                 </p>
 
                 <div className="mt-gutter-md flex items-center justify-between gap-gutter-sm">
                   <span className="font-label text-label-md text-terracotta">
-                    {formatKobo(lowestPrice(product))}
+                    {pack
+                      ? formatKobo(
+                          applyDiscount(pack.price.amount, product.discountPercent),
+                        )
+                      : ""}
                   </span>
                   {pack && (
                     <Button

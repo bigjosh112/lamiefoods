@@ -153,7 +153,7 @@
   four components, two "chin-chin" in `about.ts`, and the pillars line
   mentioning a jar.
 
-## 2026-09-08 — Three pouch sizes and real prices — GAP-011 closed
+## 2026-09-08 — Three pouch sizes and real prices — GAP-015 closed (filed as GAP-011 at the time; renumbered 2026-09-09 after a collision with the backend branch)
 
 - **Done:** Item 9 of the shop brief. `250g Pouch` and `500g Gourmet Jar` are
   replaced by the owner's confirmed range: **100g / 300g / 500g resealable
@@ -199,7 +199,7 @@
   recurs, restart the dev server before hunting for a bug.
 - **Verified:** lint, typecheck, build and `prettier --check` pass.
 - **Docs updated:** progress.md, gaps.md.
-- **Gaps:** **GAP-011 CLOSED.**
+- **Gaps:** **GAP-015 CLOSED** (filed as GAP-011 at the time).
 - **Next / open threads:** GAP-004's remainder (`MANIFESTO.stats`,
   `FLAVOURS.items[].body`, shop `ASSURANCES` claims); landing badge still
   uppercase while the shop badge is sentence case; the self-linking gifting
@@ -823,6 +823,409 @@ content lives in `.ts` here, not just `.tsx`.
   width — they are desktop tooling and their wide tables already scroll inside
   `overflow-x-auto`. The header's search and account icons are still dead
   controls (asked about, never answered).
+## 2026-09-08 — Inline order operations and dispatch CSV
+
+- **Done:** Added the forward-only status dropdown to every `/admin/orders`
+  row, made rows and a visible action open full order details, and promoted
+  phone, email, address, city/state, and landmark into a clear dispatch card.
+  Replaced the disabled dashboard export with an authenticated all-orders CSV
+  download available from both dashboard and orders page.
+- **Files:** `components/admin/{orders-table,order-status-control,
+  order-detail-view,orders-view,admin-dashboard}.tsx`,
+  `components/ui/button.tsx`, `server/orders/{repository,csv}.ts`,
+  `app/api/admin/orders/export/route.ts`.
+- **Decisions:** CSV includes delivery PII by explicit owner choice but excludes
+  IDs, access tokens, and payment references; it is generated server-side with
+  formula neutralisation and no-store/nosniff attachment headers.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `gaps.md`,
+  `progress.md`.
+- **Gaps:** GAP-001 expanded with CSV security/contract coverage; no new gap.
+- **Verified:** CSV quote/formula/Unicode assertions, unauthenticated `401`,
+  monorepo typecheck/lint, whitespace checks, and isolated production build
+  pass; the build lists `/api/admin/orders/export` as dynamic.
+- **Next / open threads:** Refresh the open admin pages to see the new controls;
+  add automated route/UI coverage when GAP-001 is addressed.
+
+## 2026-09-08 — Forward-only admin fulfilment and delivery emails
+
+- **Done:** Replaced arbitrary admin status changes with the server-enforced
+  `pending → paid → processing → shipped → delivered` workflow; cancellation
+  is available only before dispatch and fulfilment requires confirmed payment.
+  Manual bank-transfer confirmation now also moves a pending order to `paid`.
+  Dispatch and delivery email flags use permanent milestone timestamps, so
+  reversals, retries, and concurrent stale writes cannot duplicate an attempt.
+- **Files:** `packages/types/src/order.ts`, `server/orders/repository.ts`,
+  `app/api/admin/orders/[reference]/route.ts`, `lib/api/admin-orders.ts`,
+  `components/admin/order-status-control.tsx`.
+- **Decisions:** The shared transition graph drives both UI and server, but the
+  locked server transaction remains authoritative; invalid/stale writes return
+  `409 ORDER_STATUS_CONFLICT`. Full rationale is in `architecture.md`.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `gaps.md`,
+  `progress.md`.
+- **Gaps:** GAP-001 expanded with transition/concurrency/idempotency coverage;
+  GAP-012 remains open because failed best-effort email attempts are not
+  retryable or visible to the owner.
+- **Verified:** transition-helper assertions, monorepo lint and typecheck, and
+  `NEXT_DIST_DIR=.next-verify npm run build` all pass.
+- **Next / open threads:** Add a test runner before relying on manual coverage;
+  add persisted email failure/resend support if GAP-012 is prioritised.
+
+## 2026-09-08 — Admin-editable WhatsApp number & bank-transfer details
+
+- **Done:** The owner asked to be able to change the WhatsApp contact number
+  themselves (they may switch to a dedicated business number later) without
+  a code deploy. Built the first genuinely admin-writable setting in the
+  app: a `site_settings` table (singleton row) holds the WhatsApp number and
+  bank-transfer details (name/account number/account name), editable from a
+  new form on `/admin/settings`'s "Delivery & payment" panel. Since bank
+  details were hardcoded the same way in the same file and about to need
+  the same treatment for GAP-013, both moved together in one pass (owner
+  confirmed this scope). `packages/config/src/payment.ts`'s old constants
+  are now only the fallback used when `DATABASE_URL` is unset.
+- **Files:** new `migrations/0005_settings.sql`, `server/settings/
+  repository.ts` (`getSettings`/`updateSettings`), `lib/admin/settings-
+  schema.ts`, `app/api/admin/settings/route.ts`, `lib/api/admin-settings.ts`,
+  `components/admin/payment-settings-form.tsx`. Edited `packages/config/src/
+  payment.ts` (added the shared `PaymentSettings` type), `components/admin/
+  settings-view.tsx` + `app/admin/(portal)/settings/page.tsx` (wire the form
+  in), `content/admin-settings.ts` (updated stale "deliberately not built"
+  framing for this one panel), `app/order-success/page.tsx` +
+  `components/order/payment-actions.tsx` (consume the DB-backed value as
+  props instead of a static `@lamiefoods/config` import — the same
+  props-only rule GAP-009 already established for this file).
+- **Decisions:** full rationale in `architecture.md`'s 2026-09-08 rows — a
+  singleton table over a generic key-value settings store; bank fields
+  all-or-nothing (matches the existing display-side rule); `PaymentSettings`
+  type lives in `@lamiefoods/config`, not the `server-only` repository file,
+  so it can reach client code cleanly.
+- **Docs updated:** architecture.md (status header, 4 new decision rows),
+  gaps.md (GAP-013 — the fix is now a form, not a code edit; only real
+  numbers are missing), api-integration.md (new `PATCH /api/admin/settings`
+  entry), progress.md (this entry).
+- **Gaps:** GAP-013 narrowed further — the mechanism to set bank details
+  now exists, only the owner's real numbers are still missing.
+- **Verified:** typecheck/lint/format clean. Full real end-to-end pass
+  against the live database via the actual API (not mocked): saved
+  WhatsApp-number-only (bank fields blank) — succeeded; attempted one bank
+  field alone — correctly rejected `400` with the all-or-nothing message;
+  saved all three bank fields + WhatsApp — succeeded, confirmed the values
+  round-tripped back into the settings form on reload, AND confirmed a real
+  `/order-success` page picked up the new values immediately with no
+  redeploy (the actual point of the feature). **Cleaned up before finishing:**
+  the verification pass used fake bank details ("GTBank"/"0123456789") and a
+  fake WhatsApp number to prove the mechanism works — these were cleared
+  back to the real WhatsApp number and `null` bank fields immediately after,
+  since (unlike the test orders from the previous session, which are
+  harmless to leave) a fake bank account left live on the customer-facing
+  page would tell a real customer to wire money to a fake account.
+  `NEXT_DIST_DIR=.next-verify npm run build` confirms `/api/admin/settings`
+  is `ƒ` (dynamic), same as every other admin route.
+- **Next / open threads:** Owner can now enter real bank details themselves
+  whenever ready — no engineering follow-up needed for GAP-013. Everything
+  else from the previous entry's open threads (Paystack keys, Blob token,
+  `ORDER_EMAIL_TO`, real stock quantities, tests) is unchanged.
+
+## 2026-09-08 — Launch-readiness pass: real dashboard/customers/inventory, admin write-cookie bug fixed
+
+- **Done:** Owner reported the admin dashboard showing an invented ₦1,842,500
+  "Settled revenue" and asked for the project to be launch-ready. Root cause:
+  `content/admin-dashboard.ts` was 100% sample content (disclosed by an
+  on-page banner) still fully wired into the live component — not a bug in
+  any computation. Fixed by making every remaining admin screen real:
+  `/admin`'s full dashboard (settled revenue, order/customer counts, a real
+  7-day revenue-by-flavour chart, best sellers, recent orders, low-stock
+  alerts — all from `server/orders/repository.ts`/`server/products/
+  repository.ts`), `/admin/customers` (derived from `orders`/`order_items`
+  grouped by email — there is no `customers` table), and `/admin/inventory`
+  (one row per product — stock is tracked per product, not per pack size).
+  `/admin/settings`'s one non-real panel (reading the now-deleted static
+  `content/products.ts`) was repointed to the live catalogue too, so it can
+  keep its "everything here is real" promise. Two sample-data features were
+  removed outright rather than kept fake: a rider/delivery-fleet tracking
+  card and packaging-materials stock — neither has ever had a real data
+  source. Also set `WHATSAPP_NUMBER` (owner-supplied, temporary number) in
+  `packages/config/src/payment.ts`; `BANK_TRANSFER` stays `null` (GAP-013).
+- **Two real bugs found and fixed while verifying this end-to-end** (placing
+  a real order via the API and clicking through the real admin actions, not
+  just loading pages):
+  1. `stockStatus()` lived in a `"use client"` file and was called directly
+     from a Server Component — compiles and typechecks fine, throws at
+     request time ("Attempted to call stockStatus() from the server but
+     stockStatus is on the client"). Fixed by moving it to a plain shared
+     module, `lib/admin/stock-status.ts`.
+  2. The admin session cookie's `path: "/admin"` silently withheld the
+     cookie from every admin **write** call (`/api/admin/...`) while every
+     admin **page load** kept working — `/admin` is not a path-prefix of
+     `/api/admin/...`. A signed-in admin would get a confusing 401 on
+     mark-paid, status updates, product save, and sign-out. Fixed by
+     changing the cookie's path to `"/"`. Full writeup in `architecture.md`'s
+     Gotchas — this is exactly the class of bug that only end-to-end
+     verification catches, not lint/typecheck/page-rendering.
+- **Files:** new `lib/admin/stock-status.ts`; rewrote `app/admin/(portal)/
+  page.tsx`, `components/admin/{admin-dashboard,revenue-chart,customers-view,
+  customers-directory,inventory-view,inventory-table}.tsx`,
+  `app/admin/(portal)/{customers,inventory,settings}/page.tsx`,
+  `content/admin-settings.ts` (storefront panel now a function taking real
+  products), `server/admin/session.ts` (cookie path fix). Added
+  `getDashboardStats`/`getRevenueTrend`/`getBestSellers`/
+  `listCustomersForAdmin` and a `customerEmail` field on `AdminOrderSummary`
+  to `server/orders/repository.ts`. Deleted `content/{admin-customers,
+  admin-inventory,admin-order-detail,products}.ts` — all fully dead once
+  their last real consumers were rewritten (`admin-order-detail.ts` turned
+  out to already be orphaned, referenced only in a comment).
+- **Decisions:** full rationale in `architecture.md`'s 2026-09-08 rows — real
+  data over honest-but-stripped placeholders; no invented percentage deltas;
+  removing (not reskinning) the two features with zero real data source;
+  per-product not per-pack inventory; customers keyed by email with no new
+  table; the cookie path fix.
+- **Docs updated:** architecture.md (status header, 8 new decision rows, 2
+  new Gotchas), gaps.md (GAP-009 fully resolved including the cookie bug,
+  GAP-010's stale file references updated, GAP-013 split — WhatsApp resolved,
+  bank details still open), progress.md (this entry).
+- **Gaps:** GAP-009 resolved (all admin data real, auth actually works
+  end-to-end); GAP-013 narrowed to bank-transfer details only; GAP-010's
+  location note updated (its files were deleted, the underlying compliance
+  gap is unchanged and stays open). No new gap opened for either bug found —
+  both were fixed in the same session, documented as Gotchas/decision rows
+  instead per house rule 8's spirit (nothing vanishes with the session).
+- **Verified:** typecheck/lint clean throughout. Placed two real orders
+  through `POST /api/orders` (kept in the database at the owner's choice —
+  not test fixtures to clean up); marked one paid via the real
+  `PATCH /api/admin/orders/:reference` (this is what surfaced the cookie
+  bug); confirmed after the fix that settled revenue, order count, customer
+  count, best-sellers, the revenue chart, recent-orders table, the new
+  customer's row on `/admin/customers`, and stock decrement (clamped at 0 —
+  all three products were seeded with zero stock, real quantities are an
+  owner input, not a code fix) all updated correctly. Confirmed the
+  `/order-success` WhatsApp fix: with only `WHATSAPP_NUMBER` set, the button
+  reads "Message us on WhatsApp" (general contact), never "Send payment
+  proof" — verified on a live unpaid order. `NEXT_DIST_DIR=.next-verify npm
+  run build` confirms `/admin`, `/admin/customers`, `/admin/inventory`,
+  `/admin/settings` are all `ƒ` (dynamic), same as every other admin route.
+- **Next / open threads:** Owner still needs to supply bank account details
+  (GAP-013) and set real stock quantities per product (currently all zero
+  from the seed migration — every product reads as out-of-stock until this
+  happens). Live Paystack keys, `BLOB_READ_WRITE_TOKEN`, `ORDER_EMAIL_TO`
+  remain unset (owner chose to defer these). `/admin/orders`'s customer
+  history lookup (used by the customers dossier) inherits that list's
+  existing 50-order cap — fine at current volume, worth revisiting together
+  if that page ever gets pagination. Tests remain entirely absent (GAP-001) —
+  the two real-world bugs found this session (an RSC boundary violation and
+  a cookie-path scoping error) are exactly the kind neither lint nor
+  typecheck catches, and neither would a unit test without one that actually
+  exercises a real HTTP round trip — worth keeping in mind when GAP-001 is
+  finally picked up.
+
+## 2026-09-07 — Real product catalog: admin CRUD, packaging, discounts, photo upload
+
+- **Done:** Products moved from static `content/products.ts` to Postgres
+  (`products`/`product_packs`/`product_images` — `migrations/0003_products.sql`,
+  seeded from the old file by `0004_seed_existing_products.sql`). Admin can
+  now create and edit real products end to end: `/admin/products/new` and
+  the new `/admin/products/[id]/edit` (a route `ADMIN_ROUTES.editProduct`
+  pointed at with no page behind it until now) both use the same `ProductForm`,
+  which actually saves via `POST`/`PATCH /api/admin/products`. New per-product
+  fields: `discountPercent` (1-99 or `null`, applied uniformly across every
+  pack) and real image upload via Vercel Blob (`@vercel/blob`, client-side
+  direct upload — one new dependency) replacing the old decorative
+  "Photography" panel that had no `<input type="file">` anywhere. Stock now
+  decrements automatically the moment an order is confirmed paid (same
+  transaction as `confirmPayment`/`updateOrderStatus`), honoring a promise
+  the disabled form copy had been making since before either prerequisite
+  existed. The storefront (shop grid, product detail, cart, checkout,
+  homepage, related-products, order confirmation) all read the real catalogue
+  now and show discounted prices where set.
+- **Design simplification:** the DB-backed product matches the ADMIN FORM's
+  field set, not the old design's richer "proof"/"provenance" narrative
+  structure (flavour-profile percentage bars, an "acoustic crunch" rating,
+  hero badges) — that content was always hardcoded, never admin-editable, and
+  carrying it forward as DB content nobody could change would have repeated
+  the exact "fake permanence" mistake this codebase already refused for admin
+  panels. `Provenance` (component) is deleted, replaced by the leaner
+  `ProductDetails` (ingredients/allergens, pairings, storage/shelf-life — all
+  real, all editable).
+- **Architecture refinement made during implementation, not in the original
+  plan:** client-side cart/checkout pricing reads the catalogue via a React
+  context (`CatalogProvider`/`useCatalog()` in
+  `lib/products/catalog-context.tsx`), populated by whichever Server
+  Component page already fetched `listPublishedProducts()` — NOT the planned
+  public `GET /api/products` + client-side fetch-and-cache layer. The two
+  real consumers (`/cart`, `/checkout`) are both Server Component pages that
+  can fetch server-side anyway, so the simpler mechanism achieves the same
+  goal (no stale static import in a Client Component) with less code, no new
+  public endpoint, and no client-side loading state to get wrong.
+- **A second static/dynamic bug of the same shape as last session's, caught
+  before shipping:** `/shop`, `/shop/[slug]`, `/cart`, `/checkout`, the
+  homepage and `sitemap.ts` all now read Postgres directly via the `postgres`
+  driver — which, unlike `cookies()`, Next does NOT auto-detect as a
+  Request-time API. Left unset, every one of these would have baked today's
+  product list into the build permanently. Fixed by adding
+  `export const revalidate = 60` to each (ISR, not `force-dynamic` — a
+  public catalogue this small doesn't need per-request freshness, and the
+  actual charge is always the server re-price at order-creation time
+  regardless of what any of these pages happen to show).
+- **Files:** new `server/products/repository.ts`, `app/api/admin/{products,
+  products/[slug],uploads}/route.ts`, `components/admin/{image-upload,
+  edit-product-view}.tsx`, `app/admin/(portal)/products/[id]/edit/page.tsx`,
+  `lib/products/catalog-context.tsx`, `migrations/0003_products.sql`,
+  `migrations/0004_seed_existing_products.sql`. Rewrote `packages/types/src/
+  product.ts` (superseding the unused provisional shape), `lib/cart/
+  cart-store.ts` (`resolveLines` takes a catalog param now), `product-form.tsx`,
+  `product-schema.ts` (added `slug`/`discountPercent`/`images`), every
+  storefront product-display component (`product-card`, `product-gallery`,
+  `product-purchase`, `related-products`, `product-suggestions`,
+  `shop-catalogue`, `flavours`), `sample-order.ts` (now async, DB-backed).
+  Deleted `components/product/provenance.tsx`, `content/admin-products.ts`
+  (orphaned once `products-view.tsx`/`products-list.tsx` were rewritten
+  against real data).
+- **Decisions:** full rationale in `architecture.md`'s 2026-09-07 rows —
+  product schema matches the admin form not the old narrative structure;
+  discount is one nullable percent per product, never per-tier or `0`;
+  `CatalogProvider` over a public endpoint; Vercel Blob for upload; automatic
+  stock decrement; `revalidate = 60` on every product-reading page.
+- **Docs updated:** architecture.md (status header, decision log ×6, System
+  map, Data flow rewrite, 2 new Gotchas — the `TransactionSql` type split and
+  the Turbopack Google Fonts network dependency), api-integration.md (3 new
+  endpoints), gaps.md (GAP-004 location updated to Postgres, GAP-001 extended
+  to cover pricing/discount arithmetic, GAP-009's status line updated —
+  `/admin/products` is no longer sample data).
+- **Gaps:** GAP-004 (prices) unchanged in substance, relocated; GAP-001
+  extended (pricing/discount math now untested); no new GAP opened — the
+  build blocker below is environmental, not a code weakness, and is recorded
+  in architecture.md's Gotchas instead of the gaps ledger.
+- **Verified:** typecheck and lint clean across the whole monorepo. `next build`
+  failed twice on `fonts.gstatic.com` being unreachable (confirmed via direct
+  `curl`, unrelated to any code here — see architecture.md's Gotchas); network
+  recovered mid-session and a clean rebuild confirmed both (1) every
+  `/admin/**` route including the two new ones (`/admin/products`,
+  `/admin/products/[id]/edit`) is `ƒ` (dynamic) — the `force-dynamic` fix from
+  last session correctly covers new admin pages too — and (2)
+  `/`, `/shop`, `/shop/[slug]`, `/cart`, `/checkout`, `/sitemap.xml` all show
+  `Revalidate: 1m`, confirming ISR is actually active, not silently ignored.
+  **Not yet verified: an actual end-to-end order** — no `DATABASE_URL`
+  supplied this session, so migrations were never applied against a real
+  database.
+- **Next / open threads:** apply migrations 0003 and 0004, then place one
+  real end-to-end test order against a product with a discount to confirm
+  the charged price matches the discounted display and stock decrements
+  correctly. `/admin/customers` and `/admin/inventory` are the two remaining
+  sample-data admin screens —
+  natural next target if the owner wants those real too. The "general UX
+  pass" named in this session's plan was not reached given the size of the
+  rest of the work — worth a dedicated pass, not squeezed into this one.
+
+## 2026-09-07 — Payment (Paystack + bank transfer) and real admin order management
+
+- **Done:** Orders can now actually be paid, and the owner can actually manage
+  them. **Payment:** checkout collects a payment-method choice (Paystack
+  default/primary, bank-transfer fallback); `/order-success` is the single
+  payment hub (`PaymentActions`) regardless of whether it's the first visit or
+  a return via the emailed link. Paystack path: server-generated reference
+  (`prepare-payment`) → inline popup → client verify + a webhook backup, both
+  calling one idempotent `confirmPaystackPayment`. Paystack charges the
+  subtotal only (delivery still unpriced). Bank-transfer path: account details
+  + a pre-filled `wa.me` link, gated behind `packages/config/src/payment.ts`
+  (currently `null` — GAP-013) until the owner supplies real values. **Admin:**
+  `NODE_ENV` gate replaced everywhere with real session auth
+  (`getAdminSession()` — one shared credential, HMAC-signed httpOnly cookie,
+  `scrypt` via Node built-ins, zero new dependency). `/admin` (needs-dispatch
+  section) and `/admin/orders` (list + detail) now show real orders; a live
+  `OrderStatusControl` changes delivery status and confirms bank-transfer
+  payments manually. Three new emails (payment confirmed / shipped /
+  delivered), each idempotent on its own DB timestamp. Added a working
+  sign-out button — the login flow didn't have one before.
+- **Bug found and fixed before shipping:** a production build with
+  `ADMIN_SESSION_SECRET` unset baked every `/admin/**` page as a
+  **permanently cached static 404** — `getAdminSession()` checked the secret
+  and returned early *before* calling `cookies()`, so Next never detected a
+  Request-time API on that path. Fixed by calling `cookies()` first, plus
+  `export const dynamic = "force-dynamic"` on every admin page as defense in
+  depth. Caught by reading the build's own route table (`○` vs `ƒ`), not by
+  lint or typecheck — neither flagged it. Full writeup in `architecture.md`'s
+  Gotchas section and GAP-009's 2026-09-07 update.
+- **Files:** new `server/orders/paystack.ts`, `server/admin/{auth,session}.ts`,
+  `server/security/rate-limit.ts` (generalised from `server/orders/`),
+  `app/api/{orders/[token]/{prepare,verify}-payment,webhooks/paystack,
+  admin/{login,logout,orders/[reference]}}/route.ts`,
+  `components/order/payment-actions.tsx`,
+  `components/admin/{order-status-control,sign-out-button}.tsx`,
+  `packages/config/src/payment.ts`, `migrations/0002_payments_and_admin.sql`.
+  Rewrote `orders-view.tsx`/`orders-table.tsx`/`order-detail-view.tsx` for
+  real data (dropped the Kitchen Timeline / Geolocation / Notes / Dossier
+  panels — no real data source for any of them). `packages/types/src/order.ts`
+  gained `PaymentMethod`.
+- **Decisions:** full rationale in `architecture.md`'s 2026-09-07 rows —
+  payment on `/order-success` not `/checkout`; server-generated Paystack
+  reference bound to the order (closes a reference-replay hole); the
+  `force-dynamic` requirement for any cookie-gated route.
+- **Docs updated:** architecture.md (status header, decision log ×9, System
+  map, Data flow, a new Gotchas entry), api-integration.md (6 new endpoints,
+  the Paystack PENDING answer updated), gaps.md (GAP-009 resolved for the auth
+  mechanism, GAP-001/GAP-011 updated for the new untested/under-limited
+  surface, GAP-013/GAP-014 opened), CLAUDE.md unchanged (rule 10 already
+  covered this).
+- **Gaps:** GAP-009 (admin auth) resolved as a security gap, open as a content
+  gap (products/customers/inventory/settings still sample data behind the
+  real gate); GAP-011 raised (rate limiter now also guards admin login);
+  GAP-001 updated (payment/auth logic now untested); opened GAP-013 (no bank/
+  WhatsApp details yet) and GAP-014 (webhook unregistered, untested against
+  live Paystack traffic).
+- **Verified:** typecheck/lint/format clean; a from-scratch production build
+  succeeds AND its route table was inspected directly — every `/admin/**`
+  route is `ƒ` (dynamic), confirming the fix above actually took. **Not
+  verified:** an actual Paystack test payment or a real admin login — no
+  `PAYSTACK_SECRET_KEY`/`ADMIN_EMAIL`/`ADMIN_PASSWORD_HASH`/
+  `ADMIN_SESSION_SECRET` supplied this session.
+- **Next / open threads:** owner still needs to supply the bank/WhatsApp
+  details (GAP-013), an admin email + a generated password hash (see
+  `server/admin/auth.ts`'s header comment for the one-off `node -e` command),
+  and, once deployed, register the Paystack webhook URL (GAP-014). Delivery
+  fee (Q16) and GAP-004 (prices)/GAP-007 (allergens) still block public
+  launch. Products/customers/inventory/settings still show sample data behind
+  the now-real admin gate — next natural target if the owner wants those live
+  too.
+
+## 2026-09-07 — Guest checkout is real: backend built in `apps/web`, storefront wired to it
+
+- **Done:** Owner overrode CLAUDE.md rule 10 — backend is now Next.js Route
+  Handlers in `apps/web/src/app/api/` (`POST /api/orders`, `GET
+  /api/orders/[token]`), not the separate `apps/backend`. Backed by Postgres
+  (`postgres` driver) + best-effort Resend email (raw `fetch`, no SDK).
+  Checkout really submits now (all 4 UI states), `/order-success?token=…`
+  renders a real order fetched server-side, "Instant checkout" works. Owner's
+  25-answer brief also turned several "unverified" claims into confirmed-false
+  — deleted the free-delivery/gift-packaging offers and every "Paystack
+  Secured/verified" claim (no Paystack account exists — Q15). No design work:
+  the existing system already derives from the brand logo.
+- **Security:** every order line is re-priced server-side from
+  `content/products.ts` — the request schema carries no price field at all.
+  Orders are read back by a 32-byte `access_token`, never the human-readable
+  reference. `config/server-env.ts` is `server-only`-guarded so a secret
+  importing into a Client Component fails the build, not just a code review.
+- **Files:** new `app/api/orders/`, `server/{db,orders,email}/`,
+  `config/server-env.ts`, `lib/orders/order-request.ts`,
+  `migrations/0001_orders.sql`; `packages/types/src/order.ts` (`OrderItem`
+  gained required `pack`; `deliveryFee`/`total` are now `Money | null`);
+  `checkout-form.tsx`, `order-success/page.tsx`, `product-purchase.tsx`,
+  content files for the removed false claims; `apps/backend/README.md`,
+  `CLAUDE.md` rule 10.
+- **Decisions:** full rationale is in `architecture.md`'s 2026-09-07 rows —
+  backend-in-`apps/web`, plain Postgres only (Supabase now, Railway later),
+  Server Components call `server/` directly instead of self-fetching.
+- **Docs updated:** architecture.md, api-integration.md (contract recorded,
+  PENDING section resolved), gaps.md, CLAUDE.md, `apps/backend/README.md`.
+- **Gaps:** closed GAP-008; split GAP-007 (allergens still open); raised
+  GAP-001 to high; opened GAP-011 (in-memory rate limit), GAP-012 (silent
+  email failures).
+- **Verified:** typecheck/lint/format clean; `NEXT_DIST_DIR` build succeeds
+  (dev server untouched); live dev server confirms an honest 503 (not a fake
+  success) with no `DATABASE_URL`; `.next-verify/static` has zero occurrences
+  of any removed false claim. **Not verified:** a real order end-to-end — no
+  `DATABASE_URL`/`RESEND_API_KEY` supplied this session.
+- **Next / open threads:** owner needs to supply a Supabase transaction-pooler
+  connection string and a Resend API key to actually place an order. Paystack
+  (Q15), delivery-fee calc (Q16), GAP-004 (prices) and GAP-007 (allergens)
+  still block public launch. Admin auth (GAP-009) stays out of scope.
 
 ## 2026-09-06 — Settings (/admin/settings), dev-gated — designed, no mock
 

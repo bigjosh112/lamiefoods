@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PRODUCT_CATEGORIES, type Product } from "@lamiefoods/types";
 
 /**
  * New-product form validation.
@@ -41,7 +42,23 @@ export const productSchema = z
       .trim()
       .min(3, { message: "Give the product a name" })
       .max(80, { message: "That name is too long" }),
-    category: z.string().trim().min(1, { message: "Choose a category" }),
+    /**
+     * The stable identifier in the product's URL. Auto-suggested from the
+     * title (see `product-form.tsx`'s `slugify`-on-type behaviour) but
+     * editable, and deliberately NOT re-derived from the title automatically
+     * on every keystroke once touched — a live product's URL must not shift
+     * out from under a bookmark or a customer's mid-session cart just
+     * because the title got a copy edit.
+     */
+    slug: z
+      .string()
+      .trim()
+      .min(3, { message: "The URL slug is too short" })
+      .max(80, { message: "The URL slug is too long" })
+      .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, {
+        message: "Lowercase letters, numbers and single hyphens only",
+      }),
+    category: z.enum(PRODUCT_CATEGORIES, { message: "Choose a category" }),
     teaser: z
       .string()
       .trim()
@@ -82,6 +99,32 @@ export const productSchema = z
     storefrontActive: z.boolean(),
     featureOnHomepage: z.boolean(),
     seasonalEdition: z.boolean(),
+
+    /**
+     * `null` means no promotion — never `0`. A stored `0` would read as an
+     * authorised discount nobody actually offered; see the shared
+     * `Product.discountPercent` type comment for the same reasoning applied
+     * to `Order.deliveryFee`.
+     */
+    discountPercent: z
+      .number()
+      .int()
+      .min(1, { message: "A discount must be at least 1%" })
+      .max(99, { message: "A discount can't be 100% or more" })
+      .nullable(),
+
+    /** Populated by `components/admin/image-upload.tsx` after a real Vercel
+     *  Blob upload completes — never user-typed, so validation here is
+     *  structural only. */
+    images: z
+      .array(
+        z.object({
+          url: z.string(),
+          alt: z.string(),
+          role: z.enum(["hero", "gallery"]),
+        }),
+      )
+      .default([]),
   })
   .refine((values) => values.allergens.length > 0 || values.allergensConfirmed, {
     message: "Tick the allergens that apply, or confirm the product contains none",
@@ -91,3 +134,91 @@ export const productSchema = z
 export type ProductFormValues = z.input<typeof productSchema>;
 
 export const TEASER_LIMIT = MAX_TEASER;
+
+/** Naira string ("3,600") to kobo integer (360000). Strips the same
+ *  separators `priceField`'s regex already tolerates. */
+function nairaStringToKobo(value: string): number {
+  return Number(value.replace(/[,\s]/g, "")) * 100;
+}
+
+/** e.g. "Roasted Nutmeg & Wild Honey" → "roasted-nutmeg-wild-honey". */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "") // strip accents
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Validated form values → the server's `ProductInput` shape
+ * (`server/products/repository.ts`). The one place naira strings become
+ * kobo integers and empty-string optionals become `null` — every caller
+ * (create, edit) goes through this so the conversion happens exactly once.
+ */
+export function toProductInput(values: z.infer<typeof productSchema>) {
+  return {
+    slug: values.slug,
+    name: values.title,
+    category: values.category,
+    teaser: values.teaser,
+    narrative: values.narrative || null,
+    pairings: values.pairings || null,
+    crunchScore: values.crunch,
+    ingredients: values.ingredients,
+    allergens: values.allergens,
+    allergensConfirmed: values.allergensConfirmed,
+    shelfLife: values.shelfLife,
+    storageNote: values.storage,
+    stockQuantity: Number(values.initialStock.replace(/[,\s]/g, "")),
+    restockThreshold: values.restockThreshold
+      ? Number(values.restockThreshold.replace(/[,\s]/g, ""))
+      : null,
+    storefrontActive: values.storefrontActive,
+    featureOnHomepage: values.featureOnHomepage,
+    seasonalEdition: values.seasonalEdition,
+    discountPercent: values.discountPercent,
+    packs: values.tiers.map((tier) => ({
+      name: tier.name,
+      priceKobo: nairaStringToKobo(tier.price),
+      sku: tier.sku || null,
+    })),
+    images: values.images,
+  };
+}
+
+/** The reverse conversion, for pre-filling the edit form from a real `Product`. */
+export function fromProduct(product: Product): ProductFormValues {
+  return {
+    title: product.name,
+    slug: product.slug,
+    category: product.category,
+    teaser: product.teaser,
+    narrative: product.narrative ?? "",
+    pairings: product.pairings ?? "",
+    crunch: product.crunchScore,
+    ingredients: product.ingredients,
+    allergens: product.allergens,
+    allergensConfirmed: product.allergensConfirmed,
+    shelfLife: product.shelfLife ?? "",
+    storage: product.storageNote ?? "",
+    tiers: product.packs.map((pack) => ({
+      name: pack.name,
+      price: String(pack.price.amount / 100),
+      sku: pack.sku ?? "",
+    })),
+    initialStock: String(product.stockQuantity),
+    restockThreshold:
+      product.restockThreshold !== null ? String(product.restockThreshold) : "",
+    storefrontActive: product.storefrontActive,
+    featureOnHomepage: product.featureOnHomepage,
+    seasonalEdition: product.seasonalEdition,
+    discountPercent: product.discountPercent,
+    images: product.images.map((image) => ({
+      url: image.url,
+      alt: image.alt,
+      role: image.role,
+    })),
+  };
+}

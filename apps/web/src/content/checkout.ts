@@ -4,10 +4,14 @@ import { DELIVERY } from "@lamiefoods/config";
  * Copy for the checkout.
  *
  * Departures from the mock, all deliberate:
- *   - The mock badged Paystack "LIVE". Payments are NOT connected; a live badge
- *     over a gateway that cannot take money is a straightforwardly false claim.
  *   - "Direct atelier chat" is dropped — no chat channel exists to link to.
  *   - "1-3 business days" corrected to the confirmed 1–5.
+ *
+ * Paystack (card/bank transfer/USSD) is now genuinely connected — the owner
+ * confirmed an account exists this session. Bank transfer via WhatsApp is the
+ * fallback. Neither is acted on by THIS form: choosing one just records the
+ * intent on the order; actually paying happens on `/order-success`, so a
+ * retry or a method switch has one place to work from.
  *
  * UNVERIFIED (GAP-004 / GAP-007): per-item batch numbers, the small-batch
  * quality guarantee, and the replacement promise, which is a commercial warranty
@@ -24,7 +28,7 @@ export const CHECKOUT = {
   ],
 
   contact: {
-    step: "Step 1 of 2",
+    step: "Step 1 of 3",
     title: "Contact & Dispatch Notifications",
     emailLabel: "Email address (order confirmation & tracking)",
     emailPlaceholder: "recipient@example.com",
@@ -36,7 +40,7 @@ export const CHECKOUT = {
   },
 
   delivery: {
-    step: "Step 2 of 2",
+    step: "Step 2 of 3",
     title: "Delivery Destination",
     nameLabel: "Recipient full name",
     namePlaceholder: "e.g. Olamide Adeleke",
@@ -54,19 +58,34 @@ export const CHECKOUT = {
     },
   },
 
+  /** Paystack is the primary path ("the main way") — listed first and
+   *  selected by default; bank transfer is the fallback for anyone who'd
+   *  rather not pay online. */
+  paymentMethod: {
+    step: "Step 3 of 3",
+    title: "How would you like to pay?",
+    paystack: {
+      label: "Pay online now",
+      note: "Card, bank transfer or USSD via Paystack — secure and instant.",
+    },
+    whatsappTransfer: {
+      label: "Bank transfer",
+      note: "Transfer directly, then send your receipt on WhatsApp — we confirm it manually.",
+    },
+  },
+
   summary: {
     title: "Order Summary",
     subtotalLabel: "Items subtotal",
     dispatchLabel: "Courier dispatch",
     dispatchValue: `To be confirmed · ${DELIVERY.minDays}–${DELIVERY.maxDays} days`,
     totalLabel: "Total due",
-    totalNote: "Product costs only — delivery is added at dispatch",
-    paymentTitle: "Payment options",
-    /** These are the methods Paystack supports; not a claim about our account. */
-    methods: ["Debit / credit card", "Bank transfer", "USSD"],
-    gateway: "Powered by Paystack",
-    cta: "Pay now with Paystack",
-    badges: ["Encrypted", "Guaranteed fresh", "Instant confirmation"],
+    totalNote: "Product costs only — delivery and payment are confirmed after you order",
+    paymentTitle: "Payment",
+    paymentNote:
+      "You'll pay on the next page, using whichever method you chose above. Nothing is charged by this button.",
+    cta: "Place order",
+    badges: ["Guest checkout", "No payment taken yet", "Confirmed by email"],
   },
 
   /**
