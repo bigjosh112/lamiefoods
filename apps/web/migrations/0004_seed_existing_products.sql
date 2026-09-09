@@ -47,6 +47,14 @@ select * from (values
 ) as v(slug, name, category, teaser, crunch_score, ingredients, allergens, allergens_confirmed, storefront_active, feature_on_homepage)
 where not exists (select 1 from products p where p.slug = v.slug);
 
+-- PLACEHOLDER STOCK. Nobody has counted anything; these exist only so a fresh
+-- database does not open with every product asserting "Sold out". Set real
+-- figures in /admin/products.
+update products
+   set stock_quantity = 100
+ where slug in ('milky-velvet-chinchin', 'coco-velvet-chinchin', 'cinnamon-chinchin')
+   and stock_quantity = 0;
+
 -- Packaging tiers — THREE pouches per product.
 --
 -- These are the owner's CONFIRMED range and prices (2026-09-08): 100g, 300g
@@ -77,16 +85,23 @@ where not exists (
   select 1 from product_packs pk where pk.product_id = p.id and pk.name = v.name
 );
 
--- Images: only two of the three had a real photo in the static catalogue
--- (milky-velvet-chinchin's was still a placeholder — `image.src: null`) —
--- carried over as-is, not invented. Re-upload through the admin form
--- (Vercel Blob) to add real photography for any product.
+-- ⚠ PLACEHOLDER PHOTOGRAPHY — stock packaging mockups belonging to OTHER
+-- brands, supplied by the owner as local stand-ins until the brand shoot. They
+-- carry third-party names, an Instagram handle, barcodes and legible nutrition
+-- panels, so they must not reach production: they would put another company's
+-- trade dress on the storefront and show allergen and nutritional information
+-- that is not Lamie Foods' own. Tracked as GAP-006. Replace by uploading real
+-- photography through /admin/products.
+--
+-- This used to seed the two leftover photos from the static catalogue and
+-- leave Milky Velvet with none.
 insert into product_images (product_id, url, alt, role, sort_order)
 select p.id, v.url, v.alt, 'hero', 0
 from products p
 join (values
-  ('coco-velvet-chinchin', '/images/chinchin10.png', 'Coco Velvet Chinchin with fresh coconut'),
-  ('cinnamon-chinchin', '/images/chinchin11.png', 'Cinnamon Chinchin on a wooden board')
+  ('milky-velvet-chinchin', '/images/packagedchinchin.jpeg', 'Milky Velvet Chinchin in its pack'),
+  ('coco-velvet-chinchin', '/images/packagedchinchin1.jpeg', 'Coco Velvet Chinchin in its pack'),
+  ('cinnamon-chinchin', '/images/packagedchinchin3.jpeg', 'Cinnamon Chinchin in its pack')
 ) as v(slug, url, alt) on v.slug = p.slug
 where not exists (
   select 1 from product_images pi where pi.product_id = p.id and pi.role = 'hero'
