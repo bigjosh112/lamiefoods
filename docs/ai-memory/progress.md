@@ -17,6 +17,31 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Customers page: copy simplification
+
+- **Done:** The owner's copy-only pass on `/admin/customers` — eyebrow removed,
+  three renames, caps cleared. 8 insertions, 17 deletions, all text.
+- **Files:** `components/admin/{customers-view,customers-directory}.tsx`.
+- **Renames:** "Busiest hub" → "Top location", "Delivery locale" → "Delivery
+  area", "Customer dossier" → "Customer details" (in both the empty state and
+  the populated panel — the empty state is easy to miss, since it only shows
+  before a row is selected).
+- **Third consecutive page where the casing was CSS, not copy.** Stat labels,
+  table headers and the section eyebrows were all already sentence case in the
+  data; `uppercase` classes were capitalising them. Same fix, same benefit: no
+  strings rewritten, nothing to drift.
+- **Item 3 needed no change** — the filter tabs were already sentence case *and*
+  already free of `uppercase`, cleared by the site-wide button-radius pass on
+  2026-09-08. Confirmed rather than assumed.
+- **⚠ Left capitalised, because the brief did not name them:** five sub-headings
+  *inside* the dossier panel — "Spend", "Orders", "Contact", "Delivery
+  landmark", "Order history". They now sit under a sentence-case
+  "Customer details" title, so the panel is internally inconsistent. One class
+  removal each if the owner wants them to match.
+- **Verified:** typecheck and lint pass; the diff touches only text and casing.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — Products page: renamed, and casing cleanup
 
 - **Done:** The owner's copy-only pass on `/admin/products` — "Products & SKUs"

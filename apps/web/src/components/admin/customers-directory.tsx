@@ -34,7 +34,7 @@ const monogram = (name: string) =>
 const monthYear = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-const COLUMNS = ["Customer", "Contact", "Delivery locale", "Orders"];
+const COLUMNS = ["Customer", "Contact", "Delivery area", "Orders"];
 
 /**
  * Customer directory with a dossier.
@@ -117,7 +117,7 @@ export function CustomersDirectory({ customers }: { customers: CustomerRow[] }) 
                   <th
                     key={column}
                     scope="col"
-                    className="px-gutter-sm py-3 font-label text-label-sm text-nutmeg uppercase"
+                    className="px-gutter-sm py-3 font-label text-label-sm text-nutmeg"
                   >
                     {column}
                   </th>
@@ -206,9 +206,7 @@ export function CustomersDirectory({ customers }: { customers: CustomerRow[] }) 
         />
       ) : (
         <aside className="h-fit rounded border border-rule/70 bg-surface p-gutter-md">
-          <h2 className="font-label text-label-caps text-nutmeg uppercase">
-            Customer dossier
-          </h2>
+          <h2 className="font-label text-label-md text-nutmeg">Customer details</h2>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
             Select a customer to see their contact details, delivery landmark and order
             history.
@@ -223,9 +221,7 @@ function Dossier({ customer, onClose }: { customer: CustomerRow; onClose: () => 
   return (
     <aside className="h-fit rounded border border-rule/70 bg-surface p-gutter-md xl:sticky xl:top-0">
       <div className="flex items-start justify-between gap-gutter-sm">
-        <h2 className="font-label text-label-caps text-nutmeg uppercase">
-          Customer dossier
-        </h2>
+        <h2 className="font-label text-label-md text-nutmeg">Customer details</h2>
         <button
           type="button"
           onClick={onClose}

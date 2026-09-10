@@ -81,7 +81,7 @@ export function CustomersView({ customers }: { customers: CustomerRow[] }) {
       icon: "seal" as const,
     },
     {
-      label: "Busiest hub",
+      label: "Top location",
       value: byCity[0]?.city ?? "—",
       note: byCity[0]
         ? `${byCity[0].count} of ${customers.length} customers`
@@ -94,10 +94,7 @@ export function CustomersView({ customers }: { customers: CustomerRow[] }) {
     <>
       <div className="mb-gutter-md flex flex-wrap items-start justify-between gap-gutter-md">
         <div className="max-w-2xl">
-          <p className="font-label text-label-caps text-terracotta uppercase">
-            Client ledger
-          </p>
-          <h1 className="mt-1 text-headline-lg text-cacao">Customer Directory</h1>
+          <h1 className="text-headline-lg text-cacao">Customer directory</h1>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
             Every customer who has ordered, with their contact details, delivery landmark
             and order history.
@@ -115,9 +112,7 @@ export function CustomersView({ customers }: { customers: CustomerRow[] }) {
             >
               <div className="flex items-start justify-between gap-gutter-sm">
                 <div className="min-w-0">
-                  <p className="font-label text-label-sm text-nutmeg uppercase">
-                    {stat.label}
-                  </p>
+                  <p className="font-label text-label-sm text-nutmeg">{stat.label}</p>
                   <p className="mt-gutter-xs font-display text-headline-md text-cacao">
                     {stat.value}
                   </p>
@@ -210,7 +205,7 @@ function Card({
     <section className="rounded border border-rule/70 bg-surface p-gutter-md">
       <div className="flex flex-wrap items-baseline justify-between gap-gutter-sm">
         <h2 className="text-headline-sm text-cacao">{title}</h2>
-        <span className="font-label text-label-sm text-nutmeg uppercase">{note}</span>
+        <span className="font-label text-label-sm text-nutmeg">{note}</span>
       </div>
       {children}
     </section>
