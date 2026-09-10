@@ -17,6 +17,35 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About hero: closed the gap between the columns
+
+- **Done:** Hero columns now read as a pair — horizontal gap 64px → 40px, split
+  6/6 → 7/5, and the image no longer sits inset from the gap.
+- **Files:** `components/about/about-sections.tsx` (hero only).
+- **The main cause was the previous pass's own change.** `md:ml-auto md:w-5/6`
+  shrank the image and pinned it right, which left ~108px of dead space on its
+  left *on top of* the 64px grid gap — about 172px of apparent separation. The
+  brief's third point described exactly that. Both classes are gone.
+- **The image is the same size on screen.** At the 1360px container, 5 of 12
+  columns with a 40px gap is ~543px; it was ~540px at 6 columns × 5/6. Within
+  3px, so "do not change the image size" holds while the inset disappears.
+- **`gap-x` and `gap-y` split deliberately.** Only the horizontal gap dropped to
+  40px; the vertical stayed at 64px, since that is the stacked-mobile rhythm and
+  the brief ruled vertical spacing out of scope. A plain `gap-gutter-lg` would
+  have changed both.
+- **Scoped to the hero.** Three other sections in the same file use an identical
+  `grid items-center gap-gutter-xl md:grid-cols-12` string; the edit was
+  anchored between `AboutHero` and `AboutHeritage` so a blind
+  search-and-replace could not touch them. Verified all three still carry the
+  original grid.
+- **Verified:** the rendered hero is `grid items-center gap-x-gutter-lg
+  gap-y-gutter-xl md:grid-cols-12` with `md:col-span-7` / `md:col-span-5`, the
+  image container is back to plain `relative aspect-4/5 …`, and no `md:ml-auto`
+  or `md:w-5/6` remains anywhere on the page. Typecheck, lint, build and
+  `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — About hero image sized down
 
 - **Done:** Shrunk the About hero photograph by ~17% and right-aligned it.
