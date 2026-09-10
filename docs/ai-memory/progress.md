@@ -17,6 +17,34 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Orders page: sidebar naming and copy casing
+
+- **Done:** The owner's copy-only pass on `/admin/orders`. No layout, filter,
+  table or styling change — the diff is `uppercase` removals plus two strings.
+- **Files:** `content/admin-dashboard.ts`, `components/admin/orders-view.tsx`,
+  `components/admin/orders-table.tsx`.
+- **Sidebar "Orders & Paystack" → "Orders".** The owner's reasoning holds and is
+  worth keeping: these orders also settle by bank transfer, so naming one
+  provider in the nav was inaccurate, not just long. The page header stays
+  "Orders & fulfilment".
+- **Most of the casing was CSS, not copy.** The stat labels, tab labels, table
+  headers and payment badges were already sentence case in the data —
+  `uppercase` classes were capitalising them at render. Removing the class was
+  the whole fix, so no strings had to be rewritten and nothing can drift.
+- **One genuine label change:** the third stat card was
+  `Showing (${TAB_LABEL[activeStatus]})` and is now "Total value".
+- **⚠ Worth watching:** that card's value is `formatKobo(totalValue)` for the
+  **current filter**, not all time. The old label carried the filter name, so
+  "Showing (Pending)" was self-explanatory; "Total value" on the Pending tab
+  reads as an all-time figure while showing a filtered one. The owner asked for
+  the label explicitly and it is a money figure, so it is flagged rather than
+  quietly re-worded — appending the filter name only when one is active would
+  fix it without losing the requested wording.
+- **Verified:** no `uppercase` remains in either orders component; typecheck and
+  lint pass; the diff touches only text and casing.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — Admin: copy pass, layout fix, and a real mobile build
 
 - **Done:** All three parts of the owner's admin brief — copy and casing, the

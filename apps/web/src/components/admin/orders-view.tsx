@@ -62,7 +62,12 @@ export function OrdersView({
             Every order that has come through checkout, newest first.
           </p>
         </div>
-        <ButtonAnchor href="/api/admin/orders/export" variant="secondary" download>
+        <ButtonAnchor
+          href="/api/admin/orders/export"
+          variant="secondary"
+          download
+          className="normal-case"
+        >
           Export dispatch CSV
         </ButtonAnchor>
       </div>
@@ -75,11 +80,7 @@ export function OrdersView({
           value={String(needsDispatchCount)}
           highlight={needsDispatchCount > 0}
         />
-        <StatCard
-          icon="seal"
-          label={`Showing (${TAB_LABEL[activeStatus]})`}
-          value={formatKobo(totalValue)}
-        />
+        <StatCard icon="seal" label="Total value" value={formatKobo(totalValue)} />
       </div>
 
       <div className="mt-gutter-md flex flex-wrap gap-gutter-xs border-b border-rule/70 pb-2">
@@ -95,7 +96,7 @@ export function OrdersView({
               key={status}
               href={href}
               className={cn(
-                "rounded-sm px-3 py-1.5 font-label text-label-sm uppercase transition-colors",
+                "rounded-sm px-3 py-1.5 font-label text-label-sm transition-colors",
                 active
                   ? "bg-primary-container text-linen"
                   : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container",
@@ -135,7 +136,7 @@ function StatCard({
           : "border-rule/70 bg-surface-container-low",
       )}
     >
-      <p className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg uppercase">
+      <p className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg">
         <Icon className="h-4 w-4 text-terracotta" />
         {label}
       </p>

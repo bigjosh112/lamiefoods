@@ -37,7 +37,7 @@ export function OrdersTable({ rows }: { rows: AdminOrderSummary[] }) {
   return (
     <div className="overflow-x-auto rounded border border-rule/70">
       <table className="w-full min-w-[800px] text-left text-body-sm">
-        <thead className="bg-surface-container-low text-label-sm text-nutmeg uppercase">
+        <thead className="bg-surface-container-low text-label-sm text-nutmeg">
           <tr>
             <th className="px-gutter-sm py-2 font-label">Order</th>
             <th className="px-gutter-sm py-2 font-label">Customer</th>
@@ -78,7 +78,7 @@ export function OrdersTable({ rows }: { rows: AdminOrderSummary[] }) {
                 </p>
                 <Link
                   href={ADMIN_ROUTES.order(row.reference)}
-                  className="mt-1 inline-flex min-h-11 items-center gap-gutter-xs font-label text-label-sm text-terracotta uppercase hover:text-cacao"
+                  className="mt-1 inline-flex min-h-11 items-center gap-gutter-xs font-label text-label-sm text-terracotta hover:text-cacao"
                   aria-label={`View customer and dispatch details for order ${row.reference}`}
                 >
                   View details
@@ -131,7 +131,7 @@ function Badge({
   return (
     <span
       className={cn(
-        "inline-block rounded-sm px-2 py-0.5 font-label text-label-sm uppercase",
+        "inline-block rounded-sm px-2 py-0.5 font-label text-label-sm",
         tone === "positive" && "bg-cacao text-tertiary-fixed-dim",
         tone === "negative" && "bg-error-container text-on-error-container",
         tone === "neutral" && "bg-secondary-container text-on-secondary-fixed",
