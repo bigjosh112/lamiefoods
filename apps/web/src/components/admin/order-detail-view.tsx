@@ -79,7 +79,7 @@ export function OrderDetailView({ order }: { order: Order }) {
                       {item.pack} × {item.quantity}
                     </p>
                   </div>
-                  <p className="font-label text-label-md text-terracotta">
+                  <p className="font-numeral text-label-md text-terracotta">
                     {formatKobo(item.lineTotal.amount)}
                   </p>
                 </li>
@@ -90,7 +90,7 @@ export function OrderDetailView({ order }: { order: Order }) {
           <dl className="mt-gutter-md space-y-2 border-t border-rule/70 pt-gutter-sm text-body-sm">
             <div className="flex items-baseline justify-between">
               <dt className="text-on-surface-variant">Subtotal</dt>
-              <dd className="font-label text-label-md text-cacao">
+              <dd className="font-numeral text-label-md text-cacao">
                 {formatKobo(order.subtotal.amount)}
               </dd>
             </div>

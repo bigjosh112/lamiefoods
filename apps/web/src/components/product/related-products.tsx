@@ -85,7 +85,7 @@ export function RelatedProducts({
                   </p>
 
                   <div className="mt-gutter-md flex flex-wrap items-center gap-gutter-sm">
-                    <span className="font-label text-label-md text-terracotta">
+                    <span className="font-numeral text-label-md text-terracotta">
                       {Number.isFinite(cheapest)
                         ? formatKobo(applyDiscount(cheapest, product.discountPercent))
                         : ""}

@@ -163,7 +163,7 @@ export function InventoryTable({ products }: { products: Product[] }) {
                   <td className="px-gutter-sm py-3 whitespace-nowrap">
                     <span
                       className={cn(
-                        "font-label text-label-md",
+                        "font-numeral text-label-md",
                         low ? "text-error" : "text-cacao",
                       )}
                     >

@@ -94,7 +94,7 @@ export function OrdersTable({ rows }: { rows: AdminOrderSummary[] }) {
               <td className="max-w-[220px] px-gutter-sm py-2 text-on-surface-variant">
                 {row.itemSummary || "—"}
               </td>
-              <td className="px-gutter-sm py-2 font-label text-label-md text-cacao">
+              <td className="px-gutter-sm py-2 font-numeral text-label-md text-cacao">
                 {formatKobo(row.subtotal.amount)}
               </td>
               <td className="px-gutter-sm py-2">

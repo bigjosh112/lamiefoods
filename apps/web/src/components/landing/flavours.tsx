@@ -123,7 +123,7 @@ export function Flavours({ products }: { products: Product[] }) {
 
                   {pack && (
                     <>
-                      <p className="mt-gutter-sm font-label text-label-md text-cacao">
+                      <p className="mt-gutter-sm font-numeral text-label-md text-cacao">
                         {formatKobo(
                           applyDiscount(pack.price.amount, product.discountPercent),
                         )}

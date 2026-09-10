@@ -63,8 +63,8 @@ export function CartView() {
                     </div>
                   </div>
 
-                  <p className="font-label text-label-md text-on-surface-variant lg:col-span-2">
-                    <span className="text-nutmeg lg:hidden">Unit price: </span>
+                  <p className="font-numeral text-label-md text-on-surface-variant lg:col-span-2">
+                    <span className="font-body text-nutmeg lg:hidden">Unit price: </span>
                     {formatKobo(unitPrice)}
                   </p>
 
@@ -77,7 +77,7 @@ export function CartView() {
                   </div>
 
                   <div className="lg:col-span-2 lg:text-right">
-                    <p className="font-label text-label-md text-terracotta">
+                    <p className="font-numeral text-label-md text-terracotta">
                       {formatKobo(lineTotal)}
                     </p>
                     <button
@@ -202,7 +202,7 @@ function Row({
         {label}
         {note && <span className="block text-body-sm text-nutmeg">{note}</span>}
       </dt>
-      <dd className="shrink-0 text-right font-label text-label-md text-cacao">
+      <dd className="shrink-0 text-right font-numeral text-label-md text-cacao">
         {children}
       </dd>
     </div>

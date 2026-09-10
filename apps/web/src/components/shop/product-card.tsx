@@ -70,7 +70,7 @@ export function ProductCard({ product }: { product: Product }) {
           <h3 className="text-headline-sm text-cacao group-hover:text-terracotta">
             {product.name}
           </h3>
-          <span className="shrink-0 font-label text-label-md text-terracotta">
+          <span className="shrink-0 font-numeral text-label-md text-terracotta">
             {selectedPack ? (
               product.discountPercent ? (
                 <span className="flex flex-col items-end">

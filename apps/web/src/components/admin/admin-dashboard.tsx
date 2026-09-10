@@ -280,7 +280,7 @@ export function AdminDashboard({
                       >
                         #{order.reference}
                       </Link>
-                      <span className="font-label text-label-md text-cacao">
+                      <span className="font-numeral text-label-md text-cacao">
                         {formatKobo(order.subtotal.amount)}
                       </span>
                     </div>
@@ -359,7 +359,7 @@ export function AdminDashboard({
                         <td className="py-3 pr-4 text-body-sm text-on-surface-variant">
                           {order.itemSummary || "—"}
                         </td>
-                        <td className="py-3 pr-4 font-label text-label-sm text-cacao">
+                        <td className="py-3 pr-4 font-numeral text-label-sm text-cacao">
                           {formatKobo(order.subtotal.amount)}
                         </td>
                         <td className="py-3 pr-4">

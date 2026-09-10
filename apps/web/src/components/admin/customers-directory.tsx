@@ -172,10 +172,10 @@ export function CustomersDirectory({ customers }: { customers: CustomerRow[] }) 
                     </td>
 
                     <td className="px-gutter-sm py-3 text-body-sm">
-                      <span className="block font-label text-label-md text-cacao">
+                      <span className="block font-numeral text-label-md text-cacao">
                         {customer.orderCount}
                       </span>
-                      <span className="block text-nutmeg">
+                      <span className="block font-numeral text-nutmeg">
                         {formatKobo(customer.totalSpendKobo)}
                       </span>
                     </td>
@@ -250,7 +250,7 @@ function Dossier({ customer, onClose }: { customer: CustomerRow; onClose: () => 
       <dl className="mt-gutter-sm grid grid-cols-2 gap-gutter-xs">
         <div className="rounded border border-rule/70 bg-surface-container-low p-gutter-sm">
           <dt className="font-label text-label-sm text-nutmeg uppercase">Spend</dt>
-          <dd className="mt-1 font-label text-label-md text-terracotta">
+          <dd className="mt-1 font-numeral text-label-md text-terracotta">
             {formatKobo(customer.totalSpendKobo)}
           </dd>
         </div>
@@ -315,7 +315,9 @@ function Dossier({ customer, onClose }: { customer: CustomerRow; onClose: () => 
                 </span>
                 <span className="mt-1 flex flex-wrap justify-between text-body-sm text-nutmeg">
                   <span>{new Date(order.createdAt).toLocaleDateString()}</span>
-                  <span className="text-cacao">{formatKobo(order.subtotal.amount)}</span>
+                  <span className="font-numeral text-cacao">
+                    {formatKobo(order.subtotal.amount)}
+                  </span>
                 </span>
               </Link>
             </li>

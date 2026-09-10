@@ -16,6 +16,7 @@ import { extendTailwindMerge } from "tailwind-merge";
  * Keep this in step with the `--text-*` tokens in `globals.css`.
  */
 const FONT_SIZES = [
+  "display-xl",
   "display-hero",
   "headline-lg",
   "headline-md",

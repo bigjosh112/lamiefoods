@@ -100,7 +100,7 @@ export function ProductSuggestions({
                 </p>
 
                 <div className="mt-gutter-md flex items-center justify-between gap-gutter-sm">
-                  <span className="font-label text-label-md text-terracotta">
+                  <span className="font-numeral text-label-md text-terracotta">
                     {pack
                       ? formatKobo(
                           applyDiscount(pack.price.amount, product.discountPercent),

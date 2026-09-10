@@ -46,15 +46,38 @@ the tightest is the primary CTA at 4.80:1. That is close to the 4.5:1 floor, so
 
 ### Typography
 
-Three families, each with one job — do not substitute:
+**Two families.** Only two tokens name a typeface, and nothing else in the codebase
+— storefront or admin — may write a family name. Reverting or swapping the pair is a
+two-value edit in `globals.css`:
 
-| Token | Family | Use for |
+| Token | Family | Loaded by |
 |---|---|---|
-| `--font-display` | Bodoni Moda | headlines only |
-| `--font-sans` | Epilogue | body copy (the `body` default) |
-| `--font-label` | Space Grotesk | labels, metadata, prices, buttons |
+| `--font-display` | Fraunces | `next/font/google` (self-hosted at build) |
+| `--font-body` | General Sans | `next/font/local` from `src/fonts/` |
+
+General Sans is **not on Google Fonts** — it is a Fontshare/ITF face, so its two
+variable cuts are vendored. See `apps/web/src/fonts/README.md` for the licence and
+how to re-fetch them.
+
+Everything else is a **role alias** pointing at one of those two, so a component says
+what the text *is* rather than which font to set:
+
+| Role token | Resolves to | Use for |
+|---|---|---|
+| `--font-sans` | `--font-body` | body copy (the `body` default) |
+| `--font-label` | `--font-body` | labels, eyebrows, nav, buttons, badges |
+| `--font-numeral` | `--font-display` | prices and stat figures |
 
 `h1`–`h3` default to `--font-display` in `@layer base`.
+
+**Roles by weight:** headlines 400–500 · product names 500 · body 400 · nav, buttons,
+form labels and badges 500–600 · eyebrows 600 with wide tracking · prices and stat
+figures 500. The `--text-*` steps already carry these weights, so `text-body-md` or
+`text-label-caps` alone is enough — do not add a `font-*` weight utility on top.
+
+**Prices use `font-numeral`, not `font-label`.** A price rendered inside a sentence
+("Transfer ₦5,000, then…", "₦2,000 × 3", a button's "Pay ₦5,000 now") stays in body
+type — the serif is for a figure standing on its own, not for a numeral inside prose.
 
 Steps carry their own line-height, letter-spacing and weight, so `text-body-md` alone
 is enough. `display-hero` and `headline-lg` clamp between the system's real mobile and

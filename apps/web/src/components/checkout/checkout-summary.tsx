@@ -59,7 +59,7 @@ export function CheckoutSummary() {
                     <p className="text-body-md font-semibold text-cacao">
                       {product.name}
                     </p>
-                    <p className="shrink-0 font-label text-label-md text-terracotta">
+                    <p className="shrink-0 font-numeral text-label-md text-terracotta">
                       {formatKobo(lineTotal)}
                     </p>
                   </div>
@@ -80,7 +80,9 @@ export function CheckoutSummary() {
             {CHECKOUT.summary.subtotalLabel}
             <span className="text-nutmeg"> ({count})</span>
           </dt>
-          <dd className="font-label text-label-md text-cacao">{formatKobo(subtotal)}</dd>
+          <dd className="font-numeral text-label-md text-cacao">
+            {formatKobo(subtotal)}
+          </dd>
         </div>
         <div className="flex items-baseline justify-between gap-gutter-sm">
           <dt className="text-body-sm text-on-surface-variant">

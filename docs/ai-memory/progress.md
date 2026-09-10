@@ -17,6 +17,60 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Site-wide typography: Fraunces + General Sans
+
+- **Done:** Replaced the three-typeface system (Bodoni Moda / Epilogue / Space
+  Grotesk) with two — Fraunces for display, General Sans for everything read or
+  operated — across storefront and admin, driven entirely from two tokens.
+- **Files:** `app/layout.tsx` (font loading), `styles/globals.css` (tokens +
+  weights), `src/fonts/` (two vendored woff2 + README), `packages/ui/src/cn.ts`,
+  29 component sites for prices/figures, `frontend-conventions.md`.
+- **General Sans is not on Google Fonts.** `fonts.googleapis.com` returns
+  `400 Bad Request` for it — it is an Indian Type Foundry face distributed via
+  Fontshare. Its two variable cuts (roman + italic, `wght` 200–700) are vendored
+  into `src/fonts/` and loaded with `next/font/local`. The alternative,
+  Fontshare's hosted stylesheet, would have added a render-blocking third-party
+  request to every page and leaked visitor IPs. Licence and re-fetch steps are
+  in `src/fonts/README.md`. Fraunces IS on Google Fonts and uses
+  `next/font/google`, which self-hosts at build — so no font request leaves for
+  a third party either way.
+- **Font payload went DOWN, which matters given the mobile-first brief:** 497KB
+  across three families to 391KB across two (-21%), measured by fetching the
+  actual woff2 files. That is despite adding a real italic cut for both
+  families — six headline accent lines and one body paragraph use italic, and
+  synthesising a slant on a serif looks broken.
+- **`--font-numeral` is a new ROLE token, not a third family.** It resolves to
+  `--font-display`. The old `--font-label` bundled labels, nav, buttons AND
+  prices under one typeface; the new spec splits them, so prices and stat
+  figures needed a name of their own. `--font-sans` and `--font-label` are now
+  aliases of `--font-body`, which is why 197 existing `font-label` usages did
+  not have to be rewritten.
+- **Prices inside prose deliberately stay in body type.** "Transfer ₦5,000,
+  then…", "₦2,000 × 3", and the "Pay ₦5,000 now" button label are sentences and
+  a control, not standing figures. Two Delivery cells
+  (`order-confirmation.tsx:138`, `order-detail-view.tsx:99`) also stay on
+  `font-label`: they render a fee OR the words "To be confirmed", and uppercase
+  serif prose reads as a mistake.
+- **Found and fixed a latent bug on the way:** `text-display-xl` was never
+  registered in `cn.ts`'s `FONT_SIZES`, so tailwind-merge classified it as a
+  colour — any `cn()` call combining it with a `text-*` colour would have
+  silently dropped the hero's size. This is the exact failure that file's
+  comment documents; the token list had drifted out of step with `globals.css`.
+- **Left alone deliberately:** `server/email/order-emails.ts` hardcodes
+  `font-family:Helvetica,Arial,sans-serif`. Email clients do not load webfonts
+  reliably, so a system stack is correct there — it is not a leftover.
+- **Docs updated:** `frontend-conventions.md` (typography section rewritten:
+  two families, three role aliases, weights by role), progress.md.
+- **Gaps:** none opened or closed.
+- **Verified:** typecheck and lint 5/5, prettier clean, production build 2/2 via
+  `NEXT_DIST_DIR=.next-verify`. Spot-checked against the BUILT css + prerendered
+  HTML, not just source — hero h1, product name, product price, body paragraph,
+  nav/button, eyebrow and admin table header each resolve to the right family
+  and weight. No hardcoded font-family remains in any component.
+- **Next / open threads:** 15 commits unpushed, still awaiting the owner's
+  go-ahead. `.gitignore`'s stray `/docs` line is still uncommitted and still
+  blocks `git add` on new doc files.
+
 ## 2026-09-10 — About page: "The anatomy of our signature bite" removed
 
 - **Done:** Removed the sensory-profile section from the About page entirely —

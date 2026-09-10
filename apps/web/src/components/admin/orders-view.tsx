@@ -140,7 +140,7 @@ function StatCard({
         <Icon className="h-4 w-4 text-terracotta" />
         {label}
       </p>
-      <p className="mt-1 text-headline-md text-cacao">{value}</p>
+      <p className="mt-1 font-numeral text-headline-md text-cacao">{value}</p>
     </div>
   );
 }

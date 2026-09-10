@@ -73,15 +73,15 @@ export function ProductPurchase({ product }: { product: Product }) {
               </span>
               {product.discountPercent ? (
                 <span className="mt-1 flex items-baseline gap-gutter-xs">
-                  <span className="font-label text-label-sm text-nutmeg line-through">
+                  <span className="font-numeral text-label-sm text-nutmeg line-through">
                     {formatKobo(option.price.amount)}
                   </span>
-                  <span className="font-label text-label-md text-terracotta">
+                  <span className="font-numeral text-label-md text-terracotta">
                     {formatKobo(discounted)}
                   </span>
                 </span>
               ) : (
-                <span className="mt-1 block font-label text-label-md text-terracotta">
+                <span className="mt-1 block font-numeral text-label-md text-terracotta">
                   {formatKobo(option.price.amount)}
                 </span>
               )}

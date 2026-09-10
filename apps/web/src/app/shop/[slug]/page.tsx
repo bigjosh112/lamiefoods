@@ -153,7 +153,7 @@ export default async function ProductPage({
                   </p>
                   {product.discountPercent && Number.isFinite(cheapest) ? (
                     <p className="mt-1 flex items-baseline gap-gutter-xs">
-                      <span className="font-label text-label-md text-nutmeg line-through">
+                      <span className="font-numeral text-label-md text-nutmeg line-through">
                         {formatKobo(cheapest)}
                       </span>
                       <span className="font-display text-headline-md text-terracotta">

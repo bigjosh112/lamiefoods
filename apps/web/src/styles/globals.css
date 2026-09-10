@@ -19,15 +19,37 @@
 */
 @theme {
   /* ── Type families ──────────────────────────────────────────────────────
-     Bodoni Moda  — headlines only (couture editorial serif).
-     Epilogue     — body copy and narrative.
-     Space Grotesk — labels, metadata, prices, batch numbers, buttons.
-     Each has a role; do not substitute one for another. */
-  --font-display:
-    var(--font-bodoni-moda), "Bodoni Moda", Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-epilogue), "Epilogue", ui-sans-serif, system-ui, sans-serif;
-  --font-label:
-    var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+     TWO typefaces, and only these two lines bind them to anything. Every
+     other font declaration in the codebase — storefront and admin alike —
+     resolves here, so swapping or reverting the pair is a two-value edit and
+     nothing else has to be touched. Never write a family name in a component.
+
+     Fraunces     — display: headlines, product names, prices, stat figures.
+     General Sans — everything read or operated: body, nav, buttons, labels.
+
+     The `var(--font-*)` on each line is the handle `next/font` generates in
+     app/layout.tsx; the quoted name after it is the same family installed
+     locally, and the rest is the system fallback that renders if neither
+     arrives. Fraunces falls back to a serif and General Sans to the platform
+     UI sans, so a failed font swaps like for like instead of collapsing the
+     serif/sans contrast the design depends on. */
+  --font-display: var(--font-fraunces), "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body:
+    var(--font-general-sans), "General Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+
+  /* Role aliases. These are the utility names the components already use
+     (`font-sans`, `font-label`, `font-numeral`) and they exist so a component
+     can keep saying what a piece of text IS rather than which font to set.
+     All three point at one of the two families above.
+
+     `--font-label` was a third typeface, Space Grotesk, covering labels,
+     metadata, prices and buttons together. That set has split: labels, nav and
+     buttons are sans, while prices and stat figures move to the serif for
+     presence — hence `--font-numeral`, which is a role, not a family. */
+  --font-sans: var(--font-body);
+  --font-label: var(--font-body);
+  --font-numeral: var(--font-display);
 
   /* ── Named brand colours ────────────────────────────────────────────────
      From the system's prose. Only Toasted Terracotta also appears in the role
@@ -120,12 +142,12 @@
   --text-display-xl: clamp(2.625rem, 1.85rem + 3.3vw, 4.5rem);
   --text-display-xl--line-height: 1.08;
   --text-display-xl--letter-spacing: -0.025em;
-  --text-display-xl--font-weight: 600;
+  --text-display-xl--font-weight: 500;
 
   --text-display-hero: clamp(2.375rem, 1.909rem + 1.989vw, 3.5rem);
   --text-display-hero--line-height: 1.143;
   --text-display-hero--letter-spacing: -0.02em;
-  --text-display-hero--font-weight: 600;
+  --text-display-hero--font-weight: 500;
 
   --text-headline-lg: clamp(1.75rem, 1.439rem + 1.326vw, 2.5rem);
   --text-headline-lg--line-height: 1.2;
@@ -138,7 +160,7 @@
 
   --text-headline-sm: clamp(1.125rem, 1.073rem + 0.221vw, 1.25rem);
   --text-headline-sm--line-height: 1.4;
-  --text-headline-sm--font-weight: 600;
+  --text-headline-sm--font-weight: 500;
 
   --text-body-lg: clamp(1rem, 0.948rem + 0.221vw, 1.125rem);
   --text-body-lg--line-height: 1.556;
@@ -158,7 +180,7 @@
   --text-label-caps: 0.6875rem;
   --text-label-caps--line-height: 1.455;
   --text-label-caps--letter-spacing: 0.12em;
-  --text-label-caps--font-weight: 700;
+  --text-label-caps--font-weight: 600;
 
   --text-label-md: 0.8125rem;
   --text-label-md--line-height: 1.385;
@@ -239,15 +261,15 @@
   body {
     background-color: var(--color-background);
     color: var(--color-on-background);
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
     font-size: var(--text-body-md);
     line-height: 1.6;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Headings are Bodoni by default. Override to font-sans where a heading is
-     really UI chrome — a card title in a dense admin table, say. */
+  /* Headings are Fraunces by default. Override to `font-body` where a heading
+     is really UI chrome — a card title in a dense admin table, say. */
   h1,
   h2,
   h3 {

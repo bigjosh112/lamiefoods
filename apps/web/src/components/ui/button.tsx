@@ -9,7 +9,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
  * `secondary` Outlined cacao that fills on hover, inverting its text.
  * `inverted`  For dark cacao sections, where the outlined variant would vanish.
  *
- * All are 4px radius with uppercase Space Grotesk, per the system. Height is
+ * All are 4px radius with uppercase General Sans, per the system. Height is
  * floored at 44px so touch targets stay comfortable.
  */
 type Variant = "primary" | "secondary" | "inverted";

@@ -79,7 +79,7 @@ export function ProductsList({ products }: { products: Product[] }) {
                     <td className="px-gutter-sm py-2 text-on-surface-variant capitalize">
                       {product.category.replace("-", " ")}
                     </td>
-                    <td className="px-gutter-sm py-2 font-label text-label-md text-cacao">
+                    <td className="px-gutter-sm py-2 font-numeral text-label-md text-cacao">
                       {Number.isFinite(lowest) ? (
                         product.discountPercent ? (
                           <span>

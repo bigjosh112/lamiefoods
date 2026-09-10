@@ -110,7 +110,7 @@ export function OrderConfirmation({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-gutter-xs">
                       <p className="text-body-md font-semibold text-cacao">{item.name}</p>
-                      <p className="shrink-0 font-label text-label-md text-terracotta">
+                      <p className="shrink-0 font-numeral text-label-md text-terracotta">
                         {formatKobo(item.lineTotal.amount)}
                       </p>
                     </div>
@@ -129,7 +129,7 @@ export function OrderConfirmation({
             <dt className="text-body-sm text-on-surface-variant">
               Subtotal ({itemCount})
             </dt>
-            <dd className="font-label text-label-md text-cacao">
+            <dd className="font-numeral text-label-md text-cacao">
               {formatKobo(order.subtotal.amount)}
             </dd>
           </div>
@@ -143,7 +143,7 @@ export function OrderConfirmation({
           </div>
           <div className="flex items-baseline justify-between">
             <dt className="text-body-sm text-on-surface-variant">Packaging &amp; seal</dt>
-            <dd className="font-label text-label-md text-cacao">{formatKobo(0)}</dd>
+            <dd className="font-numeral text-label-md text-cacao">{formatKobo(0)}</dd>
           </div>
         </dl>
 

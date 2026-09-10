@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Bodoni_Moda, Epilogue, Space_Grotesk } from "next/font/google";
+import { Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import { MotionProvider } from "@/components/layout/motion-provider";
 import { CartHydration } from "@/lib/cart/cart-hydration";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -8,27 +9,55 @@ import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 import "@/styles/globals.css";
 
 /*
- * The three typefaces of the approved design system, each with one job:
- * Bodoni Moda for headlines, Epilogue for body copy, Space Grotesk for labels
- * and metadata. All three are variable fonts, so one file per family covers
- * every weight the system uses.
+ * The two typefaces of the brand system, each with one job: Fraunces for
+ * display (headlines, product names, prices), General Sans for everything a
+ * person reads or operates (body copy, navigation, buttons, labels, and the
+ * whole admin). Both are variable, so one file per style covers every weight.
+ *
+ * They load by different routes because they come from different places:
+ *
+ *   Fraunces is on Google Fonts, so `next/font/google` self-hosts it at build
+ *   time — no request ever leaves for fonts.googleapis.com. `opsz` is opted
+ *   into so the optical-size axis is available: this face runs from an 11px
+ *   eyebrow to a 72px hero, and with the axis present browsers apply
+ *   `font-optical-sizing: auto` and thicken hairlines at small sizes on their
+ *   own. Italic is a real cut, not a synthesised slant — five headline accent
+ *   lines and one body paragraph depend on it.
+ *
+ *   General Sans is NOT on Google Fonts. It is an Indian Type Foundry face
+ *   distributed through Fontshare, so the two variable cuts are vendored into
+ *   `src/fonts/` and loaded with `next/font/local`. See the README there for
+ *   the licence and how to re-fetch them. Linking Fontshare's CDN stylesheet
+ *   instead would have put a render-blocking third-party request in front of
+ *   every page and leaked visitor IPs to another host.
+ *
+ * Both expose a CSS variable and nothing else. Components never name a family;
+ * `--font-display` and `--font-body` in globals.css are the only place these
+ * two are bound to a role, which is what makes the pair swappable.
  */
-const bodoniModa = Bodoni_Moda({
+const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-bodoni-moda",
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  variable: "--font-fraunces",
 });
 
-const epilogue = Epilogue({
-  subsets: ["latin"],
+const generalSans = localFont({
+  src: [
+    {
+      path: "../fonts/GeneralSans-Variable.woff2",
+      weight: "200 700",
+      style: "normal",
+    },
+    {
+      path: "../fonts/GeneralSans-VariableItalic.woff2",
+      weight: "200 700",
+      style: "italic",
+    },
+  ],
   display: "swap",
-  variable: "--font-epilogue",
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-space-grotesk",
+  variable: "--font-general-sans",
 });
 
 export const metadata: Metadata = {
@@ -66,10 +95,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en-NG"
-      className={`${bodoniModa.variable} ${epilogue.variable} ${spaceGrotesk.variable}`}
-    >
+    <html lang="en-NG" className={`${fraunces.variable} ${generalSans.variable}`}>
       <head>
         {/*
           Scroll reveals are driven by IntersectionObserver; without scripting
