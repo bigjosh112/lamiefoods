@@ -18,10 +18,7 @@ export function AboutHero() {
     <Section className="bg-surface-container-low">
       <div className="grid items-center gap-gutter-xl md:grid-cols-12">
         <div className="md:col-span-6">
-          <p className="inline-flex items-center gap-gutter-xs rounded-full border border-rule/70 bg-surface px-3 py-1.5 font-label text-label-caps text-terracotta uppercase">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-terracotta" />
-            {hero.eyebrow}
-          </p>
+          <p className="font-label text-label-sm text-terracotta">{hero.eyebrow}</p>
 
           <h1 className="mt-gutter-md text-display-hero text-cacao">
             <span className="block">{hero.titleLine1}</span>
@@ -43,7 +40,7 @@ export function AboutHero() {
                   <span className="block font-display text-headline-md text-terracotta">
                     {stat.value}
                   </span>
-                  <span className="mt-1 block font-label text-label-sm text-nutmeg uppercase">
+                  <span className="mt-1 block font-label text-label-sm text-nutmeg">
                     {stat.label}
                   </span>
                 </dd>
@@ -59,28 +56,6 @@ export function AboutHero() {
               sizes="(min-width: 1024px) 45vw, 100vw"
               priority
             />
-          </div>
-
-          {/* Both overlays sit inside the image on wide screens and stack
-              underneath it on narrow ones, where pinning would bury the photo. */}
-          <div className="mt-gutter-sm flex flex-wrap items-end gap-gutter-sm lg:absolute lg:-bottom-gutter-sm lg:left-0 lg:mt-0">
-            <span className="w-28 rounded bg-cacao p-gutter-sm text-center text-linen">
-              <ICONS.seal className="mx-auto h-5 w-5 text-tertiary-fixed-dim" />
-              <span className="mt-1 block font-label text-label-sm uppercase">
-                {hero.badge}
-              </span>
-            </span>
-            <span className="flex flex-1 items-center gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-sm shadow-earth">
-              <span className="min-w-0">
-                <span className="block font-label text-label-sm text-nutmeg uppercase">
-                  {hero.batch.label}
-                </span>
-                <span className="block font-label text-label-md text-cacao">
-                  {hero.batch.value}
-                </span>
-              </span>
-              <ICONS.seal className="ml-auto h-6 w-6 shrink-0 text-terracotta" />
-            </span>
           </div>
         </Reveal>
       </div>

@@ -284,6 +284,26 @@
   design's line break falls after "respects".
 - **Status:** open
 
+- **Update 2026-09-10 — the About hero now carries the brand's OWN packaging,
+  and that raises a different problem from the stand-ins.**
+  `cinnamonvelvetsingle.jpeg` is genuine Lamie Foods artwork (a "Cinnamon
+  Velvet" pouch), so none of the third-party trade-dress concerns above apply to
+  it. Two things printed on it do need the owner's attention:
+    1. **Health claims, legible on the pouch:** "Rich in Fiber", "For healthy
+       Heart", "Rich in Vitamins", plus a "Certified Quality" mark. The owner's
+       original brief for this project explicitly forbids inventing health
+       claims, and a heart-health claim is a regulated statement in Nigeria as
+       elsewhere. It makes no difference that these arrive as pixels rather than
+       copy — the page states them either way, and pixels bypass every
+       text-level check this codebase has. If the physical packaging really
+       carries them, they need substantiating; that is a packaging decision, not
+       a code one.
+    2. **"Net Weight 200g"**, which is not a size the brand sells. The confirmed
+       range is 100g / 300g / 500g (GAP-015). A visitor reading the About page
+       and clicking through to the shop finds no 200g pack.
+  Recorded rather than worked around: the owner asked for this image and it is
+  their own product.
+
 ### GAP-006 — Two supplied images carry baked-in artwork that conflicts with the UI
 
 - **Category:** asset-quality · content-risk

@@ -24,21 +24,42 @@ export const ABOUT = {
     titleLine1: "Good Food.",
     titleEmphasis: "Thoughtfully",
     titleLine2: "Made.",
-    body: `${BRAND.displayName} is a growing Nigerian culinary house dedicated to elevating cherished traditional confectionery into exceptional, sensorial moments — rooted in Lagos, celebrated everywhere.`,
-    /** UNVERIFIED — three product claims stated as fact. */
+    body: `${BRAND.displayName} is a growing Nigerian food brand, making chinchin the way it deserves to be made — rooted in Lagos, loved everywhere.`,
+    /**
+     * UNVERIFIED — three product claims stated as fact. Reworded by the owner
+     * on 2026-09-10; rewording is not confirming, so the marker stays. A
+     * preservative claim in particular is a consumer-protection matter.
+     */
     stats: [
       { value: "100%", label: "Pure butterfat" },
-      { value: "0.0%", label: "Preservatives" },
-      { value: "48hr", label: "Kettle to pouch" },
+      { value: "Zero", label: "Preservatives" },
+      { value: "48 hrs", label: "Fresh to pack" },
     ],
+    /*
+      Lamie Foods' OWN packaging, unlike the third-party mockups still standing
+      in on the storefront (GAP-006) — but two things are printed on it that the
+      code cannot control, and both are flagged in gaps.md:
+
+        1. HEALTH CLAIMS: "Rich in Fiber", "For healthy Heart", "Rich in
+           Vitamins" and a "Certified Quality" mark are legible on the pouch. A
+           heart-health claim is a regulated statement, and the owner's brief
+           for this project explicitly forbids inventing health claims — putting
+           them on the page as pixels is the same statement as putting them in
+           copy, and it bypasses every text-level check here.
+        2. It reads "Net Weight 200g", which is not a size the brand sells:
+           the confirmed range is 100g / 300g / 500g pouches.
+    */
     image: {
-      src: "/images/chinchin7.png",
-      alt: "Lamie Foods chinchin in kraft packaging, held in two hands",
+      src: "/images/cinnamonvelvetsingle.jpeg",
+      alt: "A Lamie Foods Cinnamon Velvet chinchin pouch",
       note: "Heritage portrait",
     } satisfies ImageSlot,
-    badge: "Lagos atelier craft",
-    /** UNVERIFIED — invented batch reference. */
-    batch: { label: "Current batch no.", value: "LF-0842 · Fresh fry" },
+    /*
+      `badge` ("Lagos atelier craft") and `batch` were removed on 2026-09-10
+      along with the overlays that rendered them. The batch reference was an
+      invented number nothing tracks — the same fiction already cleared from the
+      hero, the shop header and the product gallery.
+    */
   },
 
   heritage: {

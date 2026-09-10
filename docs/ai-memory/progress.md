@@ -17,6 +17,47 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About hero: copy, pill, badges, image swap
+
+- **Done:** The owner's About-hero pass — pill stripped, copy replaced, stats
+  reworded, both on-image badges removed, hero photograph swapped. Scoped to the
+  hero; nothing below it touched.
+- **Files:** `content/about.ts`, `components/about/about-sections.tsx`.
+- **Removing the badges cleared another invented batch number** —
+  "LF-0842 · Fresh fry". Same fiction already removed from the landing hero
+  ("Batch Kettle No. 042"), the shop header ("Batch No. 842") and the product
+  gallery ("N° 84"). `badge` and `batch` were deleted from the content, not left
+  dormant.
+- **The stat rewording is not a verification.** "100% pure butterfat", "Zero
+  preservatives" and "48 hrs fresh to pack" are still three claims about the
+  food, and the `UNVERIFIED` marker was kept and reworded to say so explicitly.
+
+### ⚠ The new image carries claims the code cannot control
+
+`cinnamonvelvetsingle.jpeg` is **genuine Lamie Foods artwork**, so none of the
+third-party trade-dress concerns that apply to the storefront stand-ins apply
+here. But two things are printed on the pouch and now legible on the About page:
+
+1. **Health claims** — "Rich in Fiber", "For healthy Heart", "Rich in Vitamins",
+   plus a "Certified Quality" mark. The owner's original brief for this project
+   explicitly forbids inventing health claims, and a heart-health claim is
+   regulated. It makes no difference that these arrive as pixels: the page
+   states them either way, and pixels bypass every text-level check here. If the
+   physical packaging carries them, they need substantiating — a packaging
+   decision, not a code one.
+2. **"Net Weight 200g"** — not a size the brand sells. The confirmed range is
+   100g / 300g / 500g (GAP-015). A visitor reading About and clicking through to
+   the shop finds no 200g pack.
+
+Both recorded in GAP-006 and in a comment beside the image in `about.ts`.
+Applied as asked rather than worked around: the owner chose the image and it is
+their own product.
+
+- **Verified:** typecheck, lint, build and `prettier --check` pass; the diff is
+  32 insertions and 36 deletions across two files, all within the hero.
+- **Docs updated:** progress.md, gaps.md.
+- **Gaps:** GAP-006 extended.
+
 ## 2026-09-10 — Settings restructured to one page
 
 - **Done:** Five tabs → one page with two stacked sections. Brand, Storefront,
