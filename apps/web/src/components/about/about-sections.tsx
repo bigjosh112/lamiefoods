@@ -50,7 +50,18 @@ export function AboutHero() {
         </div>
 
         <Reveal delay={0.1} className="relative md:col-span-6">
-          <div className="relative aspect-4/5 overflow-hidden rounded border border-rule/70">
+          {/*
+            `md:w-5/6` — about 17% narrower than the column, right-aligned with
+            `md:ml-auto`. The slot is `aspect-4/5` against a 2486×1728 landscape
+            source, so `object-cover` crops the sides hard and stretches what is
+            left across the full column; rendering into a smaller box means
+            fewer output pixels for the same source crop, which is what sharpens
+            the pouch lettering.
+
+            Only from `md`: below that the column is full width and stacked, so
+            a narrower right-aligned image would just sit oddly off-centre.
+          */}
+          <div className="relative aspect-4/5 overflow-hidden rounded border border-rule/70 md:ml-auto md:w-5/6">
             <ImageSlot
               slot={hero.image}
               sizes="(min-width: 1024px) 45vw, 100vw"

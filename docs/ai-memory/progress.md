@@ -17,6 +17,35 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About hero image sized down
+
+- **Done:** Shrunk the About hero photograph by ~17% and right-aligned it.
+  One class change: `md:ml-auto md:w-5/6` on the image container.
+- **Files:** `components/about/about-sections.tsx`.
+- **`w-5/6` rather than an arbitrary percentage** — a standard Tailwind
+  fraction lands at 16.7% narrower, inside the requested 15–20% band without a
+  magic number. `aspect-4/5` keeps the ratio, `ml-auto` keeps it right-aligned.
+- **Scoped to `md` and up.** Below that the column is full width and stacked, so
+  a narrower right-aligned image would sit oddly off-centre rather than looking
+  deliberate.
+- **On the blurriness:** the source is 2486×1728, so it is not short of pixels.
+  The softness comes from `aspect-4/5` (portrait) against a 1.44 landscape
+  source — `object-cover` crops the sides hard and stretches what remains across
+  the full column. Rendering into a smaller box means fewer output pixels for
+  the same crop, which is why sizing down sharpens it. If it is still soft, the
+  aspect mismatch is the lever, not the size.
+- **Filename note:** the owner referred to "newchinchin7" and then corrected
+  themselves. `newchinchin7.jpeg` exists in `public/images` but is referenced
+  nowhere — it is a bowl of chinchin with no packaging text, so it could not
+  have been the image described. The About hero is and stays
+  `cinnamonvelvetsingle.jpeg`.
+- **Verified:** the container renders
+  `relative aspect-4/5 … md:ml-auto md:w-5/6`, the image is unchanged, and the
+  previous pass's pill, badge and stat changes are all still in place.
+  Typecheck, lint, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — About hero: copy, pill, badges, image swap
 
 - **Done:** The owner's About-hero pass — pill stripped, copy replaced, stats
