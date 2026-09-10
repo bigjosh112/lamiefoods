@@ -17,6 +17,67 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Admin: copy pass, layout fix, and a real mobile build
+
+- **Done:** All three parts of the owner's admin brief — copy and casing, the
+  empty-space bug, and a proper responsive pass.
+- **Files:** new `components/admin/admin-mobile-nav.tsx`; rewrote
+  `admin-shell.tsx`; updated `admin-nav.tsx` and `admin-dashboard.tsx`.
+
+### The empty-space bug was the pinned layout, not a stretch bug
+
+The owner guessed a flex/grid stretch mismatch. It was closer to the opposite:
+the shell was `lg:h-dvh lg:overflow-hidden` on the grid with the content column
+scrolling **inside itself**. That is a deliberate console pattern — the nav
+never scrolls away — but it forces the content column to exactly one viewport
+height, so any short page (Settings most visibly) drew its content at the top
+and a tinted void beneath, with no way to size to itself.
+
+Fixed by moving the pinning from the shell to the sidebar: the grid takes
+`lg:items-start`, so each column takes its natural height, and the aside is
+`lg:sticky lg:top-0 lg:h-dvh` instead. The nav still stays put while scrolling a
+long dispatch table, short pages no longer leave a void, and the page scrolls
+normally — which is also what makes the mobile drawer straightforward. **Applies
+to every admin page**, since they all render through `AdminShell`.
+
+### Mobile
+
+- **Sidebar → off-canvas drawer** below `lg` (`AdminMobileNav`). It behaves like
+  a dialog: Escape, outside tap, close-on-navigate, background scroll lock, and
+  focus returned to the toggle. Everything crowded out of the top bar moved
+  *into* it rather than being dropped — the store link and the
+  signed-in/sign-out controls sit under the nav, so nothing is unreachable on a
+  phone.
+- **`AdminNav` is now always vertical.** It used to collapse into a horizontal
+  scroller below `lg`, which is exactly what put six items and their icons into
+  a strip narrower than any of them. One layout to reason about now.
+- **Top bar** keeps only what fits on mobile: hamburger, status pill, bell.
+- **Recent orders → stacked cards below `md`.** A six-column table at 375px
+  truncated every cell ("Coco Velvet Chi…"); a scroller inside a card is easy to
+  miss one-handed. The table returns from `md`, still inside its own
+  `overflow-x-auto`.
+- **Wrapping fixes:** the date-range group (three fixed chips that pushed the
+  row past the viewport), the Export CSV / All orders pair, and the low-stock
+  Edit row.
+- **Stat cards already stacked** below `sm` — no change needed.
+
+### Copy
+
+Removed the "Admin suite" subtitle and five tracked-out eyebrows; headline is
+"Dashboard overview."; table headings are sentence case with Selection → Item
+and Fulfilment → Status. Payment badges get a `PAYMENT_LABEL` map — the column
+value is lower-case, so an unpaid row rendered a literal "unpaid" next to a
+capitalised "Paid" in the same column.
+
+- **Verified:** typecheck, lint, build and `prettier --check` pass; `/admin`
+  still 404s without a session, so the gate survived the shell rewrite; every
+  wide admin table sits inside its own `overflow-x-auto`, so no page-level
+  horizontal scroll. **Not verified by pixel measurement** — the admin needs a
+  session cookie to render, so 375/414px were reasoned about from the markup,
+  not measured in a browser. Worth an eyeball once signed in.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-08 — Product detail page: badges, cards and copy
 
 - **Done:** The owner's full product-page pass, applied to **all three

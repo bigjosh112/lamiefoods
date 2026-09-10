@@ -23,6 +23,20 @@ const DISPATCH_STATUS_LABEL: Partial<Record<AdminOrderSummary["status"], string>
 };
 
 /**
+ * `paymentStatus` is a lower-case column value, so an unpaid row used to render
+ * a literal "unpaid" beside a capitalised "Paid" — inconsistent in the same
+ * column. Mapped rather than CSS-capitalised so the label stays readable in the
+ * markup and a new status has to be named deliberately.
+ */
+const PAYMENT_LABEL: Record<string, string> = {
+  paid: "Paid",
+  unpaid: "Unpaid",
+  pending: "Pending",
+  refunded: "Refunded",
+  failed: "Failed",
+};
+
+/**
  * Operations dashboard.
  *
  * As of 2026-09-08 every number on this page is real — fetched by the page
@@ -86,10 +100,7 @@ export function AdminDashboard({
       <section className="mb-gutter-md rounded border border-terracotta/60 bg-secondary-container/30 p-gutter-md">
         <div className="flex flex-wrap items-center justify-between gap-gutter-sm">
           <div>
-            <p className="font-label text-label-caps text-terracotta uppercase">
-              Real orders
-            </p>
-            <h2 className="mt-1 text-headline-sm text-cacao">
+            <h2 className="text-headline-sm text-cacao">
               Needs dispatch ({needsDispatch.length})
             </h2>
           </div>
@@ -131,14 +142,9 @@ export function AdminDashboard({
 
       <div className="mb-gutter-md flex flex-wrap items-end justify-between gap-gutter-sm">
         <div>
-          <p className="font-label text-label-caps text-terracotta uppercase">
-            Executive terminal
-          </p>
-          <h1 className="mt-1 text-headline-lg text-cacao">
-            Atelier Overview &amp; Operations
-          </h1>
+          <h1 className="text-headline-lg text-cacao">Dashboard overview.</h1>
           <p className="mt-1 text-body-sm text-on-surface-variant">
-            Production dispatch, settlement and inventory at a glance.
+            Orders, payments, and inventory at a glance.
           </p>
         </div>
 
@@ -146,7 +152,7 @@ export function AdminDashboard({
         <div
           role="group"
           aria-label="Date range (not active)"
-          className="flex rounded border border-rule/70 bg-surface"
+          className="flex max-w-full flex-wrap rounded-md border border-rule/70 bg-surface"
         >
           {ADMIN_RANGES.map((range, index) => {
             const RangeIcon = range.icon ? ICONS[range.icon] : null;
@@ -155,7 +161,7 @@ export function AdminDashboard({
                 key={range.label}
                 aria-disabled="true"
                 className={cn(
-                  "flex min-h-11 items-center gap-gutter-xs px-gutter-sm font-label text-label-sm",
+                  "flex min-h-11 min-w-0 items-center gap-gutter-xs px-gutter-sm font-label text-label-sm",
                   index === 1 ? "bg-primary-container text-linen" : "text-nutmeg/70",
                 )}
               >
@@ -173,7 +179,7 @@ export function AdminDashboard({
             key={stat.label}
             className="rounded border border-rule/70 bg-surface p-gutter-md"
           >
-            <p className="font-label text-label-sm text-nutmeg uppercase">{stat.label}</p>
+            <p className="font-label text-label-sm text-nutmeg">{stat.label}</p>
             <p className="mt-gutter-xs font-display text-headline-lg text-cacao">
               {stat.value}
             </p>
@@ -184,9 +190,7 @@ export function AdminDashboard({
 
       <div className="mt-gutter-sm grid gap-gutter-sm xl:grid-cols-3">
         <section className="rounded border border-rule/70 bg-surface p-gutter-md xl:col-span-2">
-          <p className="font-label text-label-caps text-terracotta uppercase">
-            Trajectory &amp; yield
-          </p>
+          <p className="font-label text-label-sm text-terracotta">Revenue</p>
           <h2 className="mt-1 text-headline-sm text-cacao">
             Flavour revenue (last 7 days)
           </h2>
@@ -203,10 +207,7 @@ export function AdminDashboard({
         </section>
 
         <section className="rounded border border-rule/70 bg-surface p-gutter-md">
-          <p className="font-label text-label-caps text-terracotta uppercase">
-            Atelier volume
-          </p>
-          <h2 className="mt-1 text-headline-sm text-cacao">Best selling (all time)</h2>
+          <h2 className="text-headline-sm text-cacao">Best selling (all time)</h2>
 
           {bestSellers.length === 0 ? (
             <p className="mt-gutter-md text-body-sm text-on-surface-variant">
@@ -238,18 +239,15 @@ export function AdminDashboard({
         <section className="min-w-0 rounded border border-rule/70 bg-surface p-gutter-md xl:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-gutter-sm">
             <div>
-              <p className="font-label text-label-caps text-terracotta uppercase">
-                Culinary dispatch log
-              </p>
-              <h2 className="mt-1 text-headline-sm text-cacao">Recent orders</h2>
+              <h2 className="text-headline-sm text-cacao">Recent orders</h2>
             </div>
-            <div className="flex items-center gap-gutter-xs">
+            <div className="flex flex-wrap items-center gap-gutter-xs">
               <ButtonAnchor href="/api/admin/orders/export" variant="secondary" download>
                 Export CSV
               </ButtonAnchor>
               <Link
                 href={ADMIN_ROUTES.orders}
-                className="inline-flex min-h-11 items-center gap-gutter-xs font-label text-label-sm text-terracotta uppercase transition-colors hover:text-cacao"
+                className="inline-flex min-h-11 items-center gap-gutter-xs font-label text-label-sm text-terracotta transition-colors hover:text-cacao"
               >
                 All orders
                 <ArrowRightIcon className="h-4 w-4" />
@@ -262,88 +260,134 @@ export function AdminDashboard({
               No orders yet.
             </p>
           ) : (
-            /* Wide table scrolls inside its own container so the page never does. */
-            <div className="mt-gutter-md overflow-x-auto">
-              <table className="w-full min-w-160 border-collapse text-left">
-                <thead>
-                  <tr className="border-b border-rule/70">
-                    {[
-                      "Order",
-                      "Customer",
-                      "Selection",
-                      "Value",
-                      "Payment",
-                      "Fulfilment",
-                    ].map((heading) => (
-                      <th
-                        key={heading}
-                        scope="col"
-                        className="py-2 pr-4 font-label text-label-sm text-nutmeg uppercase"
+            <>
+              {/*
+                Stacked cards below `md`. A six-column table in 375px truncated
+                every cell — "Coco Velvet Chi…" — and a horizontal scroller
+                inside a card is easy to miss and awkward to use one-handed.
+                Each order gets its own block with every field spelled out.
+              */}
+              <ul className="mt-gutter-sm space-y-2 md:hidden">
+                {recentOrders.map((order) => (
+                  <li
+                    key={order.id}
+                    className="rounded-md border border-rule/70 bg-surface-container-low p-gutter-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-gutter-xs">
+                      <Link
+                        href={ADMIN_ROUTES.order(order.reference)}
+                        className="font-label text-label-md text-terracotta hover:underline"
                       >
-                        {heading}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-b border-rule/40 last:border-b-0"
-                    >
-                      <th
-                        scope="row"
-                        className="py-3 pr-4 font-label text-label-sm font-normal text-terracotta"
-                      >
-                        <Link
-                          href={ADMIN_ROUTES.order(order.reference)}
-                          className="hover:underline"
-                        >
-                          #{order.reference}
-                        </Link>
-                      </th>
-                      <td className="py-3 pr-4">
-                        <span className="block text-body-sm text-cacao">
-                          {order.customerName}
-                        </span>
-                        <span className="block text-body-sm text-nutmeg">
-                          {order.city}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4 text-body-sm text-on-surface-variant">
-                        {order.itemSummary || "—"}
-                      </td>
-                      <td className="py-3 pr-4 font-label text-label-sm text-cacao">
+                        #{order.reference}
+                      </Link>
+                      <span className="font-label text-label-md text-cacao">
                         {formatKobo(order.subtotal.amount)}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span
-                          className={cn(
-                            "rounded-sm px-2 py-1 font-label text-label-sm",
-                            order.paymentStatus === "paid"
-                              ? "bg-secondary-container text-on-secondary-fixed"
-                              : "bg-error-container text-on-error-container",
-                          )}
-                        >
-                          {order.paymentStatus === "paid" ? "Paid" : order.paymentStatus}
-                        </span>
-                      </td>
-                      <td className="py-3 font-label text-label-sm text-on-surface-variant">
+                      </span>
+                    </div>
+
+                    <p className="mt-1 text-body-sm text-cacao">
+                      {order.customerName}
+                      <span className="text-nutmeg"> · {order.city}</span>
+                    </p>
+                    <p className="mt-1 text-body-sm text-on-surface-variant">
+                      {order.itemSummary || "—"}
+                    </p>
+
+                    <div className="mt-gutter-xs flex flex-wrap items-center gap-gutter-xs">
+                      <span
+                        className={cn(
+                          "rounded-sm px-2 py-1 font-label text-label-sm",
+                          order.paymentStatus === "paid"
+                            ? "bg-secondary-container text-on-secondary-fixed"
+                            : "bg-error-container text-on-error-container",
+                        )}
+                      >
+                        {PAYMENT_LABEL[order.paymentStatus] ?? order.paymentStatus}
+                      </span>
+                      <span className="font-label text-label-sm text-on-surface-variant">
                         {order.status}
-                      </td>
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* From `md`, the table earns its place — and still scrolls
+                  inside its own container so the page never does. */}
+              <div className="mt-gutter-md hidden overflow-x-auto md:block">
+                <table className="w-full min-w-160 border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-rule/70">
+                      {["Order", "Customer", "Item", "Value", "Payment", "Status"].map(
+                        (heading) => (
+                          <th
+                            key={heading}
+                            scope="col"
+                            className="py-2 pr-4 font-label text-label-sm text-nutmeg"
+                          >
+                            {heading}
+                          </th>
+                        ),
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map((order) => (
+                      <tr
+                        key={order.id}
+                        className="border-b border-rule/40 last:border-b-0"
+                      >
+                        <th
+                          scope="row"
+                          className="py-3 pr-4 font-label text-label-sm font-normal text-terracotta"
+                        >
+                          <Link
+                            href={ADMIN_ROUTES.order(order.reference)}
+                            className="hover:underline"
+                          >
+                            #{order.reference}
+                          </Link>
+                        </th>
+                        <td className="py-3 pr-4">
+                          <span className="block text-body-sm text-cacao">
+                            {order.customerName}
+                          </span>
+                          <span className="block text-body-sm text-nutmeg">
+                            {order.city}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-4 text-body-sm text-on-surface-variant">
+                          {order.itemSummary || "—"}
+                        </td>
+                        <td className="py-3 pr-4 font-label text-label-sm text-cacao">
+                          {formatKobo(order.subtotal.amount)}
+                        </td>
+                        <td className="py-3 pr-4">
+                          <span
+                            className={cn(
+                              "rounded-sm px-2 py-1 font-label text-label-sm",
+                              order.paymentStatus === "paid"
+                                ? "bg-secondary-container text-on-secondary-fixed"
+                                : "bg-error-container text-on-error-container",
+                            )}
+                          >
+                            {PAYMENT_LABEL[order.paymentStatus] ?? order.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="py-3 font-label text-label-sm text-on-surface-variant">
+                          {order.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </section>
 
         <section className="rounded border border-rule/70 bg-surface p-gutter-md">
-          <p className="font-label text-label-caps text-terracotta uppercase">
-            Kitchen &amp; pantry
-          </p>
-          <h2 className="mt-1 text-headline-sm text-cacao">Stock &amp; ingredients</h2>
+          <h2 className="text-headline-sm text-cacao">Stock &amp; ingredients</h2>
 
           {lowStockProducts.length === 0 ? (
             <p className="mt-gutter-md text-body-sm text-on-surface-variant">
@@ -354,7 +398,7 @@ export function AdminDashboard({
               {lowStockProducts.map((product) => (
                 <li
                   key={product.id}
-                  className="flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm"
+                  className="flex flex-wrap items-start gap-gutter-sm rounded-md border border-rule/70 bg-surface-container-low p-gutter-sm"
                 >
                   <span
                     aria-hidden="true"
@@ -363,7 +407,7 @@ export function AdminDashboard({
                       product.stockQuantity <= 0 ? "bg-error" : "bg-terracotta",
                     )}
                   />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-40 flex-1">
                     <p className="text-body-sm font-semibold text-cacao">
                       {product.name}
                     </p>
@@ -387,7 +431,7 @@ export function AdminDashboard({
 
           <Link
             href={ADMIN_ROUTES.inventory}
-            className="mt-gutter-md flex min-h-11 items-center gap-gutter-xs border-t border-rule/70 pt-gutter-sm font-label text-label-sm text-terracotta uppercase transition-colors hover:text-cacao"
+            className="mt-gutter-md flex min-h-11 items-center gap-gutter-xs border-t border-rule/70 pt-gutter-sm font-label text-label-sm text-terracotta transition-colors hover:text-cacao"
           >
             <ICONS.timer className="h-4 w-4" />
             Full inventory

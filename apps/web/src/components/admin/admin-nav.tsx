@@ -8,7 +8,12 @@ import { ICONS } from "@/components/ui/icons";
 import { ADMIN_NAV_SECTIONS } from "@/content/admin-dashboard";
 
 /**
- * Sidebar navigation.
+ * Sidebar navigation, and the same list inside the mobile drawer.
+ *
+ * Always a vertical list. It used to collapse into a horizontal scroller below
+ * `lg`, which is what put six items, their icons and their labels into a strip
+ * narrower than any of them — they wrapped over each other. `AdminMobileNav`
+ * gives it a full-width column instead, so there is one layout to reason about.
  *
  * A client component purely so the active item comes from the current route
  * rather than being passed down or hardcoded. That is what keeps every admin
@@ -51,23 +56,23 @@ export function AdminNav() {
   const current = activeHref(pathname);
 
   return (
-    <div className="flex gap-gutter-md lg:block lg:space-y-4">
+    <div className="space-y-4">
       {ADMIN_NAV_SECTIONS.map((section) => (
-        <div key={section.title} className="shrink-0 lg:shrink">
-          <p className="hidden px-gutter-sm font-label text-label-sm text-nutmeg uppercase lg:block">
+        <div key={section.title}>
+          <p className="px-gutter-sm font-label text-label-sm text-nutmeg uppercase">
             {section.title}
           </p>
-          <ul className="mt-1 flex gap-gutter-xs lg:block lg:space-y-1">
+          <ul className="mt-1 space-y-1">
             {section.items.map((item) => {
               const Icon = ICONS[item.icon];
               const built = BUILT_ROUTES.includes(item.href);
               const active = item.href === current;
 
               const shared =
-                "flex min-h-11 items-center gap-gutter-xs rounded px-gutter-sm font-label text-label-md whitespace-nowrap";
+                "flex min-h-11 items-center gap-gutter-xs rounded-md px-gutter-sm font-label text-label-md";
 
               return (
-                <li key={item.label} className="shrink-0 lg:shrink">
+                <li key={item.label}>
                   {built ? (
                     <Link
                       href={item.href}
