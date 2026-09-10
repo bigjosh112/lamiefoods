@@ -17,6 +17,37 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About page: "The anatomy of our signature bite" removed
+
+- **Done:** Removed the sensory-profile section from the About page entirely —
+  eyebrow, headline, body copy and the three-metric scorecard. No spacing left
+  behind: `AboutTenets` now flows into `AboutHorizon` on the standard section
+  rhythm, since the gap comes from `<Section>` padding, not from the removed
+  markup.
+- **Files:** `app/about/page.tsx` (import + render), `components/about/about-sections.tsx`
+  (deleted `AboutSensory`), `content/about.ts` (deleted the `sensory` block).
+- **This retires three more invented figures (GAP-004).** Crunch density 92%,
+  butterfat warmth 88% and nutmeg & spice radiance 78% were the mock's numbers —
+  nobody measured anything, and percentage bars read as laboratory fact to a
+  customer. They follow the already-removed "9.4/10 crisp snap" stat and the
+  crunch section's Acoustic Sensory Profile card. GAP-004 is not closed: the
+  butterfat and preservative percentages, the 48-hour kettle-to-pouch window,
+  the 175°C frying temperature, the batch number and the regional sourcing
+  claims are all still on the page.
+- **Deleted, not hidden.** The content block went with the component rather than
+  being left dormant for someone to re-render later. I also corrected
+  `about.ts`'s module doc comment, which still listed "sensory index
+  percentages" among the live unverified claims.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened; GAP-004 reduced, still open.
+- **Verified:** `npm run typecheck`, `npm run lint` (5/5 successful),
+  `prettier --check` on the three files, and a production build via
+  `NEXT_DIST_DIR=.next-verify npm run build` (2/2 successful) — `/about` still
+  prerenders static.
+- **Next / open threads:** Unpushed commits are stacking up (14 now) — nothing
+  goes to the remote without the owner's say-so. `.gitignore` has an uncommitted
+  `/docs` line that nobody on this side added; left unstaged and flagged.
+
 ## 2026-09-10 — About horizon section: copy, image, cards removed
 
 - **Done:** Rewrote the copy, filled the empty image slot, stripped the chip off

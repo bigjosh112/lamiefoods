@@ -7,9 +7,13 @@ import type { ImageSlot } from "./image-slot";
  * ─────────────────────────────────────────────────────────────────────────────
  * UNVERIFIED throughout, per GAP-004. The mock invents a great deal here:
  * butterfat and preservative percentages, a 48-hour kettle-to-pouch window, a
- * 175°C frying temperature, a batch number, sensory index percentages, and
- * sourcing claims about named regions and cooperatives. All of it reads as
- * fact to a customer and none of it has been confirmed.
+ * 175°C frying temperature, a batch number, and sourcing claims about named
+ * regions and cooperatives. All of it reads as fact to a customer and none of
+ * it has been confirmed.
+ *
+ * The mock's sensory-index percentages are gone with the section that showed
+ * them — the owner removed "The anatomy of our signature bite" on 2026-09-10,
+ * taking three more invented figures off the page.
  *
  * Two deliberate corrections:
  *   - The mock's body copy says "Lamie Foods Enterprise" twice. The
@@ -175,30 +179,6 @@ export const ABOUT = {
       supply-chain claims (frying temperatures, direct spice-mill partnerships)
       were never confirmed.
     */
-  },
-
-  /** UNVERIFIED — the mock's sensory index percentages are invented. */
-  sensory: {
-    eyebrow: "Sensory profile",
-    title: "The Anatomy of Our Signature Bite",
-    body: "We calibrate each element — moisture ratio, sugar crystallisation point, and spice warmth — to yield a refined sensory progression.",
-    metrics: [
-      {
-        label: "Crunch density (acoustic index)",
-        pct: 92,
-        scale: ["Soft doughy", "Micro-flaked crisp", "Rock solid"],
-      },
-      {
-        label: "Butterfat warmth",
-        pct: 88,
-        scale: ["Faint", "Rich cream churn", "Heavy"],
-      },
-      {
-        label: "Nutmeg & spice radiance",
-        pct: 78,
-        scale: ["Plain sweet", "Aromatic bloom", "Pungent"],
-      },
-    ],
   },
 
   cta: {

@@ -212,59 +212,6 @@ export function AboutHorizon() {
   );
 }
 
-export function AboutSensory() {
-  const { sensory } = ABOUT;
-
-  return (
-    <Section className="bg-surface-container-low">
-      <div className="grid items-center gap-gutter-xl md:grid-cols-12">
-        <Reveal className="md:col-span-5">
-          <Eyebrow>{sensory.eyebrow}</Eyebrow>
-          <h2 className="mt-gutter-sm text-headline-lg text-cacao">{sensory.title}</h2>
-          <p className="mt-gutter-sm text-body-md text-on-surface-variant">
-            {sensory.body}
-          </p>
-        </Reveal>
-
-        <Reveal delay={0.1} className="md:col-span-7">
-          <dl className="grid gap-gutter-md rounded border border-rule/70 bg-surface p-inset-card">
-            {sensory.metrics.map((metric) => (
-              <div key={metric.label}>
-                <div className="flex items-baseline justify-between gap-gutter-sm">
-                  <dt className="text-body-sm font-semibold text-cacao">
-                    {metric.label}
-                  </dt>
-                  <dd className="shrink-0 font-label text-label-md text-terracotta">
-                    {metric.pct}%
-                  </dd>
-                </div>
-                {/* Value is already stated in the <dd>, so the bar is decorative. */}
-                <div
-                  aria-hidden="true"
-                  className="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-rule/50"
-                >
-                  <div
-                    className="h-full rounded-sm bg-terracotta"
-                    style={{ width: `${metric.pct}%` }}
-                  />
-                </div>
-                <p
-                  aria-hidden="true"
-                  className="mt-1 flex justify-between gap-2 text-body-sm text-nutmeg"
-                >
-                  {metric.scale.map((point) => (
-                    <span key={point}>{point}</span>
-                  ))}
-                </p>
-              </div>
-            ))}
-          </dl>
-        </Reveal>
-      </div>
-    </Section>
-  );
-}
-
 export function AboutCta() {
   const { cta } = ABOUT;
 
