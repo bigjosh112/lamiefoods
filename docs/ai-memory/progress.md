@@ -17,6 +17,33 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Inventory page: renamed, and casing cleanup
+
+- **Done:** The owner's copy-only pass on `/admin/inventory`. 9 insertions, 11
+  deletions across three files, all text.
+- **Files:** `content/admin-dashboard.ts`,
+  `components/admin/{inventory-view,inventory-table}.tsx`.
+- **Only the sidebar needed the rename.** The page header already read
+  "Inventory" — "& Kettles" survived only in the nav, where it named equipment
+  this page does not track. Unlike the products rename, there were no
+  breadcrumbs or metadata titles carrying the old name; checked rather than
+  assumed.
+- **The category fix used the existing label map, not string capitalisation.**
+  The cell rendered `product.category`, the raw enum member, so it read
+  "chinchin". It now renders `CATEGORY_LABELS[product.category]` — the same map
+  the admin form's `<select>` shows, so the table and the form cannot disagree
+  about what a category is called, and adding a category means one edit rather
+  than remembering to capitalise in a second place.
+- **Item 4 needed no change** — the filter tabs were already sentence case
+  ("All products", "In stock", "Low stock", "Out of stock") *and* already free
+  of `uppercase`. Confirmed, as the brief asked.
+- **Fourth page running where the casing was CSS rather than copy.** Stat labels
+  and table headers were already sentence case in the data.
+- **Verified:** no `uppercase` remains on either inventory component; "Kettles"
+  survives only inside the explanatory comment; typecheck and lint pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — Customers page: copy simplification
 
 - **Done:** The owner's copy-only pass on `/admin/customers` — eyebrow removed,

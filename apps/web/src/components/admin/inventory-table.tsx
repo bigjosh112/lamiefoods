@@ -6,6 +6,7 @@ import { cn } from "@lamiefoods/ui";
 import type { Product } from "@lamiefoods/types";
 import { ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
+import { CATEGORY_LABELS } from "@/content/admin-new-product";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { STATUS_LABEL, stockStatus, type StockStatus } from "@/lib/admin/stock-status";
 
@@ -110,7 +111,7 @@ export function InventoryTable({ products }: { products: Product[] }) {
                 <th
                   key={column}
                   scope="col"
-                  className="px-gutter-sm py-3 font-label text-label-sm text-nutmeg uppercase"
+                  className="px-gutter-sm py-3 font-label text-label-sm text-nutmeg"
                 >
                   {column}
                 </th>
@@ -156,7 +157,7 @@ export function InventoryTable({ products }: { products: Product[] }) {
                   </th>
 
                   <td className="px-gutter-sm py-3 text-body-sm text-on-surface-variant">
-                    {product.category}
+                    {CATEGORY_LABELS[product.category]}
                   </td>
 
                   <td className="px-gutter-sm py-3 whitespace-nowrap">
@@ -196,7 +197,7 @@ export function InventoryTable({ products }: { products: Product[] }) {
                     <ButtonLink
                       href={ADMIN_ROUTES.editProduct(product.slug)}
                       variant="secondary"
-                      className="inline-flex"
+                      className="inline-flex normal-case"
                     >
                       <ICONS.timer className="h-4 w-4" />
                       Edit stock

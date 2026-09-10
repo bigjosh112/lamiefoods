@@ -57,10 +57,7 @@ export function InventoryView({ products }: { products: Product[] }) {
     <>
       <div className="mb-gutter-md flex flex-wrap items-start justify-between gap-gutter-md">
         <div className="max-w-2xl">
-          <p className="font-label text-label-caps text-terracotta uppercase">
-            Kitchen stock
-          </p>
-          <h1 className="mt-1 text-headline-lg text-cacao">Inventory</h1>
+          <h1 className="text-headline-lg text-cacao">Inventory</h1>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
             Stock on hand across published and draft products. Edit a product to change
             its stock or restock threshold.
@@ -81,9 +78,7 @@ export function InventoryView({ products }: { products: Product[] }) {
             >
               <div className="flex items-start justify-between gap-gutter-sm">
                 <div className="min-w-0">
-                  <p className="font-label text-label-sm text-nutmeg uppercase">
-                    {stat.label}
-                  </p>
+                  <p className="font-label text-label-sm text-nutmeg">{stat.label}</p>
                   <p
                     className={cn(
                       "mt-gutter-xs font-display text-headline-md",

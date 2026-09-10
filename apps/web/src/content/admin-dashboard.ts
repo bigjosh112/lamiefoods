@@ -38,7 +38,9 @@ export const ADMIN_NAV_SECTIONS = [
       { label: "Products", href: ADMIN_ROUTES.products, icon: "gift" as const },
       { label: "Customers", href: ADMIN_ROUTES.customers, icon: "people" as const },
       {
-        label: "Inventory & Kettles",
+        /* "Inventory", matching the page header — "& Kettles" named equipment
+           this page does not track; it lists product stock. */
+        label: "Inventory",
         href: ADMIN_ROUTES.inventory,
         icon: "timer" as const,
       },
