@@ -3,6 +3,7 @@ import type { Product } from "@lamiefoods/types";
 import { ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
 import { ProductsList } from "@/components/admin/products-list";
+import { stockStatus } from "@/lib/admin/stock-status";
 
 /**
  * Real product catalogue. Replaces the sample-data screen that used to live
@@ -20,10 +21,10 @@ import { ProductsList } from "@/components/admin/products-list";
 export function ProductsView({ products }: { products: Product[] }) {
   const published = products.filter((product) => product.storefrontActive);
   const drafts = products.filter((product) => !product.storefrontActive);
-  const lowStock = products.filter(
-    (product) =>
-      product.restockThreshold !== null &&
-      product.stockQuantity <= product.restockThreshold,
+  const lowStockCount = products.reduce(
+    (count, product) =>
+      count + product.packs.filter((pack) => stockStatus(pack) === "low-stock").length,
+    0,
   );
 
   return (
@@ -47,8 +48,12 @@ export function ProductsView({ products }: { products: Product[] }) {
         <StatCard
           icon="shield"
           label="Low stock"
-          value={lowStock.length > 0 ? `${lowStock.length} alert` : "Healthy"}
-          highlight={lowStock.length > 0}
+          value={
+            lowStockCount > 0
+              ? `${lowStockCount} size${lowStockCount === 1 ? "" : "s"}`
+              : "Healthy"
+          }
+          highlight={lowStockCount > 0}
         />
       </div>
 

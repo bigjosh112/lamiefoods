@@ -70,7 +70,7 @@ export const SETTINGS_PAGE = {
 
 export const SETTINGS_FULFILMENT = {
   title: "Delivery & payment",
-  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number and bank-transfer account below are real and editable — the form saves to the database.",
+  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number and bank-transfer account below are real and editable — the form saves to the database. Until all three bank fields are set, customers who choose bank transfer see “details being confirmed” instead of account numbers (GAP-013).",
   file: "packages/config/src/brand.ts · server/settings/repository.ts",
   rows: [
     {
@@ -81,13 +81,17 @@ export const SETTINGS_FULFILMENT = {
       label: "Pickup",
       value: DELIVERY.pickupAvailable ? "Available" : "Not available",
     },
-    { label: "Payment provider", value: "Paystack" },
+    { label: "Payment provider", value: "Paystack (primary) · bank transfer (fallback)" },
   ] satisfies SettingRow[],
   /** Things a settings screen would normally show that nobody has supplied. */
   missing: [
     {
       label: "Delivery fees",
       note: "Not finalised. No fee is shown anywhere on the site, and none is invented here.",
+    },
+    {
+      label: "Customer bank-transfer account",
+      note: "Until bank name, account number and account name are all saved below, the bank-transfer checkout path cannot show transfer instructions (GAP-013).",
     },
     {
       label: "Free-delivery threshold",

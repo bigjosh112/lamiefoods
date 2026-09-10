@@ -50,6 +50,7 @@ interface CatalogRow {
   discount_percent: number | null;
   pack_name: string;
   price_kobo: number;
+  sku: string | null;
 }
 
 /**
@@ -67,7 +68,7 @@ export async function priceLines(lines: RequestedLine[]): Promise<OrderItem[]> {
       ? []
       : ((await sql`
           select p.slug, p.name, p.discount_percent,
-                 pk.name as pack_name, pk.price_kobo
+                 pk.name as pack_name, pk.price_kobo, pk.sku
           from products p
           join product_packs pk on pk.product_id = p.id
           where p.slug in ${sql(slugs)} and p.storefront_active = true
@@ -89,6 +90,7 @@ export async function priceLines(lines: RequestedLine[]): Promise<OrderItem[]> {
       name: catalogRow.name,
       slug: line.slug,
       pack: catalogRow.pack_name,
+      sku: catalogRow.sku,
       unitPrice: ngn(unitPriceKobo),
       quantity: line.quantity,
       lineTotal: ngn(unitPriceKobo * line.quantity),

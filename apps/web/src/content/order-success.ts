@@ -20,15 +20,16 @@ export const ORDER_SUCCESS = {
   statusValue: "Batch in progress",
 
   /**
-   * Header for a REAL, just-placed order (`?token=`). Deliberately more modest
-   * than the preview copy above: payment is not connected, so nothing has been
-   * charged and the kitchen has not necessarily started — saying otherwise
-   * would be exactly the kind of claim this app does not make.
+   * Header for a REAL, just-placed order (`?token=`). Split by payment so we
+   * never claim money moved (or that the kitchen started) before it did.
    */
   real: {
     eyebrow: "Order received",
     title: "Thank you — we have your order.",
-    body: "We've recorded your order and sent a confirmation to your email. We'll be in touch to confirm delivery and arrange payment.",
+    unpaidBody:
+      "We've recorded your order and emailed a confirmation. Complete payment below — nothing has been charged yet. Delivery cost is confirmed separately before dispatch.",
+    paidBody:
+      "Payment is confirmed and a receipt has been emailed. Our kitchen will prepare your batch next — we'll email you again when it's on its way.",
     statusLabel: "Status",
   },
 
@@ -54,7 +55,7 @@ export const ORDER_SUCCESS = {
 
   continueCta: "Continue shopping",
   receiptCta: "Download receipt (PDF)",
-  receiptNote: "Receipts become available once payment is connected.",
+  receiptNote: "PDF receipts are not available yet — your emailed confirmation is the record of this order.",
 
   community: {
     title: "Share your Lamie moment.",
@@ -75,7 +76,7 @@ export const ORDER_SUCCESS = {
    */
   preview: {
     title: "Preview — sample order",
-    body: "This is placeholder data so the layout can be reviewed. No order exists and nothing has been paid. Real orders now save — see /order-success?token=… — but payment is still not connected.",
+    body: "This is placeholder data so the layout can be reviewed. No order exists and nothing has been paid. Real orders use /order-success?token=… after checkout.",
   },
 
   /** What a visitor sees when the link has no token, or the token matches nothing. */
@@ -95,7 +96,7 @@ export const ORDER_SUCCESS = {
 
 /** Status copy for a REAL order, derived from its actual `OrderStatus`. */
 export const ORDER_STATUS_COPY: Record<OrderStatus, string> = {
-  pending: "Received — awaiting confirmation",
+  pending: "Received — awaiting payment",
   paid: "Payment confirmed",
   processing: "Batch in progress",
   shipped: "Out for delivery",

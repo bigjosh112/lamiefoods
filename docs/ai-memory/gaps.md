@@ -150,7 +150,7 @@
   `/admin` (full dashboard — revenue, orders, customers, best sellers, stock
   — not just needs-dispatch), `/admin/customers` (derived from `orders`,
   grouped by email — there is no `customers` table) and `/admin/inventory`
-  (one row per product — stock is tracked per product, not per pack) are all
+  (one row per packaging size — stock is tracked per pack, not per flavour) are all
   wired to the database now; `/admin/settings`'s one non-real panel
   (`SETTINGS_STOREFRONT`, previously reading the deleted static
   `content/products.ts`) now reads the live catalogue too. **While verifying
@@ -463,11 +463,16 @@
   `architecture.md`). The trade-off: if the send fails, the only record is a
   `console.error` line. The customer gets no confirmation email and nobody is
   notified that they didn't; the order is correct in the database but silent
-  everywhere else.
+  everywhere else. Observed 2026-09-11: local sends returned Resend **422**
+  while `ORDER_EMAIL_FROM` used a **gmail.com** address — Resend requires a
+  verified domain (or their onboarding sender); a personal Gmail FROM is
+  rejected even with a valid API key.
 - **Fix:** At minimum, add an `email_sent boolean` (or a `last_email_error`
   text column) to `orders` so a failed send is queryable and re-sendable from
   the admin once `/admin/orders` is real. A retry queue is over-building for
   the current volume; a visible "resend confirmation" admin action is not.
+  Separately, set `ORDER_EMAIL_FROM` to a Resend-verified domain sender
+  (e.g. `Lamie Foods <orders@yourdomain.com>`), not `@gmail.com`.
 - **Update 2026-09-08:** Dispatch/delivery transition flags now use permanent
   `shipped_at`/`delivered_at` milestone timestamps and the status graph no
   longer permits reversals, so stale or repeated admin writes cannot duplicate
@@ -517,6 +522,10 @@
   this gap is now purely "waiting for the owner to type in real numbers."
 - **Fix:** Owner signs into `/admin/settings` and fills in the bank fields.
   Until then, Paystack is the only payment path that functions end to end.
+- **Update 2026-09-10 — customer-path audit.** `/admin/settings` now shows an
+  explicit banner when bank fields are unset, and SETTINGS copy names GAP-013
+  as the blocker. Customer bank-transfer UI still refuses to invent numbers.
+  No code path can finish this gap — only the owner's real account details.
 - **Status:** open — needs owner input only (bank account details); the
   mechanism to set them without a code deploy now exists
 
@@ -536,11 +545,16 @@
   connection between the Paystack popup reporting success and that call
   completing — exactly the gap the webhook exists to cover.
 - **Fix:** Once a production domain exists, register
-  `<domain>/api/webhooks/paystack` in the Paystack dashboard, then place one
+  `<domain>/api/webhooks/paystack` in the Paystack dashboard (HMAC uses the
+  existing `PAYSTACK_SECRET_KEY` — no separate webhook secret), then place one
   real test-mode transaction end to end and confirm in the database that
   `paid_at` gets set even when the client-side verify call is deliberately
   blocked (e.g. by killing the tab right after the popup closes) — that is the
   actual scenario this endpoint exists for, not just "does it 200."
+- **Update 2026-09-10 — customer-path audit.** Payment UX and success-email
+  copy were corrected for the live Paystack path; this gap remains ops-only
+  (dashboard registration + production verification), not missing application
+  code.
 - **Status:** open — needs a production deploy to verify against
 
 <!-- not yet audited (surface does not exist yet — re-run audit-gaps when it lands):

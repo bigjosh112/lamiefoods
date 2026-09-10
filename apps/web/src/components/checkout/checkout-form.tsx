@@ -18,8 +18,45 @@ import { useCart, useCartActions } from "@/lib/cart/use-cart";
 import { createOrder } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api";
 import { ROUTES } from "@lamiefoods/config";
+import { CartUnavailableNotice } from "@/components/cart/cart-unavailable-notice";
 
 type SubmitStatus = "idle" | "submitting" | "error" | "success";
+
+function messageForCheckoutFailure(error: unknown): string {
+  const chargedNote = "Nothing has been charged — please try again.";
+
+  if (!(error instanceof ApiError)) {
+    return `Something went wrong. ${chargedNote}`;
+  }
+
+  const serverMessage =
+    error.body &&
+    typeof error.body === "object" &&
+    "error" in error.body &&
+    typeof error.body.error === "string"
+      ? error.body.error.trim()
+      : null;
+
+  if (error.status === 409) {
+    const base =
+      serverMessage ?? "One or more items in your bag are no longer available.";
+    return `${base} Clear your bag and add products from the shop again. ${chargedNote}`;
+  }
+
+  if (serverMessage) {
+    return `${serverMessage} ${chargedNote}`;
+  }
+
+  if (error.status === 429) {
+    return `Too many orders from this connection. Please wait a moment, then try again. ${chargedNote}`;
+  }
+
+  if (error.status === 503) {
+    return `Ordering is not connected yet. ${chargedNote}`;
+  }
+
+  return `We could not save your order. ${chargedNote}`;
+}
 
 /**
  * Guest checkout form: react-hook-form driving the zod schema, then a real
@@ -42,7 +79,7 @@ export function CheckoutForm() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
-  const { isEmpty, lines } = useCart();
+  const { isEmpty, items } = useCart();
   const { clearCart } = useCartActions();
   const router = useRouter();
   const formId = useId();
@@ -74,7 +111,10 @@ export function CheckoutForm() {
     setErrorMessage(null);
 
     try {
-      const { token } = await createOrder(customer, lines, paymentMethod);
+      // Only catalogue-valid lines — never raw localStorage entries for
+      // deleted/unpublished products (those caused opaque 409s at Place Order).
+      const orderLines = items.map(({ line }) => line);
+      const { token } = await createOrder(customer, orderLines, paymentMethod);
       // Cleared only on confirmed success — a failed submit must leave the bag
       // intact so the customer is not asked to rebuild it.
       clearCart();
@@ -82,11 +122,7 @@ export function CheckoutForm() {
       router.push(`${ROUTES.orderSuccess}?token=${encodeURIComponent(token)}`);
     } catch (error) {
       setStatus("error");
-      setErrorMessage(
-        error instanceof ApiError
-          ? "We could not save your order. Nothing has been charged — please try again."
-          : "Something went wrong. Nothing has been charged — please try again.",
-      );
+      setErrorMessage(messageForCheckoutFailure(error));
     }
   };
 
@@ -94,6 +130,7 @@ export function CheckoutForm() {
 
   return (
     <form onSubmit={handleSubmit(onValid)} noValidate className="grid gap-gutter-md">
+      <CartUnavailableNotice />
       <Fieldset index={1} step={CHECKOUT.contact.step} title={CHECKOUT.contact.title}>
         <Field
           id={fieldId("email")}

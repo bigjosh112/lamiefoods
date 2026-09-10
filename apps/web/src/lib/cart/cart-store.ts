@@ -33,11 +33,19 @@ const STORAGE_KEY = "lamie.cart.v1";
 interface CartState {
   lines: CartLine[];
   hydrated: boolean;
+  /**
+   * How many distinct bag lines were dropped on the last catalogue prune
+   * (deleted/unpublished products). Cleared when the notice is dismissed.
+   */
+  removedUnavailableCount: number;
   addLine: (slug: string, pack: string, quantity?: number) => void;
   setQuantity: (slug: string, pack: string, quantity: number) => void;
   removeLine: (slug: string, pack: string) => void;
   clearCart: () => void;
   setHydrated: () => void;
+  /** Drop lines that no longer resolve against the published catalogue. */
+  pruneUnavailable: (catalog: Product[]) => void;
+  dismissUnavailableNotice: () => void;
 }
 
 const clampQuantity = (value: number) =>
@@ -76,6 +84,7 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       lines: [],
       hydrated: false,
+      removedUnavailableCount: 0,
 
       addLine: (slug, pack, quantity = 1) =>
         set((state) => {
@@ -121,14 +130,36 @@ export const useCartStore = create<CartState>()(
           ),
         })),
 
-      clearCart: () => set({ lines: [] }),
+      clearCart: () => set({ lines: [], removedUnavailableCount: 0 }),
       setHydrated: () => set({ hydrated: true }),
+
+      pruneUnavailable: (catalog) =>
+        set((state) => {
+          // No catalogue yet (header on a page without CatalogProvider) — do
+          // not wipe the bag just because resolve would return nothing.
+          if (catalog.length === 0) return state;
+
+          const next = state.lines.filter((line) =>
+            catalog.some(
+              (product) =>
+                product.slug === line.slug &&
+                product.packs.some((pack) => pack.name === line.pack),
+            ),
+          );
+          const removed = state.lines.length - next.length;
+          if (removed === 0) return state;
+          return {
+            lines: next,
+            removedUnavailableCount: state.removedUnavailableCount + removed,
+          };
+        }),
+
+      dismissUnavailableNotice: () => set({ removedUnavailableCount: 0 }),
     }),
     {
       name: STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
-      // Persist the lines only — `hydrated` is runtime state, and the actions
-      // are functions.
+      // Persist the lines only — runtime flags and actions stay ephemeral.
       partialize: (state) => ({ lines: state.lines }),
       // Rehydration is driven from CartHydration after mount, not during the
       // first render, so server and client markup agree.
@@ -147,6 +178,8 @@ export const useCartStore = create<CartState>()(
 export interface ResolvedLine {
   line: CartLine;
   product: Product;
+  /** Catalogue pack price before any discount. */
+  listUnitPrice: Kobo;
   /** Already discount-adjusted — never the pre-discount price. */
   unitPrice: Kobo;
   lineTotal: Kobo;
@@ -165,11 +198,13 @@ export function resolveLines(lines: CartLine[], catalog: Product[]): ResolvedLin
     const pack = product?.packs.find((candidate) => candidate.name === line.pack);
     if (!product || !pack) return [];
 
-    const unitPrice = applyDiscount(pack.price.amount, product.discountPercent);
+    const listUnitPrice = pack.price.amount;
+    const unitPrice = applyDiscount(listUnitPrice, product.discountPercent);
     return [
       {
         line,
         product,
+        listUnitPrice,
         unitPrice,
         lineTotal: unitPrice * line.quantity,
       },

@@ -17,9 +17,9 @@ export const dynamic = "force-dynamic";
  * Inventory route.
  *
  * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009). Stock
- * levels and thresholds are real operational data as of 2026-09-08 (`products
- * .stock_quantity`/`restock_threshold`), so the check runs before the dynamic
- * import and the module is never evaluated without a session.
+ * Stock levels and thresholds are real operational data as of 2026-09-10
+ * (`product_packs.stock_quantity`/`restock_threshold`), so the check runs
+ * before the dynamic import and the module is never evaluated without a session.
  */
 export default async function AdminInventoryPage() {
   if (!(await getAdminSession())) notFound();

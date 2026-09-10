@@ -9,15 +9,24 @@ import { ImageSlot } from "@/components/ui/image-slot";
 import { CART } from "@/content/cart";
 import { formatKobo } from "@/lib/money";
 import { MAX_QUANTITY, useCart, useCartActions } from "@/lib/cart/use-cart";
+import { CartUnavailableNotice } from "@/components/cart/cart-unavailable-notice";
 
 export function CartView() {
   const { items, count, subtotal, isEmpty } = useCart();
   const { removeLine, setQuantity } = useCartActions();
 
-  if (isEmpty) return <EmptyBag />;
+  if (isEmpty) {
+    return (
+      <>
+        <CartUnavailableNotice />
+        <EmptyBag />
+      </>
+    );
+  }
 
   return (
     <>
+      <CartUnavailableNotice />
       <div className="grid gap-gutter-lg lg:grid-cols-12">
         <div className="lg:col-span-8">
           <div className="hidden border-b border-rule/70 pb-2 font-label text-label-sm text-nutmeg uppercase lg:grid lg:grid-cols-12">
@@ -28,10 +37,11 @@ export function CartView() {
           </div>
 
           <ul>
-            {items.map(({ line, product, unitPrice, lineTotal }) => {
+            {items.map(({ line, product, listUnitPrice, unitPrice, lineTotal }) => {
               const hero =
                 product.images.find((image) => image.role === "hero") ??
                 product.images[0];
+              const discounted = unitPrice !== listUnitPrice;
               return (
                 <li
                   key={`${line.slug}-${line.pack}`}
@@ -60,12 +70,26 @@ export function CartView() {
                       <p className="text-body-sm text-on-surface-variant">
                         Size: {line.pack}
                       </p>
+                      {product.discountPercent ? (
+                        <p className="mt-1 font-label text-label-sm text-terracotta uppercase">
+                          {product.discountPercent}% off
+                        </p>
+                      ) : null}
                     </div>
                   </div>
 
                   <p className="font-numeral text-label-md text-on-surface-variant lg:col-span-2">
                     <span className="font-body text-nutmeg lg:hidden">Unit price: </span>
-                    {formatKobo(unitPrice)}
+                    {discounted ? (
+                      <>
+                        <span className="mr-1 text-nutmeg line-through">
+                          {formatKobo(listUnitPrice)}
+                        </span>
+                        <span className="text-terracotta">{formatKobo(unitPrice)}</span>
+                      </>
+                    ) : (
+                      formatKobo(unitPrice)
+                    )}
                   </p>
 
                   <div className="lg:col-span-2">

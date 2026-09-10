@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { cartCount, cartSubtotal, resolveLines, useCartStore } from "./cart-store";
 import { useCatalog } from "@/lib/products/catalog-context";
 
@@ -11,25 +12,40 @@ import { useCatalog } from "@/lib/products/catalog-context";
  * from the lines it came from.
  *
  * `items`/`subtotal` resolve against `useCatalog()` — see
- * `lib/products/catalog-context.tsx`. A page that doesn't provide a catalogue
- * (no `<CatalogProvider>` above it) gets an empty catalogue back, so `items`
- * is empty too; `count` still reflects the real number of lines regardless,
- * since it needs no product data at all.
+ * `lib/products/catalog-context.tsx`. When a published catalogue is present,
+ * `count` / `isEmpty` follow resolvable lines only (what checkout can charge),
+ * and stale deleted/unpublished lines are pruned from localStorage. On pages
+ * without a `CatalogProvider`, count still uses raw lines so the header badge
+ * does not flash empty before a catalogue page loads.
  */
 export function useCart() {
   const lines = useCartStore((state) => state.lines);
   const hydrated = useCartStore((state) => state.hydrated);
+  const removedUnavailableCount = useCartStore(
+    (state) => state.removedUnavailableCount,
+  );
+  const pruneUnavailable = useCartStore((state) => state.pruneUnavailable);
   const catalog = useCatalog();
   const items = resolveLines(lines, catalog);
+  const hasCatalog = catalog.length > 0;
+
+  useEffect(() => {
+    if (!hydrated || !hasCatalog) return;
+    pruneUnavailable(catalog);
+    // Not depending on `lines`: prune once the published catalogue is available
+    // after rehydrate. Quantity edits cannot introduce unavailable catalogue
+    // entries through the UI.
+  }, [hydrated, hasCatalog, catalog, pruneUnavailable]);
 
   return {
     lines,
     items,
-    count: cartCount(lines),
+    count: hasCatalog ? cartCount(items.map((entry) => entry.line)) : cartCount(lines),
     subtotal: cartSubtotal(items),
-    isEmpty: lines.length === 0,
+    isEmpty: hasCatalog ? items.length === 0 : lines.length === 0,
     /** False until the persisted bag has been read back from localStorage. */
     hydrated,
+    removedUnavailableCount,
   };
 }
 
@@ -40,6 +56,7 @@ export function useCartActions() {
     setQuantity: useCartStore((state) => state.setQuantity),
     removeLine: useCartStore((state) => state.removeLine),
     clearCart: useCartStore((state) => state.clearCart),
+    dismissUnavailableNotice: useCartStore((state) => state.dismissUnavailableNotice),
   };
 }
 

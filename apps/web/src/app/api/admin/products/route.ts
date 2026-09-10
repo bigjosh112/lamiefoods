@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { productSchema, toProductInput } from "@/lib/admin/product-schema";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
-import { createProduct, DuplicateSlugError } from "@/server/products/repository";
+import { createProduct, DuplicateSkuError, DuplicateSlugError } from "@/server/products/repository";
 
 /**
  * POST /api/admin/products — create a product.
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const product = await createProduct(toProductInput(parsed.data));
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
-    if (error instanceof DuplicateSlugError) {
+    if (error instanceof DuplicateSlugError || error instanceof DuplicateSkuError) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
     console.error("[api/admin/products] Failed to create product:", error);

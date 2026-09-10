@@ -24,8 +24,6 @@ interface ProductRow {
   allergens_confirmed: boolean;
   shelf_life: string | null;
   storage_note: string | null;
-  stock_quantity: number;
-  restock_threshold: number | null;
   storefront_active: boolean;
   feature_on_homepage: boolean;
   seasonal_edition: boolean;
@@ -40,6 +38,8 @@ interface PackRow {
   name: string;
   price_kobo: number;
   sku: string | null;
+  stock_quantity: number;
+  restock_threshold: number | null;
   sort_order: number;
 }
 
@@ -67,28 +67,32 @@ function rowToProduct(row: ProductRow, packs: PackRow[], images: ImageRow[]): Pr
     allergensConfirmed: row.allergens_confirmed,
     shelfLife: row.shelf_life,
     storageNote: row.storage_note,
-    stockQuantity: row.stock_quantity,
-    restockThreshold: row.restock_threshold,
     storefrontActive: row.storefront_active,
     featureOnHomepage: row.feature_on_homepage,
     seasonalEdition: row.seasonal_edition,
     discountPercent: row.discount_percent,
     packs: packs
       .filter((p) => p.product_id === row.id)
-      .map((p): ProductPack => ({
-        id: p.id,
-        name: p.name,
-        price: ngn(p.price_kobo),
-        sku: p.sku,
-      })),
+      .map(
+        (p): ProductPack => ({
+          id: p.id,
+          name: p.name,
+          price: ngn(p.price_kobo),
+          sku: p.sku,
+          stockQuantity: p.stock_quantity,
+          restockThreshold: p.restock_threshold,
+        }),
+      ),
     images: images
       .filter((i) => i.product_id === row.id)
-      .map((i): ProductImage => ({
-        id: i.id,
-        url: i.url,
-        alt: i.alt,
-        role: i.role as "hero" | "gallery",
-      })),
+      .map(
+        (i): ProductImage => ({
+          id: i.id,
+          url: i.url,
+          alt: i.alt,
+          role: i.role as "hero" | "gallery",
+        }),
+      ),
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
   };
@@ -97,7 +101,7 @@ function rowToProduct(row: ProductRow, packs: PackRow[], images: ImageRow[]): Pr
 const PRODUCT_COLUMNS = `
   id, slug, name, category, teaser, narrative, pairings, crunch_score,
   ingredients, allergens, allergens_confirmed, shelf_life, storage_note,
-  stock_quantity, restock_threshold, storefront_active, feature_on_homepage,
+  storefront_active, feature_on_homepage,
   seasonal_edition, discount_percent, created_at, updated_at
 `;
 
@@ -108,7 +112,8 @@ async function packsAndImagesFor(
   if (productIds.length === 0) return { packs: [], images: [] };
 
   const [packs, images] = await Promise.all([
-    sql`select id, product_id, name, price_kobo, sku, sort_order
+    sql`select id, product_id, name, price_kobo, sku, stock_quantity,
+               restock_threshold, sort_order
         from product_packs where product_id in ${sql(productIds)}
         order by sort_order asc, name asc`,
     sql`select id, product_id, url, alt, role, sort_order
@@ -196,13 +201,17 @@ export interface ProductInput {
   allergensConfirmed: boolean;
   shelfLife: string | null;
   storageNote: string | null;
-  stockQuantity: number;
-  restockThreshold: number | null;
   storefrontActive: boolean;
   featureOnHomepage: boolean;
   seasonalEdition: boolean;
   discountPercent: number | null;
-  packs: { name: string; priceKobo: number; sku: string | null }[];
+  packs: {
+    name: string;
+    priceKobo: number;
+    sku: string | null;
+    stockQuantity: number;
+    restockThreshold: number | null;
+  }[];
   images: { url: string; alt: string; role: "hero" | "gallery" }[];
 }
 
@@ -211,6 +220,32 @@ export class DuplicateSlugError extends Error {
     super(`A product with slug "${slug}" already exists.`);
     this.name = "DuplicateSlugError";
   }
+}
+
+export class DuplicateSkuError extends Error {
+  constructor() {
+    super("That SKU is already used by another packaging size.");
+    this.name = "DuplicateSkuError";
+  }
+}
+
+function isUniqueViolation(
+  error: unknown,
+): error is { code: string; constraint?: string; constraint_name?: string } {
+  return Boolean(
+    error && typeof error === "object" && "code" in error && error.code === "23505",
+  );
+}
+
+function rethrowUniqueViolation(error: unknown, slug: string): never {
+  if (isUniqueViolation(error)) {
+    const constraint = error.constraint ?? error.constraint_name;
+    if (constraint === "product_packs_sku_unique") {
+      throw new DuplicateSkuError();
+    }
+    throw new DuplicateSlugError(slug);
+  }
+  throw error;
 }
 
 /** Writes the product, its packs and its images in one transaction — same
@@ -225,14 +260,12 @@ export async function createProduct(input: ProductInput): Promise<Product> {
         insert into products (
           slug, name, category, teaser, narrative, pairings, crunch_score,
           ingredients, allergens, allergens_confirmed, shelf_life, storage_note,
-          stock_quantity, restock_threshold, storefront_active,
-          feature_on_homepage, seasonal_edition, discount_percent
+          storefront_active, feature_on_homepage, seasonal_edition, discount_percent
         ) values (
           ${input.slug}, ${input.name}, ${input.category}, ${input.teaser},
           ${input.narrative}, ${input.pairings}, ${input.crunchScore},
           ${input.ingredients}, ${input.allergens}, ${input.allergensConfirmed},
-          ${input.shelfLife}, ${input.storageNote}, ${input.stockQuantity},
-          ${input.restockThreshold}, ${input.storefrontActive},
+          ${input.shelfLife}, ${input.storageNote}, ${input.storefrontActive},
           ${input.featureOnHomepage}, ${input.seasonalEdition}, ${input.discountPercent}
         )
         returning ${tx.unsafe(PRODUCT_COLUMNS)}
@@ -248,6 +281,8 @@ export async function createProduct(input: ProductInput): Promise<Product> {
               name: pack.name,
               price_kobo: pack.priceKobo,
               sku: pack.sku,
+              stock_quantity: pack.stockQuantity,
+              restock_threshold: pack.restockThreshold,
               sort_order: index,
             })),
           )}
@@ -272,10 +307,7 @@ export async function createProduct(input: ProductInput): Promise<Product> {
       return rowToProduct(row, packs, images);
     });
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "23505") {
-      throw new DuplicateSlugError(input.slug);
-    }
-    throw error;
+    rethrowUniqueViolation(error, input.slug);
   }
 }
 
@@ -298,8 +330,6 @@ export async function updateProduct(
           ingredients = ${input.ingredients}, allergens = ${input.allergens},
           allergens_confirmed = ${input.allergensConfirmed},
           shelf_life = ${input.shelfLife}, storage_note = ${input.storageNote},
-          stock_quantity = ${input.stockQuantity},
-          restock_threshold = ${input.restockThreshold},
           storefront_active = ${input.storefrontActive},
           feature_on_homepage = ${input.featureOnHomepage},
           seasonal_edition = ${input.seasonalEdition},
@@ -320,6 +350,8 @@ export async function updateProduct(
               name: pack.name,
               price_kobo: pack.priceKobo,
               sku: pack.sku,
+              stock_quantity: pack.stockQuantity,
+              restock_threshold: pack.restockThreshold,
               sort_order: index,
             })),
           )}
@@ -345,29 +377,65 @@ export async function updateProduct(
       return rowToProduct(row, packs, images);
     });
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "23505") {
-      throw new DuplicateSlugError(input.slug);
-    }
-    throw error;
+    rethrowUniqueViolation(error, input.slug);
   }
 }
 
 /**
- * Decrements stock for each ordered line, clamped at zero — no backorder
- * logic. Takes a `Db` (either the pool or a transaction handle) so it can run
- * inside `server/orders/repository.ts`'s payment-confirmation transaction:
- * stock only ever moves once payment is real, never at order-creation time,
- * which would decrement stock for orders that never get paid.
+ * Decrements pack stock for each ordered line, clamped at zero — no backorder
+ * logic. Matches by product slug + pack display name (same identity cart/orders
+ * use). Takes a `Db` (pool or transaction) so it can run inside
+ * `server/orders/repository.ts`'s payment-confirmation transaction: stock only
+ * ever moves once payment is real, never at order-creation time.
  */
 export async function decrementStockInTx(
   tx: Db,
-  lines: { slug: string; quantity: number }[],
+  lines: { slug: string; pack: string; quantity: number }[],
 ): Promise<void> {
   for (const line of lines) {
     await tx`
-      update products
-      set stock_quantity = greatest(0, stock_quantity - ${line.quantity}), updated_at = now()
-      where slug = ${line.slug}
+      update product_packs pp
+         set stock_quantity = greatest(0, pp.stock_quantity - ${line.quantity})
+        from products p
+       where pp.product_id = p.id
+         and p.slug = ${line.slug}
+         and pp.name = ${line.pack}
     `;
   }
+}
+
+/** Hard-delete one product by slug. Packs and images cascade. Returns whether
+ *  a row was removed. */
+export async function deleteProduct(slug: string): Promise<boolean> {
+  const sql = db();
+  const rows = await sql`
+    delete from products where slug = ${slug} returning id
+  `;
+  return rows.length > 0;
+}
+
+/** Soft-hide many products: `storefront_active = false`. Unknown slugs are
+ *  skipped. Returns how many rows were updated. */
+export async function unpublishProducts(slugs: string[]): Promise<number> {
+  if (slugs.length === 0) return 0;
+  const sql = db();
+  const rows = await sql`
+    update products
+       set storefront_active = false, updated_at = now()
+     where slug in ${sql(slugs)}
+       and storefront_active = true
+    returning id
+  `;
+  return rows.length;
+}
+
+/** Hard-delete many products by slug. Packs and images cascade. Unknown slugs
+ *  are skipped. Returns how many rows were deleted. */
+export async function deleteProducts(slugs: string[]): Promise<number> {
+  if (slugs.length === 0) return 0;
+  const sql = db();
+  const rows = await sql`
+    delete from products where slug in ${sql(slugs)} returning id
+  `;
+  return rows.length;
 }

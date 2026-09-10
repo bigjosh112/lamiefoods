@@ -6,7 +6,7 @@ import { ImageSlot } from "@/components/ui/image-slot";
 import type { Product } from "@lamiefoods/types";
 
 /**
- * Product gallery: one large view plus a thumbnail strip.
+ * Product gallery: one large view plus a thumbnail strip (up to five photos).
  *
  * Client-side only for the thumbnail switch. Thumbnails are a `tablist` rather
  * than a row of buttons, so arrow keys move between views the way a keyboard
@@ -15,9 +15,7 @@ import type { Product } from "@lamiefoods/types";
  * Images come from `product.images` (uploaded via Vercel Blob, see
  * `components/admin/image-upload.tsx`) — a product with none yet renders the
  * same honest placeholder every other unphotographed slot in this app uses.
- * The hero badge and batch-series overlay from the old design are gone: they
- * were never backed by a real field, and inventing one now would repeat the
- * exact mistake this codebase already refused to make elsewhere.
+ * Order follows `sort_order` from the admin form (index 0 = hero).
  */
 export function ProductGallery({ product }: { product: Product }) {
   const images =
@@ -34,9 +32,6 @@ export function ProductGallery({ product }: { product: Product }) {
   return (
     <div>
       <div className="relative aspect-4/3 overflow-hidden rounded border border-rule/70">
-        {/* No overlay badges. The two that sat here asserted a butter
-            percentage nobody has confirmed and a batch number nothing
-            tracks. */}
         <ImageSlot
           slot={{
             src: current.url || null,
@@ -52,7 +47,7 @@ export function ProductGallery({ product }: { product: Product }) {
         <div
           role="tablist"
           aria-label={`${product.name} images`}
-          className="mt-gutter-xs grid grid-cols-4 gap-gutter-xs"
+          className="mt-gutter-xs grid grid-cols-3 gap-gutter-xs sm:grid-cols-5"
         >
           {images.map((image, index) => (
             <button
@@ -60,7 +55,7 @@ export function ProductGallery({ product }: { product: Product }) {
               type="button"
               role="tab"
               aria-selected={index === active}
-              aria-label={image.alt || product.name}
+              aria-label={image.alt || `${product.name} photo ${index + 1}`}
               onClick={() => setActive(index)}
               className={cn(
                 "relative aspect-square overflow-hidden rounded border transition-colors",
@@ -75,7 +70,7 @@ export function ProductGallery({ product }: { product: Product }) {
                   alt: image.alt || product.name,
                   note: "",
                 }}
-                sizes="(min-width: 1024px) 14vw, 25vw"
+                sizes="(min-width: 1024px) 11vw, 30vw"
               />
             </button>
           ))}

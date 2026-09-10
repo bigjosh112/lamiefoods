@@ -23,18 +23,27 @@ export const dynamic = "force-dynamic";
  */
 export default async function AdminEditProductPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ created?: string }>;
 }) {
   if (!(await getAdminSession())) notFound();
   if (!isDatabaseConfigured()) notFound();
 
   const { id } = await params;
+  const { created } = await searchParams;
   const { getProductForAdmin } = await import("@/server/products/repository");
 
   const product = await getProductForAdmin(id);
   if (!product) notFound();
 
   const { EditProductView } = await import("@/components/admin/edit-product-view");
-  return <EditProductView product={product} blobConfigured={isBlobStorageConfigured()} />;
+  return (
+    <EditProductView
+      product={product}
+      blobConfigured={isBlobStorageConfigured()}
+      justCreated={created === "1"}
+    />
+  );
 }

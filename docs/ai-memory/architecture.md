@@ -17,12 +17,12 @@
 > As of 2026-09-08, `/admin` (full dashboard, not just needs-dispatch),
 > `/admin/customers` and `/admin/inventory` are ALSO real — no admin screen
 > shows invented data anymore. Customers are derived from `orders` (there is
-> no `customers` table); inventory is one row per product (stock is tracked
-> per product, not per pack size — the old sample data's per-pack model
-> doesn't match the schema). Two sample-data features were removed outright
-> rather than kept fake: a rider/delivery-fleet tracking card and
-> packaging-materials stock, neither of which has ever had a real data
-> source. What remains open is mostly content and owner-supplied facts, not
+> no `customers` table); inventory is one row per **packaging size** (stock,
+> restock threshold, price, and SKU live on `product_packs` — a flavour with
+> three sizes is three inventoriable units). Two sample-data features were
+> removed outright rather than kept fake: a rider/delivery-fleet tracking
+> card and packaging-materials stock, neither of which has ever had a real
+> data source. What remains open is mostly content and owner-supplied facts, not
 > plumbing: real prices (GAP-004), an allergen statement (GAP-007), bank
 > account details (GAP-013 — the owner can now set both via `/admin/settings`
 > themselves, no code deploy needed, since the WhatsApp number/bank details
@@ -206,6 +206,7 @@ rest of the form — no image bytes ever pass through this app's own server.
 | 2026-09-08 | Admin dashboard, customers and inventory all moved from `content/*.ts` sample data to real queries in `server/orders/repository.ts`/`server/products/repository.ts`, fetched by each page and passed down as props — same rule every other real admin screen already followed | Owner reported an invented ₦1,842,500 "Settled revenue" figure and asked for the project to be launch-ready; almost the entire dashboard and both remaining screens were still 100% sample content, disclosed by an on-page banner but otherwise fully wired into the live components | Strip the fake numbers without replacing them (an honest-but-empty dashboard rather than a real one) |
 | 2026-09-08 | Two dashboard/inventory features from the sample data were **removed**, not reskinned: a rider/delivery-fleet tracking card, and packaging-materials stock (kraft pouches, glass jars) | Neither has ever had a real data source — no delivery-zone/courier table, and `products` only tracks finished-goods stock, never raw packaging consumables. Inventing a placeholder for either repeats the exact "fake permanence" mistake already refused elsewhere in this app | Keep the cards with an honest "not tracked" placeholder |
 | 2026-09-08 | Real inventory is one row per **product**, not per pack size | `products.stock_quantity`/`restock_threshold` (added in the 2026-09-07 product-catalog migration) are columns on the product, not the pack — the old sample data's per-pack-size model (`slug::packName` keys) has no real schema to back it | Add a `stock_quantity` column to `product_packs` instead, to preserve the old per-pack shape |
+| 2026-09-10 | **Reverse:** inventory is one row per **packaging size** (`product_packs.stock_quantity`/`restock_threshold`/`sku`/`price_kobo`); product-level stock columns dropped | Launch sells three sizes per flavour (100g/300g/500g). Buying out the 100g must not empty the 300g/500g. Order lines freeze `sku` for dispatch. Migration `0007_pack_stock_and_order_sku.sql` | Keep flavour-level stock and treat sizes as display-only price options |
 | 2026-09-08 | Customers are derived entirely from `orders`/`order_items`, grouped by `customer_email` — no `customers` table | Guest checkout with no account creation is a hard product requirement (Q12/Q13); email is the only real key across a customer's orders. Name/phone/city/landmark shown are from that customer's MOST RECENT order (an address can legitimately change between orders) | Add a `customers` table and start requiring account creation |
 | 2026-09-08 | `AdminOrderSummary` gained a `customerEmail` field | Needed to group a flat list of orders by customer in the view layer (`/admin/customers`'s `page.tsx`) without a second, per-customer database round trip | A separate `getCustomerDetailForAdmin(email)` endpoint fetched on dossier-select (rejected: this UI's whole pattern is "preload everything, filter client-side," established by `customers-directory.tsx`/`inventory-table.tsx` before this session) |
 | 2026-09-08 | Dropped the fabricated percentage "deltas" (`+13.4%`, a `Delta` badge component) from every stat tile | With a currently-empty (or just-started) order history there is no honest period-over-period baseline to diff against — a real delta would either divide by zero or show a meaningless `+∞%` the moment the first order lands. Plain totals only, added back later if/when a real baseline exists | Compute a real week-over-week delta now, showing "—" or "New" when the prior period has no data |

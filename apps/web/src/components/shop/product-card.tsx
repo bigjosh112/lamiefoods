@@ -19,14 +19,8 @@ import { useCartActions } from "@/lib/cart/use-cart";
  *
  * Both actions work: "View details" opens the product page, "Add to bag" adds
  * the selected pack to the browser-side bag. "Add to bag" is disabled once
- * stock reaches zero — a real state now that stock actually decrements
- * (see `server/products/repository.ts:decrementStockInTx`).
- *
- * The whole tile is clickable. Rather than add a second link, "View details"
- * carries an `::after` overlay covering the card — so there is still exactly one
- * link per product in the accessibility tree. The size selector and "Add to
- * bag" are raised above that overlay with `relative z-10`; without it, every
- * tap on them would navigate instead of doing its job.
+ * the selected size is out of stock. The card badge only says "Sold out" when
+ * every size is gone.
  */
 export function ProductCard({ product }: { product: Product }) {
   const packs = product.packs;
@@ -36,7 +30,8 @@ export function ProductCard({ product }: { product: Product }) {
   const groupId = useId();
   const heroImage =
     product.images.find((image) => image.role === "hero") ?? product.images[0];
-  const soldOut = product.stockQuantity <= 0;
+  const packSoldOut = !selectedPack || selectedPack.stockQuantity <= 0;
+  const allSoldOut = packs.every((pack) => pack.stockQuantity <= 0);
 
   return (
     <li className="group relative flex h-full flex-col">
@@ -54,7 +49,7 @@ export function ProductCard({ product }: { product: Product }) {
             question 8 in api-integration.md for what a "Best seller" badge
             would need first. The "In atelier shop" tag that sat bottom-right is
             gone; it labelled the page you were already on. */}
-        {soldOut ? (
+        {allSoldOut ? (
           <span className="absolute top-3 left-3 rounded-sm bg-cacao px-2 py-1 font-label text-label-sm text-linen uppercase">
             Sold out
           </span>
@@ -127,12 +122,14 @@ export function ProductCard({ product }: { product: Product }) {
             {packs.map((pack) => {
               const option = pack.name;
               const selected = option === size;
+              const optionSoldOut = pack.stockQuantity <= 0;
               return (
                 <button
                   key={option}
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  aria-disabled={optionSoldOut}
                   name={groupId}
                   onClick={() => setSize(option)}
                   className={cn(
@@ -140,6 +137,7 @@ export function ProductCard({ product }: { product: Product }) {
                     selected
                       ? "border-cacao bg-cacao text-linen"
                       : "border-rule text-cacao hover:border-cacao",
+                    optionSoldOut && "opacity-60",
                   )}
                 >
                   {option}
@@ -152,16 +150,18 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-gutter-md flex gap-gutter-xs">
           <Button
             onClick={() => addLine(product.slug, size)}
-            disabled={soldOut}
+            disabled={packSoldOut}
             className="relative z-10 flex-1 text-label-md normal-case"
             aria-label={
-              soldOut
-                ? `${product.name} is sold out`
+              packSoldOut
+                ? allSoldOut
+                  ? `${product.name} is sold out`
+                  : `${product.name}, ${size}, is sold out`
                 : `Add ${product.name}, ${size}, to bag`
             }
           >
             <BagIcon className="h-4 w-4" />
-            {soldOut ? "Sold out" : "Add to bag"}
+            {packSoldOut ? "Sold out" : "Add to bag"}
           </Button>
           <ButtonLink
             href={ROUTES.product(product.slug)}

@@ -76,13 +76,19 @@ export function PaymentActions({
       const prepared = await preparePayment(token);
 
       if (!scriptReady || !window.PaystackPop) {
-        // The script tag is already in the document (rendered below); this
-        // is just waiting for it to finish loading on a slow connection.
-        await new Promise<void>((resolve) => {
+        // The script tag is already in the document (rendered below); wait
+        // briefly for a slow connection, then fail honestly instead of hanging.
+        await new Promise<void>((resolve, reject) => {
+          const started = Date.now();
           const check = setInterval(() => {
             if (window.PaystackPop) {
               clearInterval(check);
               resolve();
+              return;
+            }
+            if (Date.now() - started > 10_000) {
+              clearInterval(check);
+              reject(new Error("Paystack script did not load in time."));
             }
           }, 100);
         });
@@ -130,8 +136,15 @@ export function PaymentActions({
 
       <h2 className="text-headline-sm text-cacao">Complete your payment</h2>
       <p className="mt-1 text-body-sm text-on-surface-variant">
-        Order {reference} — {formatKobo(amountKobo)} due.
+        Order {reference} — {formatKobo(amountKobo)} for products (delivery not included).
       </p>
+
+      {!paystackAvailable && (
+        <p className="mt-gutter-sm rounded border border-rule/70 bg-surface p-gutter-sm text-body-sm text-on-surface-variant">
+          Online payment is unavailable right now. Use bank transfer below, or try again
+          later.
+        </p>
+      )}
 
       {paystackAvailable && (
         <div className="mt-gutter-sm grid gap-gutter-xs sm:grid-cols-2" role="radiogroup">

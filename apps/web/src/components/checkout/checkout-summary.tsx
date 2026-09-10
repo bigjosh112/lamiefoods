@@ -12,9 +12,8 @@ import { useCart } from "@/lib/cart/use-cart";
  * Reads the same cart store as every other surface, so what someone pays for is
  * what they put in the bag — there is no second copy of the totals to drift.
  *
- * The gateway panel deliberately carries no "LIVE" badge: payments are not
- * connected, and badging a dead gateway as live would be a false claim about
- * the business.
+ * Payment itself still happens on `/order-success`; this panel only shows the
+ * product subtotal (with discounts applied) and an honest delivery note.
  */
 export function CheckoutSummary() {
   const { items, count, subtotal, isEmpty } = useCart();
@@ -36,9 +35,10 @@ export function CheckoutSummary() {
         </p>
       ) : (
         <ul className="mt-gutter-md space-y-3">
-          {items.map(({ line, product, unitPrice, lineTotal }) => {
+          {items.map(({ line, product, listUnitPrice, unitPrice, lineTotal }) => {
             const hero =
               product.images.find((image) => image.role === "hero") ?? product.images[0];
+            const discounted = unitPrice !== listUnitPrice;
             return (
               <li
                 key={`${line.slug}-${line.pack}`}
@@ -65,7 +65,21 @@ export function CheckoutSummary() {
                   </div>
                   <p className="text-body-sm text-on-surface-variant">{line.pack}</p>
                   <p className="text-body-sm text-nutmeg">
-                    Quantity: {line.quantity} · {formatKobo(unitPrice)} each
+                    Quantity: {line.quantity} ·{" "}
+                    {discounted ? (
+                      <>
+                        <span className="line-through">{formatKobo(listUnitPrice)}</span>
+                        {" "}
+                        <span className="text-terracotta">{formatKobo(unitPrice)}</span>
+                        {" "}
+                        each
+                        {product.discountPercent
+                          ? ` · ${product.discountPercent}% off`
+                          : ""}
+                      </>
+                    ) : (
+                      <>{formatKobo(unitPrice)} each</>
+                    )}
                   </p>
                 </div>
               </li>

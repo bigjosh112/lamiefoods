@@ -33,7 +33,7 @@ export const CHECKOUT = {
     emailLabel: "Email address (order confirmation & tracking)",
     emailPlaceholder: "recipient@example.com",
     emailHelp:
-      "Your receipt and dispatch updates are emailed as soon as the order is placed.",
+      "Order confirmation goes here immediately. Payment and dispatch updates follow as they happen.",
     phoneLabel: "Phone number (WhatsApp active)",
     phonePlaceholder: "801 234 5678",
     phoneHelp: "The courier uses this number to reach you on the day of delivery.",
@@ -79,22 +79,23 @@ export const CHECKOUT = {
     subtotalLabel: "Items subtotal",
     dispatchLabel: "Courier dispatch",
     dispatchValue: `To be confirmed · ${DELIVERY.minDays}–${DELIVERY.maxDays} days`,
-    totalLabel: "Total due",
-    totalNote: "Product costs only — delivery and payment are confirmed after you order",
+    totalLabel: "Products due",
+    totalNote:
+      "Product costs only (discounts already applied). Delivery is quoted separately before dispatch.",
     paymentTitle: "Payment",
     paymentNote:
-      "You'll pay on the next page, using whichever method you chose above. Nothing is charged by this button.",
+      "You'll pay for the products on the next page (Paystack or bank transfer). Nothing is charged by this button. Delivery is still unpriced.",
     cta: "Place order",
-    badges: ["Guest checkout", "No payment taken yet", "Confirmed by email"],
+    badges: ["Guest checkout", "Pay on the next page", "Confirmed by email"],
   },
 
   /**
-   * The mock's own honest note — delivery pricing genuinely is not set, which
-   * matches what the owner has told us.
+   * Delivery pricing genuinely is not set (Q16). Online payment charges the
+   * product subtotal only — never invent a delivery total here.
    */
   deliveryCostNotice: {
     title: "Delivery cost notice",
-    body: "Delivery fees are calculated per dispatch destination and confirmed before payment is taken.",
+    body: "Delivery fees are calculated per destination and confirmed before dispatch. Paying online now covers your products only — not delivery.",
   },
 
   /** UNVERIFIED — a replacement promise is a commercial warranty. */

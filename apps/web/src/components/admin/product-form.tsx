@@ -18,15 +18,33 @@ import {
 } from "@/content/admin-new-product";
 import {
   ALLERGENS,
+  MAX_PRODUCT_IMAGES,
+  TEASER_LIMIT,
   fromProduct,
   productSchema,
   slugify,
-  TEASER_LIMIT,
-  toProductInput,
   type ProductFormValues,
 } from "@/lib/admin/product-schema";
 import { createProduct, updateProduct } from "@/lib/api/admin-products";
 import { ApiError } from "@/lib/api";
+
+function messageForSaveFailure(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return "Something went wrong — please try again.";
+  }
+  if (
+    error.body &&
+    typeof error.body === "object" &&
+    "error" in error.body &&
+    typeof error.body.error === "string"
+  ) {
+    return error.body.error;
+  }
+  if (error.status === 409) {
+    return "That URL slug is already used by another product.";
+  }
+  return "Could not save the product — please try again.";
+}
 
 /**
  * Create or edit a product.
@@ -44,11 +62,14 @@ import { ApiError } from "@/lib/api";
 export function ProductForm({
   product,
   blobConfigured,
+  justCreated = false,
 }: {
   /** Present for edit, absent for create. */
   product?: Product;
   /** Whether image upload is actually connected — see `isBlobStorageConfigured()`. */
   blobConfigured: boolean;
+  /** True when we just landed here from a successful create (`?created=1`). */
+  justCreated?: boolean;
 }) {
   const formId = useId();
   const isEditing = Boolean(product);
@@ -83,9 +104,7 @@ export function ProductForm({
           allergensConfirmed: false,
           shelfLife: "",
           storage: "",
-          tiers: [{ name: "250g pouch", price: "", sku: "" }],
-          initialStock: "",
-          restockThreshold: "",
+          tiers: [{ name: "100g Pouch", price: "", sku: "", stock: "", restockThreshold: "" }],
           storefrontActive: true,
           featureOnHomepage: false,
           seasonalEdition: false,
@@ -116,22 +135,15 @@ export function ProductForm({
 
     try {
       const parsed = productSchema.parse(values);
-      const input = toProductInput(parsed);
       const saved = isEditing
-        ? await updateProduct(product!.slug, input)
-        : await createProduct(input);
+        ? await updateProduct(product!.slug, parsed)
+        : await createProduct(parsed);
 
-      router.push(ADMIN_ROUTES.editProduct(saved.slug));
+      router.push(`${ADMIN_ROUTES.editProduct(saved.slug)}?created=1`);
       router.refresh();
     } catch (error) {
       setSaving(false);
-      setSaveError(
-        error instanceof ApiError
-          ? error.status === 409
-            ? "That URL slug is already used by another product."
-            : "Could not save the product — please try again."
-          : "Something went wrong — please try again.",
-      );
+      setSaveError(messageForSaveFailure(error));
     }
   };
 
@@ -165,6 +177,11 @@ export function ProductForm({
         {saveError && (
           <p className="rounded border border-error/40 bg-error/10 p-gutter-sm text-body-sm text-error">
             {saveError}
+          </p>
+        )}
+        {!saveError && justCreated && (
+          <p className="rounded border border-rule/70 bg-secondary-container/30 p-gutter-sm text-body-sm text-cacao">
+            {EDIT_PRODUCT.createdSuccess}
           </p>
         )}
       </div>
@@ -414,7 +431,10 @@ export function ProductForm({
         </div>
 
         <div className="flex flex-col gap-gutter-sm">
-          <Panel title="Photography" note={`${images.length} of 5 assets`}>
+          <Panel
+            title="Photography"
+            note={`${images.length} of ${MAX_PRODUCT_IMAGES} photos`}
+          >
             <ImageUpload
               images={images}
               onChange={(next) => setValue("images", next, { shouldDirty: true })}
@@ -428,7 +448,15 @@ export function ProductForm({
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => append({ name: "", price: "", sku: "" })}
+                onClick={() =>
+                  append({
+                    name: "",
+                    price: "",
+                    sku: "",
+                    stock: "",
+                    restockThreshold: "",
+                  })
+                }
               >
                 Add tier
               </Button>
@@ -443,7 +471,7 @@ export function ProductForm({
                   <div className="flex items-start justify-between gap-gutter-sm">
                     <input
                       aria-label={`Tier ${index + 1} name`}
-                      placeholder="e.g. 250g pouch"
+                      placeholder="e.g. 100g Pouch"
                       className={cn(inputClasses(false), "mt-0 flex-1")}
                       {...register(`tiers.${index}.name`)}
                     />
@@ -464,7 +492,7 @@ export function ProductForm({
                       <input
                         id={`${formId}-price-${index}`}
                         inputMode="numeric"
-                        placeholder="3600"
+                        placeholder="2000"
                         className={inputClasses(Boolean(errors.tiers?.[index]?.price))}
                         {...register(`tiers.${index}.price`)}
                       />
@@ -474,16 +502,49 @@ export function ProductForm({
                       <Label htmlFor={`${formId}-sku-${index}`}>SKU</Label>
                       <input
                         id={`${formId}-sku-${index}`}
-                        placeholder="LF-CHIN-04"
+                        placeholder="LF-MVC-100"
                         className={inputClasses(Boolean(errors.tiers?.[index]?.sku))}
                         {...register(`tiers.${index}.sku`)}
                       />
                       <FieldError>{errors.tiers?.[index]?.sku?.message}</FieldError>
                     </div>
+                    <div>
+                      <Label htmlFor={`${formId}-stock-${index}`}>Stock on hand</Label>
+                      <input
+                        id={`${formId}-stock-${index}`}
+                        inputMode="numeric"
+                        placeholder="100"
+                        className={inputClasses(Boolean(errors.tiers?.[index]?.stock))}
+                        {...register(`tiers.${index}.stock`)}
+                      />
+                      <FieldError>{errors.tiers?.[index]?.stock?.message}</FieldError>
+                    </div>
+                    <div>
+                      <Label htmlFor={`${formId}-threshold-${index}`}>
+                        Restock alert at
+                      </Label>
+                      <input
+                        id={`${formId}-threshold-${index}`}
+                        inputMode="numeric"
+                        placeholder="20"
+                        className={inputClasses(
+                          Boolean(errors.tiers?.[index]?.restockThreshold),
+                        )}
+                        {...register(`tiers.${index}.restockThreshold`)}
+                      />
+                      <FieldError>
+                        {errors.tiers?.[index]?.restockThreshold?.message}
+                      </FieldError>
+                    </div>
                   </div>
                 </li>
               ))}
             </ul>
+            <p className="mt-gutter-sm rounded border border-rule/70 bg-surface p-gutter-sm text-body-sm text-nutmeg">
+              Each size has its own stock. Stock decrements for that size when an order
+              line is confirmed paid — by Paystack or by a manually-confirmed bank
+              transfer.
+            </p>
           </Panel>
 
           <Panel title="Promotion">
@@ -514,35 +575,6 @@ export function ProductForm({
               </p>
               <FieldError>{errors.discountPercent?.message}</FieldError>
             </div>
-          </Panel>
-
-          <Panel title="Stock">
-            <div className="grid gap-gutter-sm sm:grid-cols-2">
-              <Field
-                id={`${formId}-stock`}
-                label="Opening stock"
-                required
-                inputMode="numeric"
-                error={errors.initialStock?.message}
-                placeholder="250"
-                {...register("initialStock")}
-              />
-              <Field
-                id={`${formId}-threshold`}
-                label="Restock alert at"
-                required
-                inputMode="numeric"
-                error={errors.restockThreshold?.message}
-                placeholder="30"
-                {...register("restockThreshold")}
-              />
-            </div>
-            {/* The mock badged this "Paystack realtime settlement — CONNECTED".
-              Paystack is not connected to the catalogue, so no such badge. */}
-            <p className="mt-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm text-body-sm text-nutmeg">
-              Stock decrements automatically the moment an order for this product is
-              confirmed paid — by Paystack or by a manually-confirmed bank transfer.
-            </p>
           </Panel>
 
           <Panel title="Visibility">

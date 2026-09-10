@@ -70,7 +70,7 @@ export default async function AdminDashboardPage() {
         activeFlavourCount={0}
         revenueSeries={{ days: [], series: [], unit: "₦" }}
         bestSellers={[]}
-        lowStockProducts={[]}
+        lowStockPacks={[]}
       />
     );
   }
@@ -121,8 +121,10 @@ export default async function AdminDashboardPage() {
   };
 
   const { stockStatus } = await import("@/lib/admin/stock-status");
-  const lowStockProducts = allProducts.filter(
-    (product) => stockStatus(product) !== "in-stock",
+  const lowStockPacks = allProducts.flatMap((product) =>
+    product.packs
+      .filter((pack) => stockStatus(pack) !== "in-stock")
+      .map((pack) => ({ product, pack })),
   );
 
   return (
@@ -133,7 +135,7 @@ export default async function AdminDashboardPage() {
       activeFlavourCount={publishedProducts.length}
       revenueSeries={revenueSeries}
       bestSellers={bestSellers}
-      lowStockProducts={lowStockProducts}
+      lowStockPacks={lowStockPacks}
     />
   );
 }

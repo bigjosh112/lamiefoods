@@ -7,7 +7,10 @@ import {
   setPaymentReference,
   type ConfirmPaymentResult,
 } from "./repository";
-import { paymentConfirmedEmail } from "@/server/email/order-emails";
+import {
+  ownerPaymentConfirmedEmail,
+  paymentConfirmedEmail,
+} from "@/server/email/order-emails";
 import { sendMail } from "@/server/email/send";
 
 const PAYSTACK_API = "https://api.paystack.co";
@@ -117,6 +120,10 @@ export async function confirmPaystackPayment(
 
   if (result.newlyConfirmed) {
     await sendMail(paymentConfirmedEmail(result.order, result.accessToken));
+    const { ORDER_EMAIL_TO } = serverEnv();
+    if (ORDER_EMAIL_TO) {
+      await sendMail(ownerPaymentConfirmedEmail(result.order, ORDER_EMAIL_TO));
+    }
   }
 
   return result;

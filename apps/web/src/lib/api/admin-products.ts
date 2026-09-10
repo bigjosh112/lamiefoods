@@ -23,3 +23,28 @@ export async function updateProduct(
   );
   return product;
 }
+
+/** DELETE /api/admin/products/:slug — permanent remove. */
+export async function deleteProduct(slug: string): Promise<void> {
+  await apiFetch<null>(`/api/admin/products/${encodeURIComponent(slug)}`, {
+    method: "DELETE",
+  });
+}
+
+/** POST /api/admin/products/bulk — soft-hide many products. */
+export async function bulkUnpublishProducts(slugs: string[]): Promise<number> {
+  const { affected } = await apiFetch<{ affected: number }>(
+    "/api/admin/products/bulk",
+    { method: "POST", body: { action: "unpublish", slugs } },
+  );
+  return affected;
+}
+
+/** POST /api/admin/products/bulk — permanent remove many products. */
+export async function bulkDeleteProducts(slugs: string[]): Promise<number> {
+  const { affected } = await apiFetch<{ affected: number }>(
+    "/api/admin/products/bulk",
+    { method: "POST", body: { action: "delete", slugs } },
+  );
+  return affected;
+}

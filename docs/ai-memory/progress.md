@@ -5,6 +5,245 @@
 > knows exactly where the project stands — what just happened, what's mid-flight, and
 > what's next. Keep entries short; depth belongs in the other docs.
 
+## 2026-09-11 — Customer email when order moves to processing
+
+- **Done:** Added `orderProcessingEmail` (items, address, order link).
+  `updateOrderStatus` returns `justProcessing` on first `paid` → `processing`;
+  admin PATCH sends it. Paid / shipped / delivered customer mails unchanged.
+- **Files:** `server/email/order-emails.ts`, `server/orders/repository.ts`,
+  `app/api/admin/orders/[reference]/route.ts`,
+  `docs/ai-memory/{api-integration,progress}.md`.
+- **Decisions:** No `processing_at` column — forward-only transition is enough.
+- **Docs updated:** `api-integration.md`, `progress.md`.
+- **Gaps:** GAP-012 / gmail `ORDER_EMAIL_FROM` still blocks real delivery.
+- **Next / open threads:** Verified Resend FROM; test paid → processing →
+  shipped → delivered mail sequence.
+
+## 2026-09-11 — Owner payment email + why customer mail 422'd
+
+- **Done:** Added `ownerPaymentConfirmedEmail`; Paystack `confirmPaystackPayment`
+  and admin bank `justPaid` now email customer + owner (when `ORDER_EMAIL_TO`
+  set). Set `ORDER_EMAIL_TO` to `ADMIN_EMAIL`. `sendMail` logs Resend's
+  `message` on reject. Root cause of silent customer mail: Resend **422** with
+  `ORDER_EMAIL_FROM` on **gmail.com** (unverified for Resend) — GAP-012 updated.
+- **Files:** `server/email/{order-emails,send}.ts`, `server/orders/paystack.ts`,
+  `app/api/admin/orders/[reference]/route.ts`, `apps/web/.env`,
+  `docs/ai-memory/{api-integration,gaps,progress}.md`.
+- **Decisions:** Owner paid mail matches the promise in `ownerEmail` Paystack
+  copy; no retry queue this pass.
+- **Docs updated:** `api-integration.md`, `gaps.md` (GAP-012), `progress.md`.
+- **Gaps:** GAP-012 still open (no resend UI); needs verified Resend FROM domain.
+- **Next / open threads:** Change `ORDER_EMAIL_FROM` to a Resend-verified
+  sender; restart next so cached `serverEnv` picks up `ORDER_EMAIL_TO`; pay a
+  new test order.
+
+## 2026-09-11 — Paystack still unavailable: empty shell env overrode .env
+
+- **Done:** `.env` had a valid `pk_test_…`, but the process environment still
+  had `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=` (empty). Next’s `loadEnvConfig` does
+  not override existing env, so Turbopack inlined `""` and hid Pay. Cleared
+  `.next`, restarted with `env -u NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`; bundles
+  now contain `pk_test_…`.
+- **Files:** local process only; `docs/ai-memory/progress.md`.
+- **Decisions:** When Pay looks “unavailable” despite `.env`, check
+  `echo $NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` — empty-but-set beats the file.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Hard-refresh order-success; confirm **Pay now**.
+
+## 2026-09-11 — Paystack “unavailable” was empty public key
+
+- **Done:** Confirmed `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` was blank while
+  `PAYSTACK_SECRET_KEY` was set — that hid Pay on `/order-success`. Owner
+  filled `pk_test_…`; restarted `npm run dev` so the public key inlines;
+  `pk_test_` now present in `.next` client chunks.
+- **Files:** `apps/web/.env` (local only), `docs/ai-memory/progress.md`.
+- **Decisions:** No code change — Paystack Pop still needs the public key
+  client-side; secret alone is not enough.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none (bank-transfer copy still GAP-013 if details unset).
+- **Next / open threads:** Hard-refresh `/order-success?token=…` and confirm
+  **Pay now** appears; open popup smoke-test optional.
+
+## 2026-09-10 — Product created banner + shop delivery note
+
+- **Done:** Creating a product redirects to edit with `?created=1` and a
+  success banner. Shop listing plus the PDP truck line now say delivery is
+  not in the product price — the customer pays it; no naira amount invented.
+- **Files:** `content/{admin-new-product,shop}.ts`,
+  `components/admin/{product-form,edit-product-view}.tsx`,
+  `app/admin/(portal)/products/[id]/edit/page.tsx`, `app/shop/page.tsx`,
+  `docs/ai-memory/progress.md`.
+- **Decisions:** Same policy as checkout’s deliveryCostNotice, shown earlier
+  in the shop. Cart/checkout copy left as-is.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Create a product and confirm the banner; check
+  `/shop` and a PDP for the delivery line.
+
+## 2026-09-10 — 409 save banner no longer always says “slug taken”
+
+- **Done:** A 409 now shows the API message. Duplicate SKU
+  (`product_packs_sku_unique`, e.g. placeholder `LF-MVC-100`) was being
+  labelled as a slug clash because the form treated every 409 as a slug.
+- **Files:** `components/admin/product-form.tsx`, `docs/ai-memory/progress.md`.
+- **Decisions:** Prefer `ApiError.body.error` over a hardcoded 409 string.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Check `/admin/products` — the chin-chin product
+  may already exist from the first successful save. SKUs must be unique
+  across all sizes, not only this product.
+
+## 2026-09-10 — Product save 400 was a body-shape mismatch
+
+- **Done:** Create/edit now POST/PATCH the form schema (`title`, `tiers`,
+  naira `price`), matching what the route already `safeParse`s.
+  `toProductInput` stays server-only. A 400 banner shows the API `error`
+  string instead of a generic retry. Photography `ImageSlot`s now pass
+  `sizes` so `next/image` fill stops warning.
+- **Files:** `components/admin/{product-form,image-upload}.tsx`,
+  `docs/ai-memory/progress.md`.
+- **Decisions:** Convert form → repository input once, on the server.
+- **Docs updated:** `progress.md`. Catalog already recorded the form-shaped
+  body.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Save the chin-chin product again — expect
+  `POST /api/admin/products` 201 and the edit URL. Fill allergens /
+  ingredients / shelf life / storage / a pack if the form still blocks.
+
+## 2026-09-10 — Photography thumbs: click to hero, X to delete
+
+- **Done:** Removed the MAKE HERO / REMOVE bar that covered gallery
+  thumbs. Clicking a thumb promotes it to the large hero; a corner ×
+  (same control as the hero) deletes that photo without promoting.
+  Alt fields under thumbs are unchanged.
+- **Files:** `components/admin/image-upload.tsx`, `docs/ai-memory/progress.md`.
+- **Decisions:** × is a sibling of the thumb button (not nested) so the
+  markup stays valid; `stopPropagation` on delete.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Refresh `/admin/products/new` — thumbs should
+  show the picture plus × only; click swaps hero; × removes that slot.
+
+## 2026-09-10 — Vercel Blob store is private (uploads cannot finish)
+
+- **Done:** Dropped the empty `onUploadCompleted` callback (that warning
+  is gone; it was not the hang). Live `put()` with the existing
+  `BLOB_READ_WRITE_TOKEN` failed for `access: "public"` (`Cannot use
+  public access on a private store`) and succeeded for `access: "private"`
+  in 624ms; unauthenticated `POST /api/admin/uploads` stayed `401`.
+  `BLOB_STORE_ID` and `VERCEL_BLOB_CALLBACK_URL` are not required.
+- **Files:** `app/api/admin/uploads/route.ts`,
+  `docs/ai-memory/{api-integration,progress}.md`.
+- **Decisions:** Keep client uploads `access: "public"` — shop photos must
+  be fetchable by `next/image`. Do not switch the app to private blobs.
+- **Docs updated:** `api-integration.md` (uploads quirk), `progress.md`.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Owner must set the Blob store to **Public** in
+  the Vercel dashboard (Storage → this store → access). Then retry one
+  small JPEG on `/admin/products/new`.
+
+## 2026-09-10 — Product photo upload percent loader
+
+- **Done:** Photography upload shows a determinate 0–100% bar (byte-weighted
+  for a multi-file pick, plus “n of m”). First-batch overlay is the hero
+  square only: solid cacao scrim, no “Hero image” label, no Add tile
+  “Uploading…” underneath, and the duplicate inner “n of 5 photos” count
+  is gone (the Photography panel header still shows it). Adding to an
+  existing hero overlays Add only. Typecheck/lint clean on the component;
+  live 0→100 click-through was not available in this session.
+- **Files:** `components/admin/image-upload.tsx`, `docs/ai-memory/progress.md`.
+- **Decisions:** Stay sequential (Blob `upload()` is per-file); overall
+  percent is `finishedBytes + current.loaded` over `sum(file.size)`. Hide
+  Add for the whole first batch rather than leave a second busy control.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Smoke on `/admin/products/new`: pick 5 on an
+  empty product — one cacao hero with percent, nothing below it; after
+  they land, Add returns. Adding more overlays Add only.
+
+## 2026-09-10 — Product multi-image gallery (max 5)
+
+- **Done:** Enforced max 5 product images in Zod + admin upload UI (“N of 5”,
+  Add disabled when full); Make hero reorders to index 0; per-image alt fields
+  (blank → product title on save); PDP thumb strip lays out up to five
+  (`grid-cols-3` → `sm:grid-cols-5`). Shop cards still use hero only.
+- **Files:** `lib/admin/product-schema.ts`, `components/admin/{image-upload,
+  product-form}.tsx`, `components/product/product-gallery.tsx`,
+  `docs/ai-memory/{api-integration,progress}.md`.
+- **Decisions:** Stay on Vercel Blob (no Cloudinary); keep the three seeded
+  chin-chin products published; array index 0 = hero = `sort_order` 0.
+- **Docs updated:** `api-integration.md` (POST/PATCH products max 5 images),
+  `progress.md`. Architecture already records Blob over Cloudinary.
+- **Gaps:** none opened/closed.
+- **Next / open threads:** Manual smoke: admin edit → upload 5 → save → PDP;
+  confirm 6th blocked and Make hero updates shop card.
+
+## 2026-09-10 — Per-size stock, price, and SKUs
+
+- **Done:** Moved inventory onto `product_packs` (stock + restock threshold);
+  seeded nine launch SKUs (`LF-MVC/CVC/CIN-100/300/500`); freeze SKU on
+  `order_items`; payment decrement matches slug + pack name; admin inventory
+  is one row per size; shop/PDP sold-out is per selected size.
+- **Files:** `migrations/0007_pack_stock_and_order_sku.sql`,
+  `packages/types/src/{product,order}.ts`, `server/products/repository.ts`,
+  `server/orders/{pricing,repository}.ts`, admin product form/inventory,
+  shop/PDP purchase UI, memory docs.
+- **Decisions:** Reverses 2026-09-08 product-level stock — launch needs
+  independent 100g/300g/500g counts. Cart identity stays slug + pack name;
+  SKU is frozen on the order for ops. Placeholder stock 100 / threshold 20
+  per launch pack until the owner edits real counts.
+- **Docs updated:** `architecture.md`, `api-integration.md`, `gaps.md`
+  (GAP-009 inventory wording), `progress.md`.
+- **Gaps:** none opened/closed (create-time stock reject still future work).
+- **Next / open threads:** Apply migration 0007 on staging/production (local
+  already applied; also reshapes any leftover mock packs to 100/300/500);
+  owner sets real opening stock per SKU before launch.
+
+## 2026-09-10 — Admin bulk unpublish + permanent delete
+
+- **Done:** Multi-select on `/admin/products` with Unpublish and confirmed
+  permanent Delete; `DELETE /api/admin/products/:slug` and
+  `POST /api/admin/products/bulk`; repository helpers cascade packs/images.
+- **Files:** `server/products/repository.ts`,
+  `app/api/admin/products/{[slug],bulk}/route.ts`,
+  `lib/api/admin-products.ts`, `components/admin/products-list.tsx`,
+  `docs/ai-memory/{api-integration,progress}.md`.
+- **Decisions:** Soft hide via `storefront_active = false`; hard delete does
+  not touch frozen order lines or Blob orphans.
+- **Docs updated:** `api-integration.md`, `progress.md`.
+- **Gaps:** none (Blob orphan cleanup still future).
+- **Next / open threads:** none for this feature.
+
+## 2026-09-10 — Checkout shows real order-create errors (409)
+
+- **Done:** Checkout no longer masks API failures as a generic “could not
+  save” banner; prefers `body.error`, with a clear 409 hint to clear the bag
+  when cart lines are unpublished/unavailable. Confirmed Paystack never ran —
+  `POST /api/orders` was returning 409. Republished milky/coco/cinnamon locally.
+- **Files:** `components/checkout/checkout-form.tsx`, `progress.md`.
+- **Decisions:** Keep “nothing charged” reassurance on every checkout error.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Place Order again with a bag of published products
+  to open Paystack on `/order-success`.
+
+## 2026-09-10 — Stale cart lines no longer block checkout
+
+- **Done:** Place Order submits only catalogue-resolved lines; bag count /
+  empty state follow resolvable items when a catalogue is present; deleted
+  unpublished localStorage lines are pruned with a dismissible notice. Shop
+  wrapped in `CatalogProvider` so the header badge can prune on browse.
+- **Files:** `lib/cart/{cart-store,use-cart}.ts`,
+  `components/{checkout/checkout-form,cart/cart-view,cart/cart-unavailable-notice}.tsx`,
+  `app/shop/page.tsx`, `progress.md`.
+- **Decisions:** Not a stock failure — 409 was stale deleted-product bag
+  lines. Stock still unchecked at order create.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Refresh checkout / open shop to prune the old 7
+  badge; add “chinchin laye modd” and Place Order → Paystack.
+
 <!-- Entry template — copy to the TOP of the log:
 
 ## YYYY-MM-DD — <task title>
@@ -16,6 +255,26 @@
 - **Gaps:** <new GAP-IDs opened / closed, or "none">
 - **Next / open threads:** <what a fresh session should pick up>
 -->
+
+## 2026-09-10 — Customer ordering path audit (Paystack + discounts + copy)
+
+- **Done:** Corrected stale order-success/checkout copy that still claimed
+  payment was unconnected; showed list vs discounted prices on cart and
+  checkout; hardened Paystack popup wait/error messaging; aligned
+  payment-confirmed email with “products paid, delivery still separate”;
+  reinforced GAP-013 on `/admin/settings` when bank fields are unset.
+- **Files:** `content/{order-success,checkout,admin-settings}.ts`,
+  `lib/cart/cart-store.ts`, `components/{cart/cart-view,checkout/checkout-summary,
+  order/payment-actions,order/order-confirmation,admin/settings-view}.tsx`,
+  `app/order-success/page.tsx`, `server/email/order-emails.ts`.
+- **Decisions:** No invented delivery fees or bank numbers; Paystack still
+  charges subtotal only. Customer timeline stages are Placed → Paid →
+  Dispatched → Delivered (kitchen stage remains admin-side).
+- **Docs updated:** `api-integration.md` (stock answer), `gaps.md`
+  (GAP-013/014), `progress.md`.
+- **Gaps:** GAP-013/014 still open (owner bank details; webhook registration).
+- **Next / open threads:** Owner enters bank details; register Paystack
+  webhook on production domain; optional create-time stock check later.
 
 ## 2026-09-10 — Site-wide typography: Fraunces + General Sans
 

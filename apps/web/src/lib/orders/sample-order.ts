@@ -43,6 +43,7 @@ async function sampleItem(
     name: product.name,
     slug: product.slug,
     pack: pack.name,
+    sku: pack.sku,
     unitPrice: ngn(pack.price.amount),
     quantity,
     lineTotal: ngn(pack.price.amount * quantity),

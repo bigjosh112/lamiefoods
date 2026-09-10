@@ -33,8 +33,12 @@
 >    (`server/orders/repository.ts`), returned in the 201 response.
 > 6. **Error envelope** — `{ error: string }`, optionally `{ issues }` for
 >    validation failures. Documented per-endpoint below.
-> 7. **Stock** — not checked. There is no stock/inventory table; `/admin/inventory`
->    still reads from static content. Out of scope for guest checkout as built.
+> 7. **Stock** — not checked at *order create*. Stock lives on
+>    `product_packs.stock_quantity` (per size) and decrements on payment
+>    confirmation (`decrementStockInTx` matches slug + pack name). Oversell
+>    between place and pay is still possible; create-time stock checks remain
+>    a future audit surface. `/admin/inventory` lists one row per pack.
+>    Order lines freeze `sku` at purchase.
 >
 > 8. **Sales ranking — STILL OPEN.** Nothing yet says how much of each product
 >    has actually sold. Both the landing row and the shop grid hardcode a "New"
@@ -44,9 +48,9 @@
 >    be inventing social proof, the same failure as a fabricated review. Nothing
 >    renders it until this is answered.
 >
-> Note on answer 7: it says there is no stock table, but this same change adds
-> `products.stock_quantity` and `decrementStockInTx`, and the storefront now
-> shows a real sold-out state. Answer 7 is stale as written.
+> Note on answer 7: pack-level stock and decrement-on-pay landed 2026-09-10
+> (migration 0007); the create-order path still does not reject an
+> out-of-stock line before writing the order.
 
 
 ## Base configuration
@@ -228,6 +232,11 @@ template.
   used to get paid returns `200` with the same order, not an error — see
   `repository.confirmPayment`'s doc comment. This lets both this route and
   the webhook below call the same underlying function without coordinating.
+  On the first unpaid→paid transition (`newlyConfirmed`),
+  `confirmPaystackPayment` best-effort emails the customer
+  (`paymentConfirmedEmail`) and, when `ORDER_EMAIL_TO` is set, the shop
+  (`ownerPaymentConfirmedEmail`). Failed Resend sends do not fail this
+  response (GAP-012); a later verify/webhook will not re-send.
 - **Consumed by:** client `verifyPayment` (`lib/api/orders.ts`) · no hook ·
   UI `PaymentActions`
 
@@ -254,7 +263,9 @@ template.
   sent this*, not that its claimed amount/status is what actually happened;
   Paystack's own guidance is to treat verification as the source of truth.
   Calls the exact same `confirmPaystackPayment` as `verify-payment` above,
-  so it inherits the same idempotency guarantee.
+  so it inherits the same idempotency guarantee and the same customer +
+  owner payment-confirmed email side effects (owner only when
+  `ORDER_EMAIL_TO` is set).
 - **Consumed by:** Paystack's servers only — no `apiFetch` client, by
   definition (nothing in this app calls its own webhook).
 
@@ -326,12 +337,17 @@ template.
   stale, or conflicting transition ·
   `503` `DATABASE_URL` unset.
 - **Side effects/idempotency:** Sends whichever milestone email was reached
-  (`justShipped`/`justDelivered`/`justPaid` from
-  `repository.updateOrderStatus`). The transaction locks the current order and
-  uses the persisted `shipped_at`/`delivered_at`/`paid_at` timestamps, so a
-  milestone notification is attempted only once and a concurrent stale write
-  cannot overwrite the winning transition. Email remains best-effort: a
-  provider failure does not roll back the saved status.
+  (`justProcessing`/`justShipped`/`justDelivered`/`justPaid` from
+  `repository.updateOrderStatus`). On `justPaid`, both the customer
+  (`paymentConfirmedEmail`) and, when `ORDER_EMAIL_TO` is set, the shop
+  (`ownerPaymentConfirmedEmail`) are emailed. On `justProcessing`, the
+  customer gets `orderProcessingEmail` (“we're preparing your order”). The
+  transaction locks the current order and uses the persisted
+  `shipped_at`/`delivered_at`/`paid_at` timestamps (and the forward-only
+  `paid` → `processing` transition for preparing), so a milestone
+  notification is attempted only once and a concurrent stale write cannot
+  overwrite the winning transition. Email remains best-effort: a provider
+  failure does not roll back the saved status.
   A Paystack-paid order can never trigger the `justPaid` email through this
   route, since `confirmPaystackPayment` already sent its own the moment
   payment cleared — this route's `paymentStatus: "paid"` path exists for the
@@ -379,11 +395,15 @@ template.
   (`lib/admin/product-schema.ts`) — re-validated here, not trusted. Notably:
   `slug` (lowercase-kebab, admin-editable, auto-suggested from the title but
   not re-derived on every keystroke once touched), `category` (real
-  `ProductCategory` enum, not a free string), `tiers` (naira strings,
-  converted to kobo server-side by `toProductInput`), `discountPercent`
-  (`1`-`99` or `null` — never `0`), `images` (`{url, alt, role}[]`, populated
-  client-side by uploading to Vercel Blob first — see
-  `POST /api/admin/uploads` below — never containing raw file bytes).
+  `ProductCategory` enum, not a free string), `tiers` (each: name, naira
+  price string → kobo, required SKU, stock on hand, restock threshold —
+  inventory is **per size**, not per flavour), `discountPercent`
+  (`1`-`99` or `null` — never `0`), `images` (`{url, alt, role}[]`, max **5**,
+  populated client-side by uploading to Vercel Blob first — see
+  `POST /api/admin/uploads` below — never containing raw file bytes). Array
+  index 0 is always the hero; `toProductInput` forces `role`/`alt` accordingly
+  (blank alt falls back to the product title). More than five images → `400`.
+  Duplicate pack SKUs → `400`/`409` via unique index on `product_packs.sku`.
 - **Response 2xx:** `201`, `{ "product": Product }`.
 - **Errors:** `400` invalid body · `401` no session · `409` slug already used
   by another product · `503` `DATABASE_URL` unset.
@@ -410,6 +430,44 @@ template.
   notice; reconsider if the catalogue grows into the hundreds.
 - **Consumed by:** client `updateProduct` (`lib/api/admin-products.ts`) · no
   hook · UI `ProductForm`
+
+---
+
+### DELETE `/api/admin/products/:slug`
+
+- **Purpose:** Permanently remove one product from the catalogue. Packs and
+  images cascade-delete with the product row. Past `order_items` are
+  untouched (frozen text, no FK). Blob URLs are not cleaned up.
+- **Auth:** session-guarded.
+- **Evidence:** this repo,
+  `apps/web/src/app/api/admin/products/[slug]/route.ts`, built 2026-09-10
+  (admin bulk delete plan).
+- **Request:** none (slug in path).
+- **Response 2xx:** `204` empty body.
+- **Errors:** `401` no session · `404` no such product · `503` `DATABASE_URL`
+  unset.
+- **Consumed by:** client `deleteProduct` (`lib/api/admin-products.ts`) · no
+  hook · available for single-row use; bulk UI prefers `POST …/bulk`
+
+---
+
+### POST `/api/admin/products/bulk`
+
+- **Purpose:** Apply one action to many products by slug: `unpublish` (set
+  `storefront_active = false`) or `delete` (hard delete, same cascade rules
+  as single DELETE).
+- **Auth:** session-guarded.
+- **Evidence:** this repo, `apps/web/src/app/api/admin/products/bulk/route.ts`,
+  built 2026-09-10.
+- **Request:** `{ "action": "unpublish" | "delete", "slugs": string[] }` —
+  `slugs` non-empty, unique, max 50, each a non-empty string. Validated with
+  zod server-side.
+- **Response 2xx:** `200`, `{ "affected": number }` — rows updated or
+  deleted (unknown slugs are skipped, not an error).
+- **Errors:** `400` invalid body · `401` no session · `503` `DATABASE_URL`
+  unset.
+- **Consumed by:** client `bulkUnpublishProducts` / `bulkDeleteProducts`
+  (`lib/api/admin-products.ts`) · no hook · UI `ProductsList`
 
 ---
 
@@ -468,12 +526,17 @@ template.
   anything `handleUpload` itself rejects (wrong content type, over the 8MB
   cap — both enforced in `onBeforeGenerateToken`'s returned options, not
   just client-side).
-- **Quirks:** `onUploadCompleted` deliberately does nothing — the uploaded
-  URL is already returned directly to the browser by `upload()`, which is
-  what actually attaches it to a product on save (`POST`/`PATCH
-  /api/admin/products`). A webhook-style completion callback would also need
-  a public URL Vercel can call back to (dead weight in local dev); nothing
-  here needs it.
+- **Quirks:** `onUploadCompleted` is omitted. The uploaded URL is already
+  returned directly to the browser by `upload()`, which is what actually
+  attaches it to a product on save (`POST`/`PATCH /api/admin/products`).
+  Passing even an empty completion callback makes the SDK demand a public
+  webhook URL (`VERCEL_BLOB_CALLBACK_URL`) that localhost and Railway
+  cannot serve; nothing here needs that webhook. `BLOB_STORE_ID` is unused
+  — the store id is already inside `BLOB_READ_WRITE_TOKEN`. The Blob
+  **store itself must be Public**: a private store rejects
+  `access: "public"` (`Cannot use public access on a private store`), and
+  product photos have to be public for `next/image` and the shop. Verified
+  2026-09-10 with a live `put()` against this project's token.
 - **Consumed by:** `@vercel/blob/client`'s `upload()`, called directly from
   `components/admin/image-upload.tsx` — no wrapper in `lib/api/`, since the
   request/response shapes are entirely the SDK's, not this app's own contract.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
-import type { Product } from "@lamiefoods/types";
+import type { Product, ProductPack } from "@lamiefoods/types";
 import { RevenueChart, type RevenueChartSeries } from "@/components/admin/revenue-chart";
 import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
@@ -62,7 +62,7 @@ export function AdminDashboard({
   activeFlavourCount,
   revenueSeries,
   bestSellers,
-  lowStockProducts,
+  lowStockPacks,
 }: {
   needsDispatch: AdminOrderSummary[];
   recentOrders: AdminOrderSummary[];
@@ -70,7 +70,7 @@ export function AdminDashboard({
   activeFlavourCount: number;
   revenueSeries: RevenueChartSeries;
   bestSellers: BestSeller[];
-  lowStockProducts: Product[];
+  lowStockPacks: { product: Product; pack: ProductPack }[];
 }) {
   const statTiles = [
     {
@@ -389,32 +389,33 @@ export function AdminDashboard({
         <section className="rounded border border-rule/70 bg-surface p-gutter-md">
           <h2 className="text-headline-sm text-cacao">Stock &amp; ingredients</h2>
 
-          {lowStockProducts.length === 0 ? (
+          {lowStockPacks.length === 0 ? (
             <p className="mt-gutter-md text-body-sm text-on-surface-variant">
-              Every published product is above its restock threshold.
+              Every packaging size is above its restock threshold.
             </p>
           ) : (
             <ul className="mt-gutter-md space-y-3">
-              {lowStockProducts.map((product) => (
+              {lowStockPacks.map(({ product, pack }) => (
                 <li
-                  key={product.id}
+                  key={pack.id}
                   className="flex flex-wrap items-start gap-gutter-sm rounded-md border border-rule/70 bg-surface-container-low p-gutter-sm"
                 >
                   <span
                     aria-hidden="true"
                     className={cn(
                       "mt-1.5 h-2 w-2 shrink-0 rounded-full",
-                      product.stockQuantity <= 0 ? "bg-error" : "bg-terracotta",
+                      pack.stockQuantity <= 0 ? "bg-error" : "bg-terracotta",
                     )}
                   />
                   <div className="min-w-40 flex-1">
                     <p className="text-body-sm font-semibold text-cacao">
-                      {product.name}
+                      {product.name} · {pack.name}
                     </p>
                     <p className="text-body-sm text-nutmeg">
-                      {product.stockQuantity} in stock
-                      {product.restockThreshold !== null &&
-                        ` — threshold ${product.restockThreshold}`}
+                      {pack.sku ? `${pack.sku} · ` : ""}
+                      {pack.stockQuantity} in stock
+                      {pack.restockThreshold !== null &&
+                        ` — threshold ${pack.restockThreshold}`}
                     </p>
                   </div>
                   <ButtonLink

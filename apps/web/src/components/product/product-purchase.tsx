@@ -21,9 +21,8 @@ const MAX_QUANTITY = 20;
  *
  * Both buttons are live: "Add to bag" writes to the browser cart, and
  * "Instant checkout" does the same and then goes straight to `/checkout`.
- * Both are disabled once stock reaches zero — a real state now that stock
- * actually decrements on payment (`server/products/repository.ts:
- * decrementStockInTx`).
+ * Both are disabled for the selected size once that pack's stock reaches
+ * zero. The whole flavour is only fully sold out when every size is.
  */
 export function ProductPurchase({ product }: { product: Product }) {
   const [pack, setPack] = useState(0);
@@ -32,7 +31,8 @@ export function ProductPurchase({ product }: { product: Product }) {
   const { addLine } = useCartActions();
   const router = useRouter();
   const selected = product.packs[pack];
-  const soldOut = product.stockQuantity <= 0;
+  const packSoldOut = !selected || selected.stockQuantity <= 0;
+  const allSoldOut = product.packs.every((option) => option.stockQuantity <= 0);
 
   return (
     <div>
@@ -45,6 +45,7 @@ export function ProductPurchase({ product }: { product: Product }) {
       <div className="mt-gutter-xs grid gap-gutter-xs sm:grid-cols-3" role="radiogroup">
         {product.packs.map((option, index) => {
           const isSelected = index === pack;
+          const optionSoldOut = option.stockQuantity <= 0;
           const discounted = applyDiscount(option.price.amount, product.discountPercent);
           return (
             <button
@@ -52,12 +53,14 @@ export function ProductPurchase({ product }: { product: Product }) {
               type="button"
               role="radio"
               aria-checked={isSelected}
+              aria-disabled={optionSoldOut}
               onClick={() => setPack(index)}
               className={cn(
                 "rounded-md border p-gutter-sm text-left transition-colors",
                 isSelected
                   ? "border-terracotta bg-secondary-container/40"
                   : "border-rule hover:border-cacao",
+                optionSoldOut && "opacity-60",
               )}
             >
               <span className="flex items-start justify-between">
@@ -71,7 +74,11 @@ export function ProductPurchase({ product }: { product: Product }) {
                   </span>
                 )}
               </span>
-              {product.discountPercent ? (
+              {optionSoldOut ? (
+                <span className="mt-1 block font-label text-label-sm text-nutmeg uppercase">
+                  Sold out
+                </span>
+              ) : product.discountPercent ? (
                 <span className="mt-1 flex items-baseline gap-gutter-xs">
                   <span className="font-numeral text-label-sm text-nutmeg line-through">
                     {formatKobo(option.price.amount)}
@@ -121,9 +128,9 @@ export function ProductPurchase({ product }: { product: Product }) {
         </div>
       </div>
 
-      {soldOut ? (
+      {allSoldOut || packSoldOut ? (
         <p className="mt-gutter-md rounded border border-rule/70 bg-surface-container p-gutter-sm text-center font-label text-label-md text-cacao uppercase">
-          Sold out
+          {allSoldOut ? "Sold out" : "This size is sold out"}
         </p>
       ) : (
         <div className="mt-gutter-md grid gap-gutter-xs sm:grid-cols-2">

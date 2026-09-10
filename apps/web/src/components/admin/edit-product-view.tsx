@@ -10,9 +10,11 @@ import { ProductForm } from "@/components/admin/product-form";
 export function EditProductView({
   product,
   blobConfigured,
+  justCreated = false,
 }: {
   product: Product;
   blobConfigured: boolean;
+  justCreated?: boolean;
 }) {
   return (
     <>
@@ -33,7 +35,11 @@ export function EditProductView({
         </ol>
       </nav>
 
-      <ProductForm product={product} blobConfigured={blobConfigured} />
+      <ProductForm
+        product={product}
+        blobConfigured={blobConfigured}
+        justCreated={justCreated}
+      />
     </>
   );
 }

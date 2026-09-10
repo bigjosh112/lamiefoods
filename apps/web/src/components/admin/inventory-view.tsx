@@ -5,39 +5,40 @@ import { ICONS } from "@/components/ui/icons";
 import { stockStatus } from "@/lib/admin/stock-status";
 
 /**
- * Inventory.
+ * Inventory — one sellable unit per packaging size.
  *
- * As of 2026-09-08 this is real: `stockQuantity`/`restockThreshold` are
- * columns on `products`, fetched by `page.tsx` via
- * `server/products/repository.ts` and passed down as props — the same rule
- * every other admin data screen follows (never import PII/operational data
- * directly into a client component; see GAP-009).
- *
- * The old sample version modeled stock per PACK SIZE and included a
- * "packaging materials" section (kraft pouches, glass jars). Neither has a
- * real data source: the schema only tracks stock per PRODUCT, and there is no
- * table for raw packaging consumables. Both were dropped rather than kept as
- * invented figures — see `docs/ai-memory/gaps.md` GAP-009's 2026-09-08 update.
+ * Stock / restock threshold live on `product_packs` (see architecture.md,
+ * 2026-09-10). Stats and the table flatten products → packs so a sold-out
+ * 100g pouch does not hide that the 500g is still available.
  *
  * Chrome comes from `AdminShell`.
  */
 export function InventoryView({ products }: { products: Product[] }) {
-  const finishedUnits = products.reduce((sum, p) => sum + p.stockQuantity, 0);
-  const lowStock = products.filter((p) => stockStatus(p) === "low-stock");
-  const outOfStock = products.filter((p) => stockStatus(p) === "out-of-stock");
+  const packs = products.flatMap((product) =>
+    product.packs.map((pack) => ({
+      product,
+      pack,
+      status: stockStatus(pack),
+      label: `${product.name} · ${pack.name}`,
+    })),
+  );
+
+  const finishedUnits = packs.reduce((sum, row) => sum + row.pack.stockQuantity, 0);
+  const lowStock = packs.filter((row) => row.status === "low-stock");
+  const outOfStock = packs.filter((row) => row.status === "out-of-stock");
 
   const stats = [
     {
       label: "Total stock on hand",
       value: finishedUnits.toLocaleString("en-NG"),
-      note: `Across ${products.length} product${products.length === 1 ? "" : "s"}`,
+      note: `Across ${packs.length} size${packs.length === 1 ? "" : "s"}`,
       icon: "box" as const,
       alert: false,
     },
     {
       label: "Low stock",
       value: `${lowStock.length}`,
-      note: lowStock.length > 0 ? lowStock.map((p) => p.name).join(", ") : "Nothing low",
+      note: lowStock.length > 0 ? lowStock.map((row) => row.label).join(", ") : "Nothing low",
       icon: "shield" as const,
       alert: lowStock.length > 0,
     },
@@ -46,7 +47,7 @@ export function InventoryView({ products }: { products: Product[] }) {
       value: `${outOfStock.length}`,
       note:
         outOfStock.length > 0
-          ? outOfStock.map((p) => p.name).join(", ")
+          ? outOfStock.map((row) => row.label).join(", ")
           : "Everything available",
       icon: "seal" as const,
       alert: outOfStock.length > 0,
@@ -59,8 +60,8 @@ export function InventoryView({ products }: { products: Product[] }) {
         <div className="max-w-2xl">
           <h1 className="text-headline-lg text-cacao">Inventory</h1>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-            Stock on hand across published and draft products. Edit a product to change
-            its stock or restock threshold.
+            Stock on hand per packaging size. Edit a product to change a size&apos;s
+            stock, SKU, or restock threshold.
           </p>
         </div>
       </div>
@@ -106,7 +107,6 @@ export function InventoryView({ products }: { products: Product[] }) {
         })}
       </ul>
 
-      {/* Data passed down, never imported by the client component. */}
       <InventoryTable products={products} />
     </>
   );

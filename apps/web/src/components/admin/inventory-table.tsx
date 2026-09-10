@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
-import type { Product } from "@lamiefoods/types";
+import type { Product, ProductPack } from "@lamiefoods/types";
 import { ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
 import { CATEGORY_LABELS } from "@/content/admin-new-product";
@@ -18,58 +18,57 @@ const STATUS_STYLES: Record<StockStatus, string> = {
 
 export type InventoryFilter = "all" | StockStatus;
 
-const COLUMNS = ["Product", "Category", "Available", "Threshold", "Status", ""];
+const COLUMNS = ["Product", "Size", "SKU", "Available", "Threshold", "Status", ""];
+
+interface InventoryRow {
+  product: Product;
+  pack: ProductPack;
+  status: StockStatus;
+}
 
 /**
- * Stock table, one row per product — real inventory is tracked per product
- * (`products.stock_quantity`/`restock_threshold`), not per pack size, so
- * there is no per-pack or packaging-materials breakdown to show; the old
- * sample data invented both.
- *
- * The filter tabs are real client state — filtering an already-loaded list
- * works fine without a backend. Stock itself is edited on the product's real
- * edit form (`/admin/products/:slug/edit`, where `stockQuantity` is a real,
- * saved field) rather than an inline +/- control here: a number that moves on
- * screen without being saved is worse than no control at all.
- *
- * Products arrive as PROPS, not imported — same rule as every other admin
- * table holding operational data (see GAP-009).
+ * Stock table — one row per packaging size. Inventory lives on
+ * `product_packs` (price + SKU + stock), so a flavour with three sizes shows
+ * three rows. Stock is edited on the product form, not inline here.
  */
 export function InventoryTable({ products }: { products: Product[] }) {
   const [filter, setFilter] = useState<InventoryFilter>("all");
 
-  const withStatus = products.map((product) => ({
-    product,
-    status: stockStatus(product),
-  }));
+  const rows: InventoryRow[] = products.flatMap((product) =>
+    product.packs.map((pack) => ({
+      product,
+      pack,
+      status: stockStatus(pack),
+    })),
+  );
 
   const tabs: { label: string; filter: InventoryFilter; count: number }[] = [
-    { label: "All products", filter: "all", count: withStatus.length },
+    { label: "All sizes", filter: "all", count: rows.length },
     {
       label: "In stock",
       filter: "in-stock",
-      count: withStatus.filter((p) => p.status === "in-stock").length,
+      count: rows.filter((row) => row.status === "in-stock").length,
     },
     {
       label: "Low stock",
       filter: "low-stock",
-      count: withStatus.filter((p) => p.status === "low-stock").length,
+      count: rows.filter((row) => row.status === "low-stock").length,
     },
     {
       label: "Out of stock",
       filter: "out-of-stock",
-      count: withStatus.filter((p) => p.status === "out-of-stock").length,
+      count: rows.filter((row) => row.status === "out-of-stock").length,
     },
   ];
 
-  const visible = withStatus.filter((p) => filter === "all" || p.status === filter);
+  const visible = rows.filter((row) => filter === "all" || row.status === filter);
 
   return (
     <>
       <section className="mt-gutter-sm flex flex-wrap items-center justify-between gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-md">
         <div
           role="tablist"
-          aria-label="Filter products"
+          aria-label="Filter pack sizes"
           className="flex flex-wrap gap-gutter-xs"
         >
           {tabs.map((tab) => (
@@ -104,12 +103,12 @@ export function InventoryTable({ products }: { products: Product[] }) {
 
       <div className="mt-gutter-sm overflow-x-auto rounded border border-rule/70 bg-surface">
         <table className="w-full min-w-4xl border-collapse text-left">
-          <caption className="sr-only">Stock on hand by product.</caption>
+          <caption className="sr-only">Stock on hand by packaging size.</caption>
           <thead>
             <tr className="border-b border-rule/70">
               {COLUMNS.map((column) => (
                 <th
-                  key={column}
+                  key={column || "actions"}
                   scope="col"
                   className="px-gutter-sm py-3 font-label text-label-sm text-nutmeg"
                 >
@@ -119,7 +118,7 @@ export function InventoryTable({ products }: { products: Product[] }) {
             </tr>
           </thead>
           <tbody>
-            {visible.map(({ product, status }) => {
+            {visible.map(({ product, pack, status }) => {
               const low = status !== "in-stock";
               const heroImage =
                 product.images.find((image) => image.role === "hero") ??
@@ -127,7 +126,7 @@ export function InventoryTable({ products }: { products: Product[] }) {
 
               return (
                 <tr
-                  key={product.id}
+                  key={pack.id}
                   className={cn(
                     "border-b border-rule/70 last:border-b-0",
                     low && "bg-error-container/30",
@@ -150,14 +149,20 @@ export function InventoryTable({ products }: { products: Product[] }) {
                           {product.name}
                         </span>
                         <span className="block text-body-sm text-nutmeg">
+                          {CATEGORY_LABELS[product.category]}
+                          {" · "}
                           {product.storefrontActive ? "Published" : "Draft"}
                         </span>
                       </span>
                     </span>
                   </th>
 
-                  <td className="px-gutter-sm py-3 text-body-sm text-on-surface-variant">
-                    {CATEGORY_LABELS[product.category]}
+                  <td className="px-gutter-sm py-3 text-body-sm text-cacao">
+                    {pack.name}
+                  </td>
+
+                  <td className="px-gutter-sm py-3 font-label text-label-sm whitespace-nowrap text-nutmeg">
+                    {pack.sku ?? "—"}
                   </td>
 
                   <td className="px-gutter-sm py-3 whitespace-nowrap">
@@ -167,12 +172,12 @@ export function InventoryTable({ products }: { products: Product[] }) {
                         low ? "text-error" : "text-cacao",
                       )}
                     >
-                      {product.stockQuantity.toLocaleString("en-NG")}
+                      {pack.stockQuantity.toLocaleString("en-NG")}
                     </span>
                   </td>
 
                   <td className="px-gutter-sm py-3 text-body-sm whitespace-nowrap text-nutmeg">
-                    {product.restockThreshold?.toLocaleString("en-NG") ?? "—"}
+                    {pack.restockThreshold?.toLocaleString("en-NG") ?? "—"}
                   </td>
 
                   <td className="px-gutter-sm py-3">
@@ -217,7 +222,8 @@ export function InventoryTable({ products }: { products: Product[] }) {
       </div>
 
       <p className="mt-gutter-xs text-body-sm text-nutmeg">
-        {products.length} product{products.length === 1 ? "" : "s"}
+        {rows.length} size{rows.length === 1 ? "" : "s"} across {products.length}{" "}
+        product{products.length === 1 ? "" : "s"}
       </p>
     </>
   );

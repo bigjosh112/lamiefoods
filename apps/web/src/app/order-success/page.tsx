@@ -95,7 +95,9 @@ export default async function OrderSuccessPage({
                   {ORDER_SUCCESS.real.title}
                 </h1>
                 <p className="mx-auto mt-gutter-sm max-w-xl text-body-md text-on-surface-variant">
-                  {ORDER_SUCCESS.real.body}
+                  {order.paymentStatus === "paid"
+                    ? ORDER_SUCCESS.real.paidBody
+                    : ORDER_SUCCESS.real.unpaidBody}
                 </p>
 
                 <p className="mx-auto mt-gutter-md inline-flex items-center gap-gutter-sm rounded border border-rule/70 bg-surface-container-low p-gutter-sm">

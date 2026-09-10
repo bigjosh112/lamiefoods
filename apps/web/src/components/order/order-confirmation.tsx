@@ -25,8 +25,8 @@ import { formatKobo } from "@/lib/money";
 
 /** The four customer-visible stages, mapped from the domain status. */
 const STAGES: { label: string; statuses: OrderStatus[] }[] = [
-  { label: "Placed", statuses: ["paid", "processing", "shipped", "delivered"] },
-  { label: "Kitchen fired", statuses: ["processing", "shipped", "delivered"] },
+  { label: "Placed", statuses: ["pending", "paid", "processing", "shipped", "delivered"] },
+  { label: "Paid", statuses: ["paid", "processing", "shipped", "delivered"] },
   { label: "Dispatched", statuses: ["shipped", "delivered"] },
   { label: "Delivered", statuses: ["delivered"] },
 ];

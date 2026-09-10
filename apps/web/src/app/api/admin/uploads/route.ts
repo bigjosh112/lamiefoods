@@ -12,17 +12,17 @@ const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8MB — product photography, not vide
  * without routing image bytes through this Next.js server (avoiding the
  * platform's request body-size limits entirely).
  *
- * `onBeforeGenerateToken` is where authorization actually happens — per
- * Vercel's own docs, this callback is the ONLY thing standing between a
- * public endpoint and an open-to-anyone upload target. `getAdminSession()`
- * is the same check every other admin write in this app uses.
+ * `onBeforeGenerateToken` is where the SDK documents authorization, and
+ * `getAdminSession()` also runs before `handleUpload` so a missing cookie
+ * never reaches token minting. That is the same check every other admin
+ * write in this app uses.
  *
- * `onUploadCompleted` deliberately does nothing: the uploaded URL is already
+ * `onUploadCompleted` is omitted on purpose: the uploaded URL is already
  * returned directly to the calling browser by `upload()` (see
  * `components/admin/image-upload.tsx`), which is what actually attaches it
- * to a product on save. A webhook-style completion callback would also
- * require a public URL Vercel can call back to — dead weight in local dev,
- * and nothing here needs it.
+ * to a product on save. Passing an empty callback still makes the SDK look
+ * for a public webhook URL (`VERCEL_BLOB_CALLBACK_URL`), which localhost
+ * and Railway cannot provide — a noisy warning, not a working callback.
  */
 export async function POST(request: Request) {
   if (!isBlobStorageConfigured()) {
@@ -47,9 +47,6 @@ export async function POST(request: Request) {
         maximumSizeInBytes: MAX_SIZE_BYTES,
         addRandomSuffix: true,
       }),
-      onUploadCompleted: async () => {
-        // Intentionally empty — see the doc comment above.
-      },
     });
 
     return NextResponse.json(jsonResponse);

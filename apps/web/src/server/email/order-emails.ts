@@ -1,6 +1,6 @@
 import "server-only";
 
-import { BRAND, DELIVERY } from "@lamiefoods/config";
+import { ADMIN_ROUTES, BRAND, DELIVERY } from "@lamiefoods/config";
 import type {
   CustomerDetails,
   Money,
@@ -19,11 +19,13 @@ import { escapeHtml, type Mail } from "./send";
  * hands before it actually has. The two emails sent at order-creation time
  * (`customerEmail`/`ownerEmail`) still say nothing was charged — that's true
  * regardless of payment method, since choosing Paystack doesn't mean the
- * popup was completed. The three emails below (`paymentConfirmedEmail`,
- * `orderShippedEmail`, `orderDeliveredEmail`) are the ones that report
- * something as having actually happened, and each is fired exactly once, at
- * the moment its own idempotency guard (`paid_at`/`shipped_at`/`delivered_at`
- * newly set — see `server/orders/repository.ts`) says it first became true.
+ * popup was completed. The payment / processing / shipped / delivered emails
+ * below (`paymentConfirmedEmail`, `ownerPaymentConfirmedEmail`,
+ * `orderProcessingEmail`, `orderShippedEmail`, `orderDeliveredEmail`) are the
+ * ones that report something as having actually happened, and each is fired
+ * exactly once — payment/shipped/delivered via their timestamp guards, and
+ * processing via the forward-only status transition
+ * (`paid` → `processing` — see `server/orders/repository.ts`).
  */
 export interface OrderEmailInput {
   reference: string;
@@ -42,8 +44,8 @@ function paymentMethodNote(paymentMethod: PaymentMethod): { text: string; html: 
     };
   }
   return {
-    text: "Pay by bank transfer: your order page has our account details and a WhatsApp button to send your payment screenshot.",
-    html: "Your order page has our bank account details and a WhatsApp button to send your payment screenshot once you've transferred.",
+    text: "Pay by bank transfer: open your order page for account details (when available) and a WhatsApp button to send your payment screenshot.",
+    html: "Open your order page for our bank account details (when available) and a WhatsApp button to send your payment screenshot once you've transferred.",
   };
 }
 
@@ -211,10 +213,9 @@ export function paymentConfirmedEmail(order: Order, accessToken: string): Mail {
 
   const text = `Hello ${customer.fullName},
 
-We've received your payment for order ${reference} — ${formatKobo(order.subtotal.amount)}.
+We've received your payment for order ${reference} — ${formatKobo(order.subtotal.amount)} for your products (delivery is still quoted separately).
 
-Your order is now being prepared. We'll email you again once it's on its way,
-and delivery usually takes ${deliveryWindow} from here.
+We'll email you again once your order is on its way. Delivery usually takes ${deliveryWindow} after dispatch.
 
 View your order: ${link}
 
@@ -223,11 +224,12 @@ ${BRAND.displayName}`;
   const html = shell(
     "Payment received",
     `<p style="margin:0 0 16px;">Hello ${name}, we've received your payment for order
-      <strong>${escapeHtml(reference)}</strong> — <strong>${formatKobo(order.subtotal.amount)}</strong>.</p>
+      <strong>${escapeHtml(reference)}</strong> — <strong>${formatKobo(order.subtotal.amount)}</strong>
+      for your products (delivery is still quoted separately).</p>
 
      <p style="margin:0 0 16px;font-size:14px;">
-       Your order is now being prepared. We'll email you again once it's on its
-       way — delivery usually takes ${deliveryWindow} from here.
+       We'll email you again once your order is on its way — delivery usually
+       takes ${deliveryWindow} after dispatch.
      </p>
 
      <p style="margin:16px 0 0;font-size:14px;">
@@ -238,6 +240,116 @@ ${BRAND.displayName}`;
   return {
     to: customer.email,
     subject: `Payment received — order ${reference}`,
+    html,
+    text,
+  };
+}
+
+/**
+ * Sent to the shop once, the same moment the customer payment-confirmed
+ * email fires. Fulfils the promise in `ownerEmail`'s Paystack copy. Only
+ * called when `ORDER_EMAIL_TO` is set.
+ */
+export function ownerPaymentConfirmedEmail(order: Order, to: string): Mail {
+  const { reference, customer } = order;
+  const address = customer.deliveryAddress;
+  const adminLink = `${siteUrl}${ADMIN_ROUTES.order(reference)}`;
+  const method =
+    order.paymentMethod === "paystack" ? "Paystack" : "bank transfer (manual)";
+
+  const text = `Payment received for order ${reference}
+
+${formatKobo(order.subtotal.amount)} for products (delivery still separate).
+Paid via ${method}.
+
+${customer.fullName}
+${customer.phone}
+${customer.email}
+${address.addressLine}
+Landmark: ${address.landmark}
+${address.city}, ${address.state}
+
+Open in admin: ${adminLink}
+
+${BRAND.displayName}`;
+
+  const html = shell(
+    `Paid — ${escapeHtml(reference)}`,
+    `<p style="margin:0 0 16px;font-size:14px;">
+       Payment of <strong>${formatKobo(order.subtotal.amount)}</strong> received
+       for order <strong>${escapeHtml(reference)}</strong> via
+       ${escapeHtml(method)}. Delivery is still quoted separately.
+     </p>
+
+     <h2 style="font-size:16px;margin:24px 0 8px;">Customer</h2>
+     <p style="margin:0;font-size:14px;line-height:1.6;">
+       ${escapeHtml(customer.fullName)}<br />
+       ${escapeHtml(customer.phone)}<br />
+       ${escapeHtml(customer.email)}<br />
+       ${escapeHtml(address.addressLine)}<br />
+       Landmark: ${escapeHtml(address.landmark)}<br />
+       ${escapeHtml(address.city)}, ${escapeHtml(address.state)}
+     </p>
+
+     <p style="margin:16px 0 0;font-size:14px;">
+       <a href="${adminLink}" style="color:#a84c2c;">Open in admin</a>
+     </p>`,
+  );
+
+  return {
+    to,
+    subject: `Payment received — ${reference} — ${customer.fullName}`,
+    html,
+    text,
+  };
+}
+
+/** Sent once, the moment `status` first becomes `'processing'`. */
+export function orderProcessingEmail(order: Order, accessToken: string): Mail {
+  const { reference, customer } = order;
+  const link = `${siteUrl}/order-success?token=${encodeURIComponent(accessToken)}`;
+  const name = escapeHtml(customer.fullName);
+  const address = customer.deliveryAddress;
+
+  const text = `Hello ${customer.fullName},
+
+We're preparing your order ${reference}.
+
+${itemLines(order.items)}
+
+Delivering to: ${address.addressLine}, ${address.city}
+
+We'll email you again once it's on its way. Delivery usually takes ${deliveryWindow} after dispatch.
+
+View your order: ${link}
+
+${BRAND.displayName}`;
+
+  const html = shell(
+    "We're preparing your order",
+    `<p style="margin:0 0 16px;">Hello ${name}, good news — we've started preparing order
+      <strong>${escapeHtml(reference)}</strong>.</p>
+
+     <table style="width:100%;border-collapse:collapse;font-size:14px;">${itemRows(order.items)}</table>
+
+     <p style="margin:16px 0 0;font-size:14px;">
+       Delivering to ${escapeHtml(address.addressLine)},
+       ${escapeHtml(address.city)}.
+     </p>
+
+     <p style="margin:16px 0 0;font-size:14px;">
+       We'll email you again once it's on its way — delivery usually takes
+       ${deliveryWindow} after dispatch.
+     </p>
+
+     <p style="margin:16px 0 0;font-size:14px;">
+       <a href="${link}" style="color:#a84c2c;">View your order</a>
+     </p>`,
+  );
+
+  return {
+    to: customer.email,
+    subject: `Preparing your order ${reference}`,
     html,
     text,
   };

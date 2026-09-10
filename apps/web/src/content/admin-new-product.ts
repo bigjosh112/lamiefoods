@@ -24,6 +24,8 @@ export const EDIT_PRODUCT = {
   eyebrow: "Catalogue / Edit product",
   title: "Edit product",
   body: "Changes apply immediately once saved — including to orders already in your checkout for a customer mid-session.",
+  createdSuccess:
+    "Product created. It is live on the shop if storefront is on.",
 };
 
 /**

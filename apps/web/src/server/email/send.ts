@@ -50,8 +50,18 @@ export async function sendMail(mail: Mail): Promise<boolean> {
     });
 
     if (!response.ok) {
-      // Log the status, never the body — it echoes the recipient address.
-      console.error(`[email] Resend rejected the send: ${response.status}`);
+      // Prefer Resend's short `message` (e.g. unverified domain) so ops can
+      // act; never log the response body wholesale — it can echo `to`.
+      let reason = `status ${response.status}`;
+      try {
+        const payload = (await response.json()) as { message?: unknown };
+        if (typeof payload.message === "string" && payload.message.length > 0) {
+          reason = `${response.status}: ${payload.message}`;
+        }
+      } catch {
+        // Body wasn't JSON — status alone is still useful.
+      }
+      console.error(`[email] Resend rejected the send: ${reason}`);
       return false;
     }
 

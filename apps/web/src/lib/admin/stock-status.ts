@@ -1,20 +1,22 @@
-import type { Product } from "@lamiefoods/types";
+import type { ProductPack } from "@lamiefoods/types";
 
 /**
  * Shared between `inventory-view.tsx` (Server Component) and
  * `inventory-table.tsx` (Client Component, for the status badge/filter tabs)
  * — a plain function like this can't live in a `"use client"` file and be
  * called from server code across that boundary.
+ *
+ * Inventory is per packaging size (`ProductPack`), not per flavour.
  */
 export type StockStatus = "in-stock" | "low-stock" | "out-of-stock";
 
 export function stockStatus(
-  product: Pick<Product, "stockQuantity" | "restockThreshold">,
+  pack: Pick<ProductPack, "stockQuantity" | "restockThreshold">,
 ): StockStatus {
-  if (product.stockQuantity <= 0) return "out-of-stock";
+  if (pack.stockQuantity <= 0) return "out-of-stock";
   if (
-    product.restockThreshold !== null &&
-    product.stockQuantity <= product.restockThreshold
+    pack.restockThreshold !== null &&
+    pack.stockQuantity <= pack.restockThreshold
   ) {
     return "low-stock";
   }

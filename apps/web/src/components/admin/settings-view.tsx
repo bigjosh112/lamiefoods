@@ -97,6 +97,20 @@ export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSett
             Shown on the order-success page for the bank-transfer payment method. Editable
             — saves to the database.
           </p>
+          {!paymentSettings.bankTransfer && (
+            <p
+              role="status"
+              className="mt-gutter-sm flex items-start gap-gutter-xs rounded border border-terracotta/40 bg-secondary-container/40 p-gutter-sm text-body-sm text-cacao"
+            >
+              <ICONS.shield className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
+              <span>
+                <strong className="font-semibold">Bank transfer is inactive for customers.</strong>{" "}
+                Save bank name, account number and account name together below. Until then,
+                checkout still offers the option, but the order page only says details are
+                being confirmed — no invented account numbers.
+              </span>
+            </p>
+          )}
           <PaymentSettingsForm settings={paymentSettings} />
 
           <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">

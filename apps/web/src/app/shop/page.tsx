@@ -36,13 +36,15 @@ export const metadata: Metadata = buildMetadata({
  * Offers, not the data source. Breadcrumbs are safe because they describe
  * navigation, not commerce.
  */
+import { CatalogProvider } from "@/lib/products/catalog-context";
+
 export const revalidate = 60;
 
 export default async function ShopPage() {
   const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
 
   return (
-    <>
+    <CatalogProvider products={products}>
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", path: "/" },
@@ -59,6 +61,7 @@ export default async function ShopPage() {
             <p className="mt-gutter-sm text-body-md text-on-surface-variant">
               {SHOP.body}
             </p>
+            <p className="mt-gutter-sm text-body-sm text-nutmeg">{SHOP.deliveryNotice}</p>
           </div>
 
           <ShopCatalogue products={products} />
@@ -69,6 +72,6 @@ export default async function ShopPage() {
       </main>
 
       <SiteFooter />
-    </>
+    </CatalogProvider>
   );
 }

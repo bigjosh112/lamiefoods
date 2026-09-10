@@ -14,12 +14,18 @@ export const PRODUCT_CATEGORIES = [
 
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
-/** One packaging option and its price, e.g. "250g Pouch" at ₦3,600. */
+/**
+ * One sellable packaging size — its own price, SKU, and stock.
+ * e.g. "100g Pouch" at ₦2,000 with SKU `LF-MVC-100`. A flavour is not one
+ * inventoriable unit; each size is (see architecture.md, 2026-09-10).
+ */
 export interface ProductPack {
   id: string;
   name: string;
   price: Money;
   sku: string | null;
+  stockQuantity: number;
+  restockThreshold: number | null;
 }
 
 /** `role` distinguishes the single hero shot from the rest of the gallery. */
@@ -58,8 +64,6 @@ export interface Product {
   allergensConfirmed: boolean;
   shelfLife: string | null;
   storageNote: string | null;
-  stockQuantity: number;
-  restockThreshold: number | null;
   /** Draft vs published — false means the storefront never shows it. */
   storefrontActive: boolean;
   featureOnHomepage: boolean;

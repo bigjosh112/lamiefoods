@@ -66,6 +66,11 @@ export interface OrderItem {
    * frozen — renaming a pack later must not rewrite what someone already bought.
    */
   pack: string;
+  /**
+   * Pack SKU frozen at purchase (e.g. `LF-MVC-100`). Null only for orders
+   * placed before SKUs were tracked on line items.
+   */
+  sku: string | null;
   unitPrice: Money;
   quantity: number;
   lineTotal: Money;

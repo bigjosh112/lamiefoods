@@ -89,12 +89,23 @@ export const productSchema = z
           name: z.string().trim().min(2, { message: "Name this pack size" }),
           price: priceField,
           sku: z.string().trim().min(3, { message: "Enter a SKU" }),
+          stock: z
+            .string()
+            .trim()
+            .min(1, { message: "Enter stock on hand" })
+            .refine((value) => /^\d+$/.test(value.replace(/[,\s]/g, "")), {
+              message: "Stock is a whole number",
+            }),
+          restockThreshold: z
+            .string()
+            .trim()
+            .min(1, { message: "Enter a restock threshold" })
+            .refine((value) => /^\d+$/.test(value.replace(/[,\s]/g, "")), {
+              message: "Threshold is a whole number",
+            }),
         }),
       )
       .min(1, { message: "Add at least one packaging tier" }),
-
-    initialStock: z.string().trim().min(1, { message: "Enter an opening stock figure" }),
-    restockThreshold: z.string().trim().min(1, { message: "Enter a restock threshold" }),
 
     storefrontActive: z.boolean(),
     featureOnHomepage: z.boolean(),
@@ -114,16 +125,17 @@ export const productSchema = z
       .nullable(),
 
     /** Populated by `components/admin/image-upload.tsx` after a real Vercel
-     *  Blob upload completes — never user-typed, so validation here is
-     *  structural only. */
+     *  Blob upload completes — never user-typed URLs. Max five photos per
+     *  product (hero + gallery); the admin UI and this schema share that cap. */
     images: z
       .array(
         z.object({
-          url: z.string(),
+          url: z.string().min(1),
           alt: z.string(),
           role: z.enum(["hero", "gallery"]),
         }),
       )
+      .max(5, { message: "A product can have at most 5 images" })
       .default([]),
   })
   .refine((values) => values.allergens.length > 0 || values.allergensConfirmed, {
@@ -134,6 +146,7 @@ export const productSchema = z
 export type ProductFormValues = z.input<typeof productSchema>;
 
 export const TEASER_LIMIT = MAX_TEASER;
+export const MAX_PRODUCT_IMAGES = 5;
 
 /** Naira string ("3,600") to kobo integer (360000). Strips the same
  *  separators `priceField`'s regex already tolerates. */
@@ -171,10 +184,6 @@ export function toProductInput(values: z.infer<typeof productSchema>) {
     allergensConfirmed: values.allergensConfirmed,
     shelfLife: values.shelfLife,
     storageNote: values.storage,
-    stockQuantity: Number(values.initialStock.replace(/[,\s]/g, "")),
-    restockThreshold: values.restockThreshold
-      ? Number(values.restockThreshold.replace(/[,\s]/g, ""))
-      : null,
     storefrontActive: values.storefrontActive,
     featureOnHomepage: values.featureOnHomepage,
     seasonalEdition: values.seasonalEdition,
@@ -183,8 +192,16 @@ export function toProductInput(values: z.infer<typeof productSchema>) {
       name: tier.name,
       priceKobo: nairaStringToKobo(tier.price),
       sku: tier.sku || null,
+      stockQuantity: Number(tier.stock.replace(/[,\s]/g, "")),
+      restockThreshold: Number(tier.restockThreshold.replace(/[,\s]/g, "")),
     })),
-    images: values.images,
+    images: values.images.map((image, index) => ({
+      url: image.url,
+      // Blank alt falls back to the product name so customer thumbnails stay
+      // accessible even when the operator skips the optional alt field.
+      alt: image.alt.trim() || values.title,
+      role: index === 0 ? ("hero" as const) : ("gallery" as const),
+    })),
   };
 }
 
@@ -207,18 +224,26 @@ export function fromProduct(product: Product): ProductFormValues {
       name: pack.name,
       price: String(pack.price.amount / 100),
       sku: pack.sku ?? "",
+      stock: String(pack.stockQuantity),
+      restockThreshold:
+        pack.restockThreshold !== null ? String(pack.restockThreshold) : "",
     })),
-    initialStock: String(product.stockQuantity),
-    restockThreshold:
-      product.restockThreshold !== null ? String(product.restockThreshold) : "",
     storefrontActive: product.storefrontActive,
     featureOnHomepage: product.featureOnHomepage,
     seasonalEdition: product.seasonalEdition,
     discountPercent: product.discountPercent,
-    images: product.images.map((image) => ({
-      url: image.url,
-      alt: image.alt,
-      role: image.role,
-    })),
+    images: (() => {
+      const mapped = product.images.map((image) => ({
+        url: image.url,
+        alt: image.alt,
+        role: image.role,
+      }));
+      // Normalise so index 0 is always the hero for the upload UI / save path.
+      const heroIndex = mapped.findIndex((image) => image.role === "hero");
+      if (heroIndex <= 0) return mapped;
+      const hero = mapped[heroIndex];
+      if (!hero) return mapped;
+      return [hero, ...mapped.filter((_, index) => index !== heroIndex)];
+    })(),
   };
 }

@@ -11,6 +11,13 @@ export const SHOP = {
   title: "Shop Chinchin",
   body: "Choose your flavour. Freshly made in small batches with real butter and warm spices.",
   /*
+    Owner-stated 2026-09-10: the customer pays delivery. No naira amount —
+    fees are still quoted per address (Q16). Same policy as checkout's
+    deliveryCostNotice, surfaced here so it is visible before the bag.
+  */
+  deliveryNotice:
+    "Delivery is not included in the prices below. You pay the delivery cost for your address; we confirm it before dispatch.",
+  /*
     `meta` was removed on 2026-09-08 — a "Batch No. 842" and a
     "Kettle Fry Date: Today" the mock invented. Nothing tracked either, and the
     fry date claimed a freshness fact that no system could have known. Two more
@@ -77,7 +84,7 @@ export const ASSURANCES = [
     icon: "truck" as const,
     /** Delivery window is the CONFIRMED 1–5 days. */
     title: `${DELIVERY.minDays}–${DELIVERY.maxDays} days nationwide delivery`,
-    body: "Sealed in resealable pouches and shipped straight from our kitchen.",
+    body: "You pay delivery for your address — it is separate from the product price. Sealed pouches, shipped from our kitchen.",
   },
 ];
 
@@ -163,7 +170,7 @@ export const ANNOUNCEMENT = {
 export const PRODUCT_ASSURANCES = [
   {
     icon: "truck" as const,
-    label: `Fast nationwide delivery (${DELIVERY.minDays}–${DELIVERY.maxDays} business days)`,
+    label: `Nationwide delivery in ${DELIVERY.minDays}–${DELIVERY.maxDays} business days — you pay delivery, separate from the product price`,
   },
   {
     icon: "mail" as const,

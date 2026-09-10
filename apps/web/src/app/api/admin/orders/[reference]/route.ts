@@ -8,9 +8,12 @@ import {
   OrderStatusConflictError,
   updateOrderStatus,
 } from "@/server/orders/repository";
+import { serverEnv } from "@/config/server-env";
 import {
+  orderProcessingEmail,
   orderShippedEmail,
   orderDeliveredEmail,
+  ownerPaymentConfirmedEmail,
   paymentConfirmedEmail,
 } from "@/server/email/order-emails";
 import { sendMail } from "@/server/email/send";
@@ -93,6 +96,13 @@ export async function PATCH(
   // `justPaid` here, since confirmPaystackPayment already sent its own.
   if (result.justPaid) {
     await sendMail(paymentConfirmedEmail(result.order, result.accessToken));
+    const { ORDER_EMAIL_TO } = serverEnv();
+    if (ORDER_EMAIL_TO) {
+      await sendMail(ownerPaymentConfirmedEmail(result.order, ORDER_EMAIL_TO));
+    }
+  }
+  if (result.justProcessing) {
+    await sendMail(orderProcessingEmail(result.order, result.accessToken));
   }
   if (result.justShipped) {
     await sendMail(orderShippedEmail(result.order, result.accessToken));

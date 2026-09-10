@@ -76,6 +76,7 @@ interface OrderItemRow {
   product_slug: string;
   product_name: string;
   pack_name: string;
+  sku: string | null;
   unit_price_kobo: number;
   quantity: number;
   line_total_kobo: number;
@@ -91,6 +92,7 @@ function rowToOrder(row: OrderRow, itemRows: OrderItemRow[]): Order {
       name: item.product_name,
       slug: item.product_slug,
       pack: item.pack_name,
+      sku: item.sku,
       unitPrice: ngn(item.unit_price_kobo),
       quantity: item.quantity,
       lineTotal: ngn(item.line_total_kobo),
@@ -120,7 +122,7 @@ function rowToOrder(row: OrderRow, itemRows: OrderItemRow[]): Order {
 async function itemRowsFor(orderId: string): Promise<OrderItemRow[]> {
   const sql = db();
   const rows = await sql`
-    select product_slug, product_name, pack_name,
+    select product_slug, product_name, pack_name, sku,
            unit_price_kobo, quantity, line_total_kobo
     from order_items
     where order_id = ${orderId}
@@ -180,6 +182,7 @@ export async function createOrder(
           product_slug: item.slug,
           product_name: item.name,
           pack_name: item.pack,
+          sku: item.sku,
           unit_price_kobo: item.unitPrice.amount,
           quantity: item.quantity,
           line_total_kobo: item.lineTotal.amount,
@@ -333,7 +336,11 @@ export async function confirmPayment(
       // creation would deduct stock for orders that never get paid.
       await decrementStockInTx(
         tx,
-        items.map((item) => ({ slug: item.product_slug, quantity: item.quantity })),
+        items.map((item) => ({
+          slug: item.product_slug,
+          pack: item.pack_name,
+          quantity: item.quantity,
+        })),
       );
 
       return {
@@ -471,7 +478,7 @@ export async function listOrdersForDispatchExport(): Promise<AdminOrderExportRow
       o.subtotal_kobo, o.payment_method, o.payment_status, o.status,
       coalesce(
         string_agg(
-          oi.product_name || ' (' || oi.pack_name || ') × ' || oi.quantity,
+          oi.product_name || ' (' || oi.pack_name || coalesce(' [' || oi.sku || ']', '') || ') × ' || oi.quantity,
           ', ' order by oi.product_name, oi.pack_name
         ),
         ''
@@ -559,6 +566,7 @@ export interface UpdateOrderStatusInput {
 export interface UpdateOrderStatusResult {
   order: Order;
   accessToken: string;
+  justProcessing: boolean;
   justShipped: boolean;
   justDelivered: boolean;
   justPaid: boolean;
@@ -629,6 +637,8 @@ export async function updateOrderStatus(
     }
 
     const nextPaymentStatus = confirmingPayment ? "paid" : currentPaymentStatus;
+    const justProcessing =
+      nextStatus === "processing" && currentStatus !== "processing";
     const justShipped = nextStatus === "shipped" && before.shipped_at === null;
     const justDelivered = nextStatus === "delivered" && before.delivered_at === null;
     const justPaid = confirmingPayment && before.paid_at === null;
@@ -651,7 +661,7 @@ export async function updateOrderStatus(
 
     const orderRow = row as unknown as OrderRow & { access_token: string };
     const items = await tx`
-      select product_slug, product_name, pack_name,
+      select product_slug, product_name, pack_name, sku,
              unit_price_kobo, quantity, line_total_kobo
       from order_items where order_id = ${orderId} order by product_name asc
     `;
@@ -663,13 +673,18 @@ export async function updateOrderStatus(
     if (justPaid) {
       await decrementStockInTx(
         tx,
-        itemRows.map((item) => ({ slug: item.product_slug, quantity: item.quantity })),
+        itemRows.map((item) => ({
+          slug: item.product_slug,
+          pack: item.pack_name,
+          quantity: item.quantity,
+        })),
       );
     }
 
     return {
       order: rowToOrder(orderRow, itemRows),
       accessToken: orderRow.access_token,
+      justProcessing,
       justShipped,
       justDelivered,
       justPaid,
