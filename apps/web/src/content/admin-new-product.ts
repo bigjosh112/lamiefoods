@@ -17,7 +17,7 @@ export const NEW_PRODUCT = {
   eyebrow: "Catalogue / New product",
   title: "Create a new product",
   body: "Everything below is captured for a single SKU: how it reads on the storefront, what it is made from, how it is packed and priced, and where it appears.",
-  breadcrumb: ["Products & SKUs", "New product"],
+  breadcrumb: ["Products", "New product"],
 };
 
 export const EDIT_PRODUCT = {

@@ -43,7 +43,7 @@ export function ProductsList({ products }: { products: Product[] }) {
       ) : (
         <div className="overflow-x-auto rounded border border-rule/70">
           <table className="w-full min-w-[720px] text-left text-body-sm">
-            <thead className="bg-surface-container-low text-label-sm text-nutmeg uppercase">
+            <thead className="bg-surface-container-low text-label-sm text-nutmeg">
               <tr>
                 <th className="px-gutter-sm py-2 font-label">Product</th>
                 <th className="px-gutter-sm py-2 font-label">Category</th>
@@ -121,7 +121,7 @@ function Badge({ label, tone }: { label: string; tone: "positive" | "neutral" })
   return (
     <span
       className={cn(
-        "inline-block rounded-sm px-2 py-0.5 font-label text-label-sm uppercase",
+        "inline-block rounded-sm px-2 py-0.5 font-label text-label-sm",
         tone === "positive" && "bg-cacao text-tertiary-fixed-dim",
         tone === "neutral" && "bg-secondary-container text-on-secondary-fixed",
       )}

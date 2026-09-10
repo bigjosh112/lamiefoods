@@ -29,7 +29,13 @@ export const ADMIN_NAV_SECTIONS = [
         longer than every sibling item.
       */
       { label: "Orders", href: ADMIN_ROUTES.orders, icon: "box" as const },
-      { label: "Products & SKUs", href: ADMIN_ROUTES.products, icon: "gift" as const },
+      /*
+        "Products", not "Products & SKUs": the page shows name, slug, category,
+        price, stock and status — there is no SKU column, and `product_packs.sku`
+        is nullable and unsurfaced. Revisit when each pack size (100g/300g/500g)
+        carries a trackable code of its own.
+      */
+      { label: "Products", href: ADMIN_ROUTES.products, icon: "gift" as const },
       { label: "Customers", href: ADMIN_ROUTES.customers, icon: "people" as const },
       {
         label: "Inventory & Kettles",

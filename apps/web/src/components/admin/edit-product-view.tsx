@@ -23,7 +23,7 @@ export function EditProductView({
               href={ADMIN_ROUTES.products}
               className="inline-flex items-center gap-gutter-xs transition-colors hover:text-terracotta"
             >
-              ← Products &amp; SKUs
+              ← Products
             </Link>
           </li>
           <li aria-hidden="true">/</li>

@@ -4,7 +4,7 @@ import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
 
 export const metadata: Metadata = {
-  title: "Products & SKUs",
+  title: "Products",
   robots: { index: false, follow: false, nocache: true },
 };
 

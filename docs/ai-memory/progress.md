@@ -17,6 +17,33 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Products page: renamed, and casing cleanup
+
+- **Done:** The owner's copy-only pass on `/admin/products` — "Products & SKUs"
+  → "Products", and the caps cleared.
+- **Files:** `content/admin-dashboard.ts`, `content/admin-new-product.ts`,
+  `app/admin/(portal)/products/page.tsx`,
+  `components/admin/{products-view,products-list,edit-product-view}.tsx`.
+- **Same finding as the orders page: the casing was CSS, not copy.** Every stat
+  label, table header and status badge was already sentence case in the data;
+  `uppercase` classes were capitalising them at render. Removing the class was
+  the whole fix, so no strings were rewritten and none can drift.
+- **Renamed in five places, not the two named.** The brief named the sidebar and
+  the page header. Three others referred to the same page and would have
+  contradicted it: the browser tab title, the edit-product breadcrumb
+  ("← Products & SKUs" landing on a page titled "Products"), and the
+  new-product breadcrumb. The owner's reasoning — no SKU column exists — applies
+  to all of them equally.
+- **The reasoning is recorded next to the label**, since it is conditional: the
+  name should be revisited once each pack size carries a trackable code.
+  `product_packs.sku` already exists in the schema but is nullable and never
+  surfaced, so the condition is checkable rather than a vague "someday".
+- **Verified:** no `uppercase` remains in either products component; no
+  "Products & SKUs" remains outside that explanatory comment; typecheck and lint
+  pass; the diff is 15 lines across six files, all text.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — Orders page: sidebar naming and copy casing
 
 - **Done:** The owner's copy-only pass on `/admin/orders`. No layout, filter,

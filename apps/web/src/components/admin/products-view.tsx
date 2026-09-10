@@ -30,12 +30,12 @@ export function ProductsView({ products }: { products: Product[] }) {
     <div className="p-gutter-lg">
       <div className="flex flex-wrap items-baseline justify-between gap-gutter-sm">
         <div>
-          <h1 className="text-headline-lg text-cacao">Products &amp; SKUs</h1>
+          <h1 className="text-headline-lg text-cacao">Products</h1>
           <p className="mt-1 text-body-sm text-on-surface-variant">
             Every product, published or draft.
           </p>
         </div>
-        <ButtonLink href={ADMIN_ROUTES.newProduct}>
+        <ButtonLink href={ADMIN_ROUTES.newProduct} className="normal-case">
           <ICONS.gift className="h-4 w-4" />
           Add new product
         </ButtonLink>
@@ -79,7 +79,7 @@ function StatCard({
           : "rounded border border-rule/70 bg-surface-container-low p-gutter-sm"
       }
     >
-      <p className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg uppercase">
+      <p className="flex items-center gap-gutter-xs font-label text-label-sm text-nutmeg">
         <Icon className="h-4 w-4 text-terracotta" />
         {label}
       </p>
