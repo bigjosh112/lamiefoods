@@ -147,11 +147,16 @@ export const ABOUT = {
   },
 
   horizon: {
-    eyebrow: "The horizon ahead",
-    title: "Chinchin is Our Starting Chapter",
-    body: `${BRAND.displayName} was founded with an ambition far grander than one confectionery treat. We are shaping a modern African pantry house — taking beloved culinary relics and reintroducing them through careful food craft, local sourcing, and elegant presentation.`,
-    /** UNVERIFIED — none of these products has been announced. */
-    pipeline: "Next in pipeline: spiced plantain medleys & heritage honey glazes",
+    eyebrow: "What's next",
+    title: "This is just the beginning.",
+    /* Owner-written, 2026-09-10. */
+    body: `We started with chinchin, but that's not where we're stopping. ${BRAND.displayName} is building toward more West African snacks and pantry foods, made with the same care.`,
+    /**
+     * UNVERIFIED — neither product has been announced, dated or priced. The
+     * wording says only that they are in the works, which is the honest framing
+     * for something that does not exist yet.
+     */
+    pipeline: "Next in the works: spiced plantain crisps and honey-glazed treats.",
     images: [
       {
         src: "/images/chinchin5.jpg.png",
@@ -159,29 +164,17 @@ export const ABOUT = {
         note: "Pantry spread",
       },
       {
-        src: null,
-        alt: "Lamie Foods chinchin pouches",
-        note: "Packaging photography",
+        src: "/images/newchinchin8.jpeg",
+        alt: "A white bowl of chinchin on a wooden board",
+        note: "Pantry spread",
       },
     ] satisfies ImageSlot[],
-    /** UNVERIFIED — sourcing and supply-chain claims. */
-    values: [
-      {
-        icon: "shield" as const,
-        title: "Integrity First",
-        body: "Transparency in our supply line. We do not compromise on fat quality, frying temperatures, or oil freshness.",
-      },
-      {
-        icon: "people" as const,
-        title: "Local Sourcing",
-        body: "Partnering directly with spice mills and growers to procure whole spices at peak potency.",
-      },
-      {
-        icon: "seal" as const,
-        title: "Nigerian Pride",
-        body: "Proving that West African packaged food belongs in luxury pantries, gift hampers, and gourmet retailers.",
-      },
-    ],
+    /*
+      `values` — "Integrity First", "Local Sourcing", "Nigerian Pride" — was
+      removed on 2026-09-10. It repeated the pillars section above it, and its
+      supply-chain claims (frying temperatures, direct spice-mill partnerships)
+      were never confirmed.
+    */
   },
 
   /** UNVERIFIED — the mock's sensory index percentages are invented. */

@@ -17,6 +17,39 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About horizon section: copy, image, cards removed
+
+- **Done:** Rewrote the copy, filled the empty image slot, stripped the chip off
+  the pipeline tag, and removed the three value cards. 21 insertions, 49
+  deletions. Column split untouched.
+- **Files:** `content/about.ts`, `components/about/about-sections.tsx`.
+- **Removing the three cards removed unverified supply-chain claims** as well as
+  the repetition the owner noted: "transparency in our supply line", specific
+  frying temperatures, and direct partnerships with spice mills — none
+  confirmed, all now gone with the `values` array rather than left dormant.
+- **The second image slot was a live placeholder.** It rendered the labelled
+  "Packaging photography" block because `src` was `null`; `newchinchin8.jpeg`
+  fills it. I corrected the slot's `note` and `alt` too — the photo is chinchin
+  in a white bowl, not packaging, and `note` describes what belongs in the slot,
+  so leaving "Packaging photography" would have mislabelled the next
+  placeholder anyone sees there.
+- **Aspect note:** the source is 500×500 in an `aspect-3/4` slot, so
+  `object-cover` crops top and bottom. Fine for a bowl shot centred in frame;
+  worth knowing if it ever looks tight.
+- **The pipeline products stay UNVERIFIED** — plantain crisps and honey-glazed
+  treats are still unannounced, undated and unpriced. The new wording says only
+  that they are "in the works", which is the honest framing, and the marker
+  says so.
+- **Eyebrow is "What's next"**, which now also names the landing page's
+  upcoming-products section. That is fine here — both sections genuinely are
+  about what is coming — and is why the heritage section above took "Where it
+  comes from" instead of reusing it a third time.
+- **Verified:** all four new strings render, all ten old ones gone, the
+  placeholder block no longer appears, and the pipeline tag renders as plain
+  text with its icon. Typecheck, lint, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — About tenets → pillars: renamed, de-carded, mobile pass
 
 - **Done:** Renamed the section, rewrote all its copy, removed the card

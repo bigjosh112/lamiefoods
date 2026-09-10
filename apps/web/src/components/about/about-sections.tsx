@@ -182,12 +182,12 @@ export function AboutHorizon() {
     <Section>
       <div className="grid items-center gap-gutter-xl md:grid-cols-12">
         <Reveal className="md:col-span-6">
-          <Eyebrow>{horizon.eyebrow}</Eyebrow>
+          <Eyebrow className="text-label-sm normal-case">{horizon.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{horizon.title}</h2>
           <p className="mt-gutter-sm max-w-prose text-body-md text-on-surface-variant">
             {horizon.body}
           </p>
-          <p className="mt-gutter-md inline-flex items-center gap-gutter-xs rounded border border-rule/70 bg-surface-container px-3 py-2 font-label text-label-sm text-cacao">
+          <p className="mt-gutter-md inline-flex items-center gap-gutter-xs font-label text-label-sm text-cacao">
             <ICONS.sparkle className="h-4 w-4 text-terracotta" />
             {horizon.pipeline}
           </p>
@@ -208,27 +208,6 @@ export function AboutHorizon() {
           ))}
         </Reveal>
       </div>
-
-      <ul className="mt-gutter-xl grid gap-gutter-md sm:grid-cols-3">
-        {horizon.values.map((value, index) => {
-          const Icon = ICONS[value.icon];
-          return (
-            <Reveal key={value.title} delay={index * 0.08} className="h-full">
-              <li className="h-full rounded border border-rule/70 bg-surface-container-low p-inset-card">
-                <p className="flex items-center gap-gutter-sm text-headline-sm text-cacao">
-                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded bg-primary-container text-linen">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  {value.title}
-                </p>
-                <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-                  {value.body}
-                </p>
-              </li>
-            </Reveal>
-          );
-        })}
-      </ul>
     </Section>
   );
 }
