@@ -17,6 +17,47 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — Settings restructured to one page
+
+- **Done:** Five tabs → one page with two stacked sections. Brand, Storefront,
+  Environment and "Before launch" removed; Delivery & payment and Team & access
+  merged. 141 insertions, 526 deletions.
+- **Files:** `components/admin/settings-view.tsx`, `content/admin-settings.ts`,
+  `app/admin/(portal)/settings/page.tsx`; deleted
+  `components/admin/settings-tabs.tsx`.
+- **The tab strip went too.** The brief said to drop the tab navigation since
+  only one page remains — correct: a tab control over two sections costs a click
+  to reveal half a short page.
+- **Deleted rather than left dormant**, matching how this codebase has handled
+  every other removal. `SETTINGS_BRAND`, `SETTINGS_ENVIRONMENT`,
+  `SETTINGS_READINESS`, `settingsStorefront`, `ReadinessState` and the whole
+  `SettingsTabs` component were orphaned by the change — all six confirmed
+  unreferenced before removal. `admin-settings.ts` no longer imports `env`,
+  `Product`, `BRAND`, `ROUTES` or `server-env` at all.
+- **The route got simpler as a side effect.** `listProductsForAdmin()` existed
+  only for the storefront panel, so the page's `isDatabaseConfigured()` branch
+  and its product query are gone — `getSettings()` already falls back to the
+  `packages/config` constants without a database.
+- **⚠ Two things no longer surface anywhere the owner will see them.** Recorded
+  in `settings-view.tsx`'s doc comment so a future session does not have to
+  rediscover them:
+    - The **environment panel** reported which variables were set (presence
+      only, never values). `DATABASE_URL` and the admin credentials being unset
+      is precisely what makes the storefront render empty and `/admin` 404 —
+      the exact symptoms reported on 2026-09-09. That is now diagnosed from
+      `.env.local` rather than from the screen.
+    - **"Before launch"** listed the open launch blockers (GAP-004 unverified
+      prices and claims, GAP-007 the unconfirmed allergen statement). **Both are
+      still open.** They now live only in `docs/ai-memory/gaps.md` — which the
+      owner is unlikely to read, which was the reason that section existed.
+- **Preserved as asked:** the "values are real" banner, the page header, the
+  Save changes button, the "Not configured" block under Delivery & payment, and
+  the file-reference tags on each section.
+- **Verified:** typecheck, lint, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened; GAP-004 and GAP-007 unchanged in status, only less
+  visible.
+
 ## 2026-09-10 — Inventory page: renamed, and casing cleanup
 
 - **Done:** The owner's copy-only pass on `/admin/inventory`. 9 insertions, 11
