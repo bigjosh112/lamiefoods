@@ -17,6 +17,40 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About tenets → pillars: renamed, de-carded, mobile pass
+
+- **Done:** Renamed the section, rewrote all its copy, removed the card
+  treatment from all three cards, and stacked it properly on mobile. 47
+  insertions, 75 deletions.
+- **Files:** `content/about.ts`, `components/about/about-sections.tsx`.
+- **The inconsistency was `inverted` on the middle item.** One content flag
+  painted card 2 dark (`bg-cacao text-linen`) while the other two sat light —
+  a mock detail, not a state. Removing the flag was the fix; then all three took
+  the site-wide borderless treatment: no fill, border, radius, shadow or
+  padding, and the icons stand alone in terracotta. The rendered `<li>` is now
+  just `flex h-full flex-col`.
+- **"Tenet" → "Pillar" across all three**, matching the landing page's
+  equivalent section, which already numbers its cards that way.
+- **Three dead links removed** — "Pure ingredient purity →", "Guaranteed crunch
+  life →", "Luxury keepsake form →". They already rendered as labels rather than
+  links because the mock's destinations do not exist; now they are gone
+  entirely, along with the `note` field and the `ArrowRightIcon` import.
+- **Mobile:** header grid stacks below `md` so the subheading sits full-width
+  under the headline instead of half-width beside nothing; the card grid is
+  single-column below `sm` with `gap-y-gutter-lg` (40px), since no border marks
+  where one card ends now.
+- **Type scaling confirmed from the tokens, not measured in a browser.** Every
+  size in this section is fluid `clamp()` with a mobile floor —
+  `headline-lg` 28→40px, `headline-sm` 18→20px, `body-md` 13→15px, `body-sm`
+  12→13px — so it scales down without dropping below a readable floor.
+- **The claims are still claims.** "Real butter and pure cane sugar", "sealed
+  while it's still warm" and "small batches" were reworded by the owner, not
+  confirmed; the `UNVERIFIED` marker stays and now says so.
+- **Verified:** all nine new strings render, all ten old ones gone including
+  `bg-cacao text-linen`. Typecheck, lint, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — About heritage section: image, copy, de-carded tiles
 
 - **Done:** Swapped the image, removed the overlay card, rewrote the copy, and

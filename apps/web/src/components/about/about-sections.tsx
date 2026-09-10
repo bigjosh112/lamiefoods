@@ -1,7 +1,7 @@
 import { cn } from "@lamiefoods/ui";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
-import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
+import { ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { ABOUT } from "@/content/about";
@@ -126,77 +126,45 @@ export function AboutTenets() {
 
   return (
     <Section className="bg-surface-container-low">
-      <div className="grid gap-gutter-lg md:grid-cols-12">
+      {/*
+        The subheading is a 12-column grid child from `md` so it sits beside the
+        headline; below that the single column stacks it directly underneath,
+        full width, rather than leaving it half-width beside nothing.
+      */}
+      <div className="grid gap-gutter-sm md:grid-cols-12 md:gap-gutter-lg">
         <div className="md:col-span-6">
-          <Eyebrow>{tenets.eyebrow}</Eyebrow>
+          <Eyebrow className="text-label-sm normal-case">{tenets.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{tenets.title}</h2>
         </div>
-        <p className="self-end text-body-md text-on-surface-variant md:col-span-6">
+        <p className="text-body-md text-on-surface-variant md:col-span-6 md:self-end">
           {tenets.body}
         </p>
       </div>
 
-      <ul className="mt-gutter-xl grid gap-gutter-md sm:grid-cols-2 lg:grid-cols-3">
+      {/*
+        No card treatment on any of the three: no fill, border, radius, shadow
+        or padding, and the icons stand alone in terracotta. The middle card
+        used to be painted dark (`inverted`), which is what made the row read as
+        two different things.
+
+        `gap-y-gutter-lg` gives the stacked mobile column real separation now
+        that no border marks where one card ends and the next begins.
+      */}
+      <ul className="mt-gutter-xl grid gap-x-gutter-lg gap-y-gutter-lg sm:grid-cols-2 lg:grid-cols-3">
         {tenets.items.map((item, index) => {
           const Icon = ICONS[item.icon];
-          const inverted = "inverted" in item && item.inverted;
 
           return (
             <Reveal key={item.index} delay={index * 0.08} className="h-full">
-              <li
-                className={cn(
-                  "flex h-full flex-col rounded border p-inset-card",
-                  inverted
-                    ? "border-cacao bg-cacao text-linen"
-                    : "border-rule/70 bg-surface",
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-flex h-10 w-10 items-center justify-center rounded",
-                    inverted
-                      ? "bg-primary-container text-linen"
-                      : "bg-secondary-container text-primary",
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                </span>
+              <li className="flex h-full flex-col">
+                <Icon className="h-6 w-6 text-terracotta" />
 
-                <p
-                  className={cn(
-                    "mt-gutter-md font-label text-label-caps uppercase",
-                    inverted ? "text-tertiary-fixed-dim" : "text-tertiary",
-                  )}
-                >
+                <p className="mt-gutter-sm font-label text-label-sm text-tertiary">
                   {item.index}
                 </p>
-                <h3
-                  className={cn(
-                    "mt-1 text-headline-sm",
-                    inverted ? "text-linen" : "text-cacao",
-                  )}
-                >
-                  {item.title}
-                </h3>
-                <p
-                  className={cn(
-                    "mt-gutter-xs flex-1 text-body-sm",
-                    inverted ? "text-linen/75" : "text-on-surface-variant",
-                  )}
-                >
+                <h3 className="mt-1 text-headline-sm text-cacao">{item.title}</h3>
+                <p className="mt-gutter-xs flex-1 text-body-sm text-on-surface-variant">
                   {item.body}
-                </p>
-
-                {/* The mock styled these as links, but there is nowhere for
-                    them to go, so they are labels rather than dead links. */}
-                <p
-                  className={cn(
-                    "mt-gutter-md flex items-center gap-gutter-xs font-label text-label-sm uppercase",
-                    inverted ? "text-tertiary-fixed-dim" : "text-terracotta",
-                  )}
-                >
-                  {item.note}
-                  <ArrowRightIcon className="h-4 w-4" />
                 </p>
               </li>
             </Reveal>

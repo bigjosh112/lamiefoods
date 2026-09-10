@@ -107,37 +107,41 @@ export const ABOUT = {
   },
 
   tenets: {
-    eyebrow: "Uncompromising standards",
-    title: "The Three Tenets of Lamie",
-    body: "How we ensure each pouch honours the matriarchs who perfected the recipe and delights the contemporary consumer.",
+    eyebrow: "What we stand for",
+    title: "How Lamie Foods gets it right.",
+    body: "The standards behind every pouch we make.",
     /**
-     * UNVERIFIED — ingredient and process claims. The mock ended each card with
-     * a link ("Pure ingredient purity →"); there is nowhere for those to go, so
-     * they render as labels rather than links to a 404.
+     * Reworded by the owner on 2026-09-10 — which is not the same as confirmed.
+     * "Real butter and pure cane sugar", "sealed while it's still warm" and
+     * "small batches" are all still claims about how the food is made, so this
+     * stays UNVERIFIED (GAP-004).
+     *
+     * `note` and `inverted` were dropped with this pass. The notes rendered as
+     * labels rather than links because the mock's destinations do not exist;
+     * `inverted` painted the middle card dark, which the owner removed as an
+     * inconsistency between the three.
+     *
+     * "Pillar", not "Tenet" — the landing page's equivalent section already
+     * numbers its cards that way.
      */
     items: [
       {
         icon: "award" as const,
-        index: "Tenet 01",
-        title: "Unadulterated Quality",
-        body: "Zero industrial shortenings, artificial margarine substitutes, or chemical stabilisers. We bake with golden dairy butter and pure cane sugars that melt clean on the palate.",
-        note: "Pure ingredient purity",
+        index: "Pillar 01",
+        title: "Real ingredients",
+        body: "No shortcuts, no substitutes. Just real butter and pure cane sugar in every batch.",
       },
       {
         icon: "timer" as const,
-        index: "Tenet 02",
-        title: "Pinnacle Freshness",
-        body: "Produced on a strict batch rotation. Our chin-chin is sealed directly from cooling racks so that each pouch unlocks the unmistakable, heady aroma of fresh baked pastry.",
-        note: "Guaranteed crunch life",
-        /** The design inverts the middle card onto the dark cacao surface. */
-        inverted: true,
+        index: "Pillar 02",
+        title: "Always fresh",
+        body: "Made in small batches and sealed while it's still warm, so every pouch tastes freshly made.",
       },
       {
         icon: "sparkle" as const,
-        index: "Tenet 03",
+        index: "Pillar 03",
         title: "Thoughtful Craft",
-        body: "Every detail — from the resealable pouch to the seal that keeps it crisp — is meant to carry the same chinchin from a quiet afternoon to a festive table.",
-        note: "Luxury keepsake form",
+        body: "From the pouch to the seal, every detail is built to keep it fresh and crisp, wherever you're enjoying it.",
       },
     ],
   },
