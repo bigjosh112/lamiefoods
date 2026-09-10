@@ -63,34 +63,45 @@ export const ABOUT = {
   },
 
   heritage: {
-    eyebrow: "The Lagos kitchen craft",
-    title: "Born from Cherished Food Traditions",
+    /*
+      The owner offered "What's next" or "Where it comes from" and said to pick
+      whichever reflects the section's actual topic. "What's next" already names
+      the landing page's upcoming-products section, and this one is about where
+      the recipe comes from, so reusing it would have pointed two different
+      sections at the same phrase.
+    */
+    eyebrow: "Where it comes from",
+    title: "Made the way it should be.",
+    /* Owner-written, 2026-09-10. */
     body: [
-      "In Nigerian culture, chin-chin is far more than a casual confection — it is the joyous auditory backdrop of family reunions, the instinctive warmth of welcome when a guest crosses the threshold, and the comfort of shared laughter across tea and wine tables.",
-      `At ${BRAND.displayName}, we refuse the shortcuts that turn heritage recipes into powdery commercial cubes. We respect the slow rhythm of the kitchen: working unbleached wheat flour with whole dairy butter, stirring in rich cream, and grinding whole nutmeg pods fresh for every run.`,
+      "Chin-chin isn't just a snack in Nigerian homes — it's what's on the table at every gathering, wedding, and holiday. Made properly, it's more than crunchy: it's rich, buttery, and full of flavour in every bite.",
+      "At Lamie, we don't cut corners. Real butter, whole nutmeg, and slow frying in small batches — every single time.",
     ],
     image: {
-      src: "/images/chinchin11.png",
-      alt: "Chinchin in a terracotta bowl with whole spices",
+      src: "/images/newchinchin7.jpeg",
+      alt: "Chinchin piled in a glass dish",
       note: "Kitchen craft",
     } satisfies ImageSlot,
-    /** UNVERIFIED — the 175°C figure is invented. */
-    overlay: {
-      eyebrow: "Acoustic metric",
-      title: "The Signature Micro-Crunch",
-      body: "Slow-fried in controlled small kettles to achieve a distinctive micro-layered structure that fractures delicately rather than hardening.",
-    },
-    /** UNVERIFIED — process and sourcing claims. */
+    /*
+      `overlay` removed 2026-09-10 with the card that rendered it — an
+      "Acoustic metric / The Signature Micro-Crunch" panel whose copy was
+      invented for the design mock and which nothing measures.
+    */
+    /**
+     * Process claims. Reworded by the owner on 2026-09-10, which is not the
+     * same as confirmed — "slow frying in small batches" and "ground fresh"
+     * are still statements about how the food is made.
+     */
     points: [
       {
         icon: "box" as const,
-        title: "Small kettle batches",
-        body: "Never mass-extruded; hand-cut with artisanal edge geometry.",
+        title: "Small-batch frying",
+        body: "Never mass-produced — hand-cut and fried in small batches.",
       },
       {
         icon: "leaf" as const,
-        title: "Fresh ground spices",
-        body: "Whole nutmeg and sweet aromatic spices, ground for each run.",
+        title: "Fresh-ground spices",
+        body: "Whole nutmeg, ground fresh for every batch.",
       },
     ],
   },

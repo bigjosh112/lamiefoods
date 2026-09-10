@@ -1,7 +1,7 @@
 import { cn } from "@lamiefoods/ui";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
-import { ArrowRightIcon, ICONS, SoundIcon } from "@/components/ui/icons";
+import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { ABOUT } from "@/content/about";
@@ -80,23 +80,15 @@ export function AboutHeritage() {
     <Section>
       <div className="grid items-center gap-gutter-xl md:grid-cols-12">
         <Reveal className="relative md:col-span-6">
+          {/* No overlay card. The one that sat here carried an invented
+              "acoustic metric" nothing measures. */}
           <div className="relative aspect-4/3 overflow-hidden rounded border border-rule/70">
             <ImageSlot slot={heritage.image} sizes="(min-width: 1024px) 45vw, 100vw" />
-          </div>
-          <div className="relative mx-gutter-md -mt-gutter-lg rounded border border-rule/70 bg-surface p-gutter-md shadow-earth">
-            <p className="flex items-center gap-gutter-xs font-label text-label-sm text-terracotta uppercase">
-              <SoundIcon className="h-4 w-4" />
-              {heritage.overlay.eyebrow}
-            </p>
-            <h3 className="mt-1 text-headline-sm text-cacao">{heritage.overlay.title}</h3>
-            <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-              {heritage.overlay.body}
-            </p>
           </div>
         </Reveal>
 
         <Reveal delay={0.1} className="md:col-span-6">
-          <Eyebrow withRule>{heritage.eyebrow}</Eyebrow>
+          <Eyebrow className="text-label-sm normal-case">{heritage.eyebrow}</Eyebrow>
           <h2 className="mt-gutter-sm text-headline-lg text-cacao">{heritage.title}</h2>
           {heritage.body.map((paragraph) => (
             <p
@@ -111,11 +103,8 @@ export function AboutHeritage() {
             {heritage.points.map((point) => {
               const Icon = ICONS[point.icon];
               return (
-                <li
-                  key={point.title}
-                  className="rounded border border-rule/70 bg-surface-container-low p-gutter-sm"
-                >
-                  <p className="flex items-center gap-gutter-xs font-label text-label-sm text-cacao uppercase">
+                <li key={point.title}>
+                  <p className="flex items-center gap-gutter-xs font-label text-label-sm text-cacao">
                     <Icon className="h-4 w-4 text-terracotta" />
                     {point.title}
                   </p>

@@ -17,6 +17,37 @@
 - **Next / open threads:** <what a fresh session should pick up>
 -->
 
+## 2026-09-10 — About heritage section: image, copy, de-carded tiles
+
+- **Done:** Swapped the image, removed the overlay card, rewrote the copy, and
+  stripped the card treatment from both feature tiles. Column layout and spacing
+  untouched, and nothing outside the section changed.
+- **Files:** `content/about.ts`, `components/about/about-sections.tsx`.
+- **Eyebrow: chose "Where it comes from" over "What's next".** The owner offered
+  both and said to pick whichever reflects the section's actual topic.
+  "What's next" already names the landing page's upcoming-products section, so
+  reusing it would have pointed two different sections at the same phrase while
+  this one is about where the recipe comes from.
+- **Took the optional tile simplification** — "Whole nutmeg, ground fresh for
+  every batch." over the longer original. The owner offered it, and it matches
+  the plainer voice the rest of the rewrite establishes.
+- **Removing the overlay cleared another invented figure.** The "Acoustic
+  metric / The Signature Micro-Crunch" card described a micro-layered structure
+  nothing measures; its `overlay` content was deleted, not left dormant, and
+  `SoundIcon` went with it.
+- **The process claims are still claims.** "Slow frying in small batches" and
+  "ground fresh" were reworded by the owner, which is not the same as confirmed;
+  the `UNVERIFIED` marker was kept and reworded to say exactly that.
+- **`chinchin11.png` is now referenced nowhere** — it was this section's image
+  and, before the database move, Cinnamon Chinchin's product photo. Left in
+  `public/images` rather than deleted, like `card.png` and `workspace1.png`
+  before it; unreferenced public files are never fetched.
+- **Verified:** all eight new strings render, all seven old ones are gone, the
+  tiles render as bare `<li>` with no fill or border, and the new image loads.
+  Typecheck, lint, build and `prettier --check` pass.
+- **Docs updated:** progress.md.
+- **Gaps:** none opened.
+
 ## 2026-09-10 — About hero: closed the gap between the columns
 
 - **Done:** Hero columns now read as a pair — horizontal gap 64px → 40px, split
