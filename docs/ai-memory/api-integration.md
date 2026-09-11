@@ -338,10 +338,11 @@ template.
   `503` `DATABASE_URL` unset.
 - **Side effects/idempotency:** Sends whichever milestone email was reached
   (`justProcessing`/`justShipped`/`justDelivered`/`justPaid` from
-  `repository.updateOrderStatus`). On `justPaid`, both the customer
-  (`paymentConfirmedEmail`) and, when `ORDER_EMAIL_TO` is set, the shop
-  (`ownerPaymentConfirmedEmail`) are emailed. On `justProcessing`, the
-  customer gets `orderProcessingEmail` (“we're preparing your order”). The
+  `repository.updateOrderStatus`). Customer always gets the matching
+  template (`paymentConfirmedEmail` / `orderProcessingEmail` /
+  `orderShippedEmail` / `orderDeliveredEmail`). When `ORDER_EMAIL_TO` is set,
+  the shop also gets `ownerPaymentConfirmedEmail` /
+  `ownerProcessingEmail` / `ownerShippedEmail` / `ownerDeliveredEmail`. The
   transaction locks the current order and uses the persisted
   `shipped_at`/`delivered_at`/`paid_at` timestamps (and the forward-only
   `paid` → `processing` transition for preparing), so a milestone

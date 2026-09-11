@@ -5,6 +5,47 @@
 > knows exactly where the project stands — what just happened, what's mid-flight, and
 > what's next. Keep entries short; depth belongs in the other docs.
 
+## 2026-09-11 — PDP product image auto-slider
+
+- **Done:** `ProductGallery` auto-advances uploaded photos every 4.5s with a
+  direction-aware Framer Motion slide (fade-only when reduced motion). Thumb
+  click / arrow keys pause ~8s; hover/focus pauses; terracotta progress bar
+  under the hero. Single-image / placeholder products skip autoplay.
+- **Files:** `components/product/product-gallery.tsx`,
+  `docs/ai-memory/progress.md`.
+- **Decisions:** Framer `m` + `AnimatePresence` only — no new carousel library.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Open a PDP with 2+ photos and confirm slide + thumbs.
+
+## 2026-09-11 — Owner fulfilment emails + progress UI
+
+- **Done:** Customer processing/shipped/delivered (+ paid) bodies now use
+  order-ref banner, progress steps, section labels. Added shop mails
+  `ownerProcessingEmail` / `ownerShippedEmail` / `ownerDeliveredEmail` and
+  wired them beside customer sends on admin PATCH when `ORDER_EMAIL_TO` set.
+- **Files:** `server/email/order-emails.ts`,
+  `app/api/admin/orders/[reference]/route.ts`,
+  `docs/ai-memory/{api-integration,progress}.md`.
+- **Decisions:** Owner fulfilment notifications mirror paid-mail pattern.
+- **Docs updated:** `api-integration.md`, `progress.md`.
+- **Gaps:** Resend domain still required for real delivery.
+- **Next / open threads:** Flip a paid order through processing → shipped →
+  delivered and check customer + shop inboxes.
+
+## 2026-09-11 — Polished order email HTML
+
+- **Done:** Rebuilt shared email `shell` (cacao header, status pill, footer) plus
+  `ctaButton` / `amountCallout` / `customerCard` helpers. Restyled all order
+  templates (customer, owner, paid, processing, shipped, delivered) with brand
+  hex and table-based CTAs — owner paid mail no longer a bare text dump.
+- **Files:** `server/email/order-emails.ts`, `docs/ai-memory/progress.md`.
+- **Decisions:** Inline styles only; no logo image (no stable public asset URL).
+- **Docs updated:** `progress.md`.
+- **Gaps:** Spam/domain still Resend config; localhost links until real site URL.
+- **Next / open threads:** Place/pay a test order to preview the new owner +
+  customer paid mails.
+
 ## 2026-09-11 — Customer email when order moves to processing
 
 - **Done:** Added `orderProcessingEmail` (items, address, order link).

@@ -13,7 +13,10 @@ import {
   orderProcessingEmail,
   orderShippedEmail,
   orderDeliveredEmail,
+  ownerDeliveredEmail,
   ownerPaymentConfirmedEmail,
+  ownerProcessingEmail,
+  ownerShippedEmail,
   paymentConfirmedEmail,
 } from "@/server/email/order-emails";
 import { sendMail } from "@/server/email/send";
@@ -94,21 +97,31 @@ export async function PATCH(
   // Each email fires only on the transition that first reaches it — see
   // `updateOrderStatus`'s doc comment. A Paystack-paid order never reaches
   // `justPaid` here, since confirmPaystackPayment already sent its own.
+  const { ORDER_EMAIL_TO } = serverEnv();
+
   if (result.justPaid) {
     await sendMail(paymentConfirmedEmail(result.order, result.accessToken));
-    const { ORDER_EMAIL_TO } = serverEnv();
     if (ORDER_EMAIL_TO) {
       await sendMail(ownerPaymentConfirmedEmail(result.order, ORDER_EMAIL_TO));
     }
   }
   if (result.justProcessing) {
     await sendMail(orderProcessingEmail(result.order, result.accessToken));
+    if (ORDER_EMAIL_TO) {
+      await sendMail(ownerProcessingEmail(result.order, ORDER_EMAIL_TO));
+    }
   }
   if (result.justShipped) {
     await sendMail(orderShippedEmail(result.order, result.accessToken));
+    if (ORDER_EMAIL_TO) {
+      await sendMail(ownerShippedEmail(result.order, ORDER_EMAIL_TO));
+    }
   }
   if (result.justDelivered) {
     await sendMail(orderDeliveredEmail(result.order, result.accessToken));
+    if (ORDER_EMAIL_TO) {
+      await sendMail(ownerDeliveredEmail(result.order, ORDER_EMAIL_TO));
+    }
   }
 
   return NextResponse.json({ order: result.order });
