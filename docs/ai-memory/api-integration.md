@@ -20,10 +20,13 @@
 > 2. **Who owns pricing?** The server. `server/orders/pricing.ts` re-prices every
 >    line from `content/products.ts`; the request body has no price field for a
 >    tampered value to even go in.
-> 3. **Delivery fee** — still not calculated anywhere. `Order.deliveryFee` is
->    `Money | null` and stored `null` on every order. Paystack now charges the
->    subtotal only (see item 4's update) — delivery is still collected
->    separately once a fee exists.
+> 3. **Delivery fee — UPDATE 2026-09-12: built.** Checkout requires
+>    `deliveryAreaId`. Server looks up an active `delivery_areas` row, sets
+>    `delivery_fee_kobo` + `total_kobo = subtotal + fee`, and snapshots the
+>    area name. Paystack / bank transfer charge `amountOwedKobo` =
+>    `total ?? subtotal` (legacy unpaid orders without a fee still fall back
+>    to subtotal). Free delivery must be an explicit `fee_kobo = 0` on an
+>    area — never invent `0` when no area is selected.
 > 4. **Paystack flow — UPDATE 2026-09-07: built.** The owner got a Paystack
 >    account; see `POST /api/orders/:token/prepare-payment`,
 >    `POST /api/orders/:token/verify-payment`, and
@@ -115,40 +118,103 @@ template.
         "deliveryAddress": {
           "addressLine": "string, 6–160 chars",
           "landmark": "string, 3–160 chars — required, not optional",
-          "city": "string, 2–80 chars",
+          "city": "string, 2–80 chars — typically the delivery area name snapshot",
           "state": "string, 1–80 chars"
         }
       },
       "lines": [
-        { "slug": "string, matches content/products.ts", "pack": "string, exact pack display name, e.g. \"250g Pouch\"", "quantity": "integer 1–20" }
-      ]
+        { "slug": "string, matches catalogue", "pack": "string, exact pack display name, e.g. \"250g Pouch\"", "quantity": "integer 1–20" }
+      ],
+      "paymentMethod": "\"paystack\" | \"whatsapp_transfer\"",
+      "deliveryAreaId": "uuid — must match an active row in delivery_areas"
     }
     ```
   - **No price field anywhere in the request.** This is deliberate, not an
     omission — see the pricing decision in `architecture.md`. Up to 24 lines.
+  - **No client-sent delivery fee.** Fee always comes from the server lookup
+    of `deliveryAreaId`.
 - **Response 2xx:** `201`
   ```jsonc
-  { "reference": "LF-7K2QX4", "token": "base64url, 32 random bytes" }
+  { "reference": "LF-7K2QX4", "token": "base64url, 32 random bytes", "amountKobo": 760000 }
   ```
-  `token` is the capability to read the order back at
+  `amountKobo` is the order total (subtotal + delivery fee) the customer will
+  pay. `token` is the capability to read the order back at
   `/order-success?token=…` — treat it like a credential (it's in a URL, so
   don't log full request URLs server-side with it present). `reference` is
   human-readable only; it is NOT sufficient to fetch the order.
 - **Errors:**
-  - `400` — body isn't JSON, or fails `createOrderSchema` → `{ error, issues }`
+  - `400` — body isn't JSON, fails `createOrderSchema`, or
+    `deliveryAreaId` unknown/inactive → `{ error, issues? }`
   - `409` — a line's `slug`/`pack` doesn't match the catalogue → `{ error, detail }`
   - `429` — rate limited → `{ error }`, `Retry-After` header
   - `503` — `DATABASE_URL` unset → `{ error }`. Distinguishes "ordering isn't
     built" from "ordering broke" for the UI's error copy.
   - `500` — DB write failed → `{ error }`. Order is NOT recorded; safe to retry.
-- **Quirks:** Delivery fee and total are never set by this endpoint — every
-  order is created with `deliveryFee: null`, `total: null`, `status: "pending"`,
-  `paymentStatus: "unpaid"`. Email (customer confirmation + owner notification,
-  `server/email/order-emails.ts`) is sent after the DB write and is best-effort:
-  a Resend failure does not fail the request or roll back the order.
+- **Quirks:** New orders always set `deliveryFee` and `total` from the selected
+  area. Legacy rows may still have nulls. Email (customer confirmation + owner
+  notification, `server/email/order-emails.ts`) is sent after the DB write and
+  is best-effort: a Resend failure does not fail the request or roll back the
+  order.
 - **Consumed by:** client `createOrder` (`lib/api/orders.ts`) · no hook (see
   "Canonical consumption pattern" above) · UI `CheckoutForm`
   (`components/checkout/checkout-form.tsx`)
+
+---
+
+### GET `/api/delivery-areas`
+
+- **Purpose:** Lists active delivery areas for the checkout Area dropdown.
+- **Auth:** none (public).
+- **Evidence:** this repo, `apps/web/src/app/api/delivery-areas/route.ts`,
+  built 2026-09-12.
+- **Request:** none.
+- **Response 2xx:** `200`
+  ```jsonc
+  {
+    "areas": [
+      { "id": "uuid", "name": "Mainland Ikeja", "feeKobo": 350000, "region": "lagos" | "interstate" }
+    ]
+  }
+  ```
+  Sorted by `region` then `sort_order`. Inactive areas are omitted.
+- **Errors:** `503` if DB unset; `500` on query failure.
+- **Consumed by:** checkout page loads via `listActiveDeliveryAreas()`
+  in-process (Server Component); client helper `listDeliveryAreas` exists for
+  non-RSC callers.
+
+---
+
+### GET `/api/admin/delivery-areas`
+
+- **Purpose:** Admin list of all delivery areas (including inactive).
+- **Auth:** admin session cookie.
+- **Evidence:** `apps/web/src/app/api/admin/delivery-areas/route.ts`, 2026-09-12.
+- **Response 2xx:** `{ "areas": DeliveryArea[] }` (full admin shape with
+  `sortOrder`, `active`, timestamps).
+- **Consumed by:** `/admin/delivery` UI.
+
+### POST `/api/admin/delivery-areas`
+
+- **Purpose:** Create a delivery area.
+- **Auth:** admin session.
+- **Body:** `{ name, feeKobo, region, sortOrder?, active? }` via
+  `lib/admin/delivery-area-schema.ts`.
+- **Response 2xx:** `201` with the created area.
+- **Errors:** `400` validation; `401` / `403` session; `409` duplicate name.
+
+### PATCH `/api/admin/delivery-areas/:id`
+
+- **Purpose:** Update name / fee / region / sort / active.
+- **Auth:** admin session.
+- **Body:** partial of the write schema (at least one field).
+- **Response 2xx:** updated area. `404` if missing.
+
+### DELETE `/api/admin/delivery-areas/:id`
+
+- **Purpose:** Remove an area. Orders keep a snapshot name; FK is
+  `ON DELETE SET NULL` on `orders.delivery_area_id`.
+- **Auth:** admin session.
+- **Response 2xx:** `204`. `404` if missing.
 
 ---
 
@@ -181,6 +247,31 @@ template.
 
 ---
 
+### GET `/api/orders/:token/receipt`
+
+- **Purpose:** Downloads a PDF order receipt for the customer on
+  `/order-success`.
+- **Auth:** token-guarded (same trust boundary as `GET /api/orders/:token`).
+  Unpaid orders are allowed; the PDF labels payment status honestly.
+- **Evidence:** this repo,
+  `apps/web/src/app/api/orders/[token]/receipt/route.ts` +
+  `server/orders/receipt-pdf.ts` (`pdf-lib`), built 2026-09-12.
+- **Rate limit:** 30 requests / 10 min per IP.
+- **Request:** Path param `token`. No body.
+- **Response 2xx:** `200`, `application/pdf` body with headers:
+  - `Content-Disposition: attachment; filename="lamie-foods-order-{reference}.pdf"`
+  - `Cache-Control: private, no-store`
+  - `X-Content-Type-Options: nosniff`
+- **Errors:** `404` unknown token · `429` rate limited · `503` DB unset ·
+  `500` lookup or PDF build failed.
+- **Quirks:** Amounts use `NGN` (not `₦`) because Helvetica cannot encode the
+  naira sign. Preview/sample orders have no token and do not call this route.
+- **Consumed by:** `ButtonAnchor` download link in
+  `components/order/order-confirmation.tsx` (no `apiFetch` wrapper — browser
+  navigates to the URL for the file download).
+
+---
+
 ### POST `/api/orders/:token/prepare-payment`
 
 - **Purpose:** Registers a fresh Paystack reference for this order's payment
@@ -202,7 +293,9 @@ template.
   invent its own. See the design decision in `architecture.md`: this is what
   makes `verify-payment` (below) safe to trust a client-reported reference at
   all — without it, a reference from someone else's real, successful
-  transaction could be replayed against this order.
+  transaction could be replayed against this order. `amountKobo` is
+  `amountOwedKobo(order)` = `total ?? subtotal` (products + delivery for new
+  orders).
 - **Errors:** `404` no such order · `409` order already paid · `429` rate
   limited · `503` `DATABASE_URL` or `PAYSTACK_SECRET_KEY` unset.
 - **Consumed by:** client `preparePayment` (`lib/api/orders.ts`) · no hook ·

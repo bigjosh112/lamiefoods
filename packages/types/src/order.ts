@@ -82,12 +82,18 @@ export interface Order {
   reference: string;
   items: OrderItem[];
   customer: CustomerDetails;
+  /**
+   * Delivery area selected at checkout (snapshot). Null only on legacy orders
+   * placed before delivery areas existed.
+   */
+  deliveryAreaId: string | null;
+  /** Area display name frozen at purchase. */
+  deliveryAreaName: string | null;
   subtotal: Money;
   /**
-   * Null until a delivery cost is quoted. The owner has not set delivery pricing
-   * yet, and a `0` fee is not "unknown" — it is a quote of free delivery that
-   * nobody authorised. Null means "not yet quoted"; the UI must say so rather
-   * than render a zero.
+   * Null until a delivery cost is quoted. For new checkouts the fee comes from
+   * the selected delivery area and is always set. A `0` fee is an authorised
+   * free-delivery quote on that area — never invent `0` when no area applies.
    */
   deliveryFee: Money | null;
   /** Null while `deliveryFee` is, since a total without delivery is not the total. */

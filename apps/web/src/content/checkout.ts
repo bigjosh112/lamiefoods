@@ -50,11 +50,12 @@ export const CHECKOUT = {
     landmarkPlaceholder: "e.g. Opposite Ebeano Supermarket",
     landmarkHelp: "Helps the rider hand off without a delayed dispatch call.",
     stateLabel: "State / region",
-    cityLabel: "City / delivery area",
-    cityPlaceholder: "e.g. Lekki",
+    areaLabel: "Delivery area",
+    areaPlaceholder: "Select where we should deliver",
+    areaHelp: "Fee is fixed per area and added to your total at checkout.",
     notice: {
       title: "Dispatch notice & timeline",
-      body: `Delivery typically takes ${DELIVERY.minDays}–${DELIVERY.maxDays} business days nationwide. Freshly sealed and dispatched in protective food-safe packaging directly from our kitchen.`,
+      body: `Delivery typically takes ${DELIVERY.minDays}–${DELIVERY.maxDays} business days. Freshly sealed and dispatched in protective food-safe packaging directly from our kitchen.`,
     },
   },
 
@@ -77,25 +78,26 @@ export const CHECKOUT = {
   summary: {
     title: "Order Summary",
     subtotalLabel: "Items subtotal",
+    deliveryLabel: "Delivery",
+    deliveryPending: "Select an area",
     dispatchLabel: "Courier dispatch",
-    dispatchValue: `To be confirmed · ${DELIVERY.minDays}–${DELIVERY.maxDays} days`,
-    totalLabel: "Products due",
+    dispatchValue: `${DELIVERY.minDays}–${DELIVERY.maxDays} days`,
+    totalLabel: "Total due",
     totalNote:
-      "Product costs only (discounts already applied). Delivery is quoted separately before dispatch.",
+      "Products (discounts applied) plus the delivery fee for your selected area.",
     paymentTitle: "Payment",
     paymentNote:
-      "You'll pay for the products on the next page (Paystack or bank transfer). Nothing is charged by this button. Delivery is still unpriced.",
+      "You'll pay this total on the next page (Paystack or bank transfer). Nothing is charged by this button.",
     cta: "Place order",
     badges: ["Guest checkout", "Pay on the next page", "Confirmed by email"],
   },
 
   /**
-   * Delivery pricing genuinely is not set (Q16). Online payment charges the
-   * product subtotal only — never invent a delivery total here.
+   * Delivery fees come from admin-managed areas selected at checkout.
    */
   deliveryCostNotice: {
-    title: "Delivery cost notice",
-    body: "Delivery fees are calculated per destination and confirmed before dispatch. Paying online now covers your products only — not delivery.",
+    title: "Delivery cost",
+    body: "Pick your delivery area above — that fee is added to your total and paid with your products.",
   },
 
   /** UNVERIFIED — a replacement promise is a commercial warranty. */

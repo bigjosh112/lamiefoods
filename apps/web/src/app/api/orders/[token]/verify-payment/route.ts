@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isDatabaseConfigured, isPaystackConfigured } from "@/config/server-env";
+import { amountOwedKobo } from "@/server/orders/amount-owed";
 import { findOrderByToken } from "@/server/orders/repository";
 import {
   confirmPaystackPayment,
@@ -75,7 +76,7 @@ export async function POST(
   try {
     const result = await confirmPaystackPayment(
       order.id,
-      order.subtotal.amount,
+      amountOwedKobo(order),
       parsed.data.paystackReference,
     );
     return NextResponse.json({ order: result.order });

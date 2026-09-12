@@ -62,6 +62,8 @@ interface OrderRow {
   landmark: string;
   city: string;
   state: string;
+  delivery_area_id: string | null;
+  delivery_area_name: string | null;
   subtotal_kobo: number;
   delivery_fee_kobo: number | null;
   total_kobo: number | null;
@@ -108,6 +110,8 @@ function rowToOrder(row: OrderRow, itemRows: OrderItemRow[]): Order {
         state: row.state,
       },
     } satisfies CustomerDetails,
+    deliveryAreaId: row.delivery_area_id,
+    deliveryAreaName: row.delivery_area_name,
     subtotal: ngn(row.subtotal_kobo),
     deliveryFee: row.delivery_fee_kobo === null ? null : ngn(row.delivery_fee_kobo),
     total: row.total_kobo === null ? null : ngn(row.total_kobo),
@@ -142,9 +146,11 @@ export async function createOrder(
   customer: CustomerDetails,
   items: OrderItem[],
   paymentMethod: PaymentMethod,
+  delivery: { areaId: string; areaName: string; feeKobo: number },
 ): Promise<CreatedOrder> {
   const sql = db();
   const subtotal = subtotalOf(items);
+  const totalKobo = subtotal.amount + delivery.feeKobo;
   const reference = newReference();
   const token = newAccessToken();
 
@@ -154,6 +160,7 @@ export async function createOrder(
         reference, access_token,
         customer_name, customer_email, customer_phone,
         address_line, landmark, city, state,
+        delivery_area_id, delivery_area_name,
         subtotal_kobo, delivery_fee_kobo, total_kobo,
         status, payment_status, payment_method
       ) values (
@@ -161,7 +168,8 @@ export async function createOrder(
         ${customer.fullName}, ${customer.email}, ${customer.phone},
         ${customer.deliveryAddress.addressLine}, ${customer.deliveryAddress.landmark},
         ${customer.deliveryAddress.city}, ${customer.deliveryAddress.state},
-        ${subtotal.amount}, ${null}, ${null},
+        ${delivery.areaId}, ${delivery.areaName},
+        ${subtotal.amount}, ${delivery.feeKobo}, ${totalKobo},
         'pending', 'unpaid', ${paymentMethod}
       )
       returning id
@@ -171,9 +179,6 @@ export async function createOrder(
     // didn't happen at all — postgres.js's return type can't rule that out
     // statically, so this is the guard, not paranoia about the query above.
     if (!order) throw new Error("Order insert returned no row.");
-
-    // delivery_fee_kobo and total_kobo stay NULL: no delivery price has been
-    // set, and writing 0 would record a free-delivery quote nobody authorised.
 
     await tx`
       insert into order_items ${tx(
@@ -212,6 +217,7 @@ export async function findOrderByToken(token: string): Promise<Order | null> {
     select id, reference,
            customer_name, customer_email, customer_phone,
            address_line, landmark, city, state,
+           delivery_area_id, delivery_area_name,
            subtotal_kobo, delivery_fee_kobo, total_kobo,
            status, payment_status, payment_method, created_at, updated_at
     from orders
@@ -253,14 +259,19 @@ export async function setPaymentReference(
  */
 export async function findOrderIdByPaymentReference(
   reference: string,
-): Promise<{ id: string; subtotalKobo: number } | null> {
+): Promise<{ id: string; amountOwedKobo: number } | null> {
   const sql = db();
   const rows = await sql`
-    select id, subtotal_kobo from orders where payment_reference = ${reference}
+    select id, subtotal_kobo, total_kobo from orders where payment_reference = ${reference}
   `;
   const row = rows[0];
   if (!row) return null;
-  return { id: row.id as string, subtotalKobo: row.subtotal_kobo as number };
+  const total = row.total_kobo as number | null;
+  const subtotal = row.subtotal_kobo as number;
+  return {
+    id: row.id as string,
+    amountOwedKobo: total ?? subtotal,
+  };
 }
 
 export interface ConfirmPaymentResult {
@@ -324,6 +335,7 @@ export async function confirmPayment(
         returning id, reference, access_token,
           customer_name, customer_email, customer_phone,
           address_line, landmark, city, state,
+          delivery_area_id, delivery_area_name,
           subtotal_kobo, delivery_fee_kobo, total_kobo,
           status, payment_status, payment_method, created_at, updated_at
       `;
@@ -365,6 +377,7 @@ export async function confirmPayment(
     select id, reference, access_token, payment_reference,
       customer_name, customer_email, customer_phone,
       address_line, landmark, city, state,
+      delivery_area_id, delivery_area_name,
       subtotal_kobo, delivery_fee_kobo, total_kobo,
       status, payment_status, payment_method, created_at, updated_at
     from orders where id = ${orderId}
@@ -546,6 +559,7 @@ export async function getOrderByReferenceForAdmin(
     select id, reference, access_token,
       customer_name, customer_email, customer_phone,
       address_line, landmark, city, state,
+      delivery_area_id, delivery_area_name,
       subtotal_kobo, delivery_fee_kobo, total_kobo,
       status, payment_status, payment_method, created_at, updated_at
     from orders where reference = ${reference}
@@ -655,6 +669,7 @@ export async function updateOrderStatus(
       returning id, reference, access_token,
         customer_name, customer_email, customer_phone,
         address_line, landmark, city, state,
+        delivery_area_id, delivery_area_name,
         subtotal_kobo, delivery_fee_kobo, total_kobo,
         status, payment_status, payment_method, created_at, updated_at
     `;

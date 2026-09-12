@@ -136,7 +136,7 @@ export function PaymentActions({
 
       <h2 className="text-headline-sm text-cacao">Complete your payment</h2>
       <p className="mt-1 text-body-sm text-on-surface-variant">
-        Order {reference} — {formatKobo(amountKobo)} for products (delivery not included).
+        Order {reference} — {formatKobo(amountKobo)} total (products + delivery).
       </p>
 
       {!paystackAvailable && (

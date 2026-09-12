@@ -14,9 +14,11 @@ import {
   toCustomerDetails,
   type CheckoutInput,
 } from "@/lib/checkout/schema";
+import { useCheckoutDelivery } from "@/lib/checkout/delivery-context";
 import { useCart, useCartActions } from "@/lib/cart/use-cart";
 import { createOrder } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api";
+import { formatKobo } from "@/lib/money";
 import { ROUTES } from "@lamiefoods/config";
 import { CartUnavailableNotice } from "@/components/cart/cart-unavailable-notice";
 
@@ -81,12 +83,17 @@ export function CheckoutForm() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
   const { isEmpty, items } = useCart();
   const { clearCart } = useCartActions();
+  const { areas, setSelectedAreaId } = useCheckoutDelivery();
   const router = useRouter();
   const formId = useId();
+
+  const lagosAreas = areas.filter((area) => area.region === "lagos");
+  const interstateAreas = areas.filter((area) => area.region === "interstate");
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CheckoutInput>({
     resolver: standardSchemaResolver(checkoutSchema),
@@ -100,13 +107,15 @@ export function CheckoutForm() {
       landmark: "",
       state: "",
       city: "",
+      deliveryAreaId: "",
     },
   });
 
   const onValid = async (values: CheckoutInput) => {
     if (isEmpty) return;
 
-    const customer = toCustomerDetails(checkoutSchema.parse(values));
+    const parsed = checkoutSchema.parse(values);
+    const customer = toCustomerDetails(parsed);
     setStatus("submitting");
     setErrorMessage(null);
 
@@ -114,7 +123,12 @@ export function CheckoutForm() {
       // Only catalogue-valid lines — never raw localStorage entries for
       // deleted/unpublished products (those caused opaque 409s at Place Order).
       const orderLines = items.map(({ line }) => line);
-      const { token } = await createOrder(customer, orderLines, paymentMethod);
+      const { token } = await createOrder(
+        customer,
+        orderLines,
+        paymentMethod,
+        parsed.deliveryAreaId,
+      );
       // Cleared only on confirmed success — a failed submit must leave the bag
       // intact so the customer is not asked to rebuild it.
       clearCart();
@@ -185,39 +199,86 @@ export function CheckoutForm() {
           {...register("landmark")}
         />
 
-        <div className="grid gap-gutter-sm sm:grid-cols-2">
-          <div>
-            <FieldLabel htmlFor={fieldId("state")}>
-              {CHECKOUT.delivery.stateLabel}
-            </FieldLabel>
-            <select
-              id={fieldId("state")}
-              autoComplete="address-level1"
-              aria-invalid={Boolean(errors.state)}
-              aria-describedby={errors.state ? `${fieldId("state")}-error` : undefined}
-              className={inputClasses(Boolean(errors.state))}
-              {...register("state")}
-            >
-              <option value="">Select a state</option>
-              {NIGERIAN_STATES.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-            <FieldError id={`${fieldId("state")}-error`}>
-              {errors.state?.message}
-            </FieldError>
-          </div>
+        <div>
+          <FieldLabel htmlFor={fieldId("deliveryAreaId")}>
+            {CHECKOUT.delivery.areaLabel}
+          </FieldLabel>
+          <select
+            id={fieldId("deliveryAreaId")}
+            aria-invalid={Boolean(errors.deliveryAreaId)}
+            aria-describedby={
+              errors.deliveryAreaId
+                ? `${fieldId("deliveryAreaId")}-error`
+                : `${fieldId("deliveryAreaId")}-help`
+            }
+            className={inputClasses(Boolean(errors.deliveryAreaId))}
+            {...register("deliveryAreaId", {
+              onChange: (event) => {
+                const id = event.target.value as string;
+                setSelectedAreaId(id);
+                const area = areas.find((entry) => entry.id === id);
+                setValue("city", area?.name ?? "", {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              },
+            })}
+          >
+            <option value="">{CHECKOUT.delivery.areaPlaceholder}</option>
+            {lagosAreas.length > 0 && (
+              <optgroup label="Lagos">
+                {lagosAreas.map((area) => (
+                  <option key={area.id} value={area.id}>
+                    {area.name} — {formatKobo(area.feeKobo)}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {interstateAreas.length > 0 && (
+              <optgroup label="Interstate">
+                {interstateAreas.map((area) => (
+                  <option key={area.id} value={area.id}>
+                    {area.name} — {formatKobo(area.feeKobo)}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          <p
+            id={`${fieldId("deliveryAreaId")}-help`}
+            className="mt-1 text-body-sm text-on-surface-variant"
+          >
+            {CHECKOUT.delivery.areaHelp}
+          </p>
+          <FieldError id={`${fieldId("deliveryAreaId")}-error`}>
+            {errors.deliveryAreaId?.message}
+          </FieldError>
+          {/* Hidden city snapshot — filled from the selected area name. */}
+          <input type="hidden" {...register("city")} />
+        </div>
 
-          <Field
-            id={fieldId("city")}
-            label={CHECKOUT.delivery.cityLabel}
-            error={errors.city?.message}
-            placeholder={CHECKOUT.delivery.cityPlaceholder}
-            autoComplete="address-level2"
-            {...register("city")}
-          />
+        <div>
+          <FieldLabel htmlFor={fieldId("state")}>
+            {CHECKOUT.delivery.stateLabel}
+          </FieldLabel>
+          <select
+            id={fieldId("state")}
+            autoComplete="address-level1"
+            aria-invalid={Boolean(errors.state)}
+            aria-describedby={errors.state ? `${fieldId("state")}-error` : undefined}
+            className={inputClasses(Boolean(errors.state))}
+            {...register("state")}
+          >
+            <option value="">Select a state</option>
+            {NIGERIAN_STATES.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+          <FieldError id={`${fieldId("state")}-error`}>
+            {errors.state?.message}
+          </FieldError>
         </div>
 
         <div className="mt-gutter-sm flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface-container p-gutter-sm">

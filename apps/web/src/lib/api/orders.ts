@@ -26,8 +26,14 @@ export async function createOrder(
   customer: CustomerDetails,
   lines: OrderLineInput[],
   paymentMethod: PaymentMethod,
+  deliveryAreaId: string,
 ): Promise<CreateOrderResponse> {
-  const payload: CreateOrderRequest = { customer, lines, paymentMethod };
+  const payload: CreateOrderRequest = {
+    customer,
+    lines,
+    paymentMethod,
+    deliveryAreaId,
+  };
   return apiFetch<CreateOrderResponse>("/api/orders", {
     method: "POST",
     body: payload,

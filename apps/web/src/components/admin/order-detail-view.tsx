@@ -95,7 +95,12 @@ export function OrderDetailView({ order }: { order: Order }) {
               </dd>
             </div>
             <div className="flex items-baseline justify-between">
-              <dt className="text-on-surface-variant">Delivery</dt>
+              <dt className="text-on-surface-variant">
+                Delivery
+                {order.deliveryAreaName ? (
+                  <span className="mt-0.5 block text-nutmeg">{order.deliveryAreaName}</span>
+                ) : null}
+              </dt>
               <dd className="font-label text-label-sm text-nutmeg uppercase">
                 {order.deliveryFee !== null
                   ? formatKobo(order.deliveryFee.amount)

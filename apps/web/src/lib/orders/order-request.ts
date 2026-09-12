@@ -36,6 +36,8 @@ export const paymentMethodSchema = z.enum(["paystack", "whatsapp_transfer"]);
 
 export const createOrderSchema = z.object({
   paymentMethod: paymentMethodSchema,
+  /** Active delivery area id — fee resolved server-side, never trusted from client. */
+  deliveryAreaId: z.uuid(),
   customer: z.object({
     fullName: z.string().trim().min(2).max(80),
     email: z.email().max(160),
@@ -58,9 +60,7 @@ export type CreateOrderRequest = z.infer<typeof createOrderSchema>;
 
 /**
  * What POST /api/orders returns. The token is the capability to read the
- * order. `amountKobo` is the subtotal the server actually priced — returned
- * so the client never computes an amount to charge itself; see
- * `server/orders/pricing.ts` for why that boundary exists.
+ * order. `amountKobo` is the total the server priced (products + delivery).
  */
 export interface CreateOrderResponse {
   reference: string;

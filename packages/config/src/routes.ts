@@ -20,4 +20,5 @@ export const ADMIN_ROUTES = {
   customers: "/admin/customers",
   inventory: "/admin/inventory",
   settings: "/admin/settings",
+  deliveryAreas: "/admin/delivery",
 } as const;

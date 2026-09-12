@@ -81,10 +81,10 @@ export async function buildSampleOrder(): Promise<Order> {
         state: "Lagos",
       },
     },
+    deliveryAreaId: null,
+    deliveryAreaName: null,
     subtotal: ngn(subtotal),
-    // Delivery pricing is genuinely unset, so this is null rather than a zero
-    // that would read as a quote of free delivery. The page renders "not yet
-    // quoted".
+    // Preview still shows "not yet quoted" — real checkouts always set a fee.
     deliveryFee: null,
     total: null,
     // Mirrors what a freshly captured order actually looks like: recorded,

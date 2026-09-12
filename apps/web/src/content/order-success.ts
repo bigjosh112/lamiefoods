@@ -6,8 +6,9 @@ import type { OrderStatus } from "@lamiefoods/types";
  *
  * Several things the mock promised are absent, because making them would be
  * false: a payment authorisation token, "SMS & WhatsApp alerts synced", photo
- * updates from the kitchen, a downloadable PDF receipt, and "10% off your next
- * batch" for tagging Instagram — a discount the owner has never offered.
+ * updates from the kitchen, and "10% off your next batch" for tagging
+ * Instagram — a discount the owner has never offered. PDF receipts are real
+ * for token-backed orders (`GET /api/orders/:token/receipt`).
  *
  * UNVERIFIED: the freshness/heat-seal claim.
  */
@@ -27,7 +28,7 @@ export const ORDER_SUCCESS = {
     eyebrow: "Order received",
     title: "Thank you — we have your order.",
     unpaidBody:
-      "We've recorded your order and emailed a confirmation. Complete payment below — nothing has been charged yet. Delivery cost is confirmed separately before dispatch.",
+      "We've recorded your order and emailed a confirmation. Complete payment below for products plus delivery — nothing has been charged yet.",
     paidBody:
       "Payment is confirmed and a receipt has been emailed. Our kitchen will prepare your batch next — we'll email you again when it's on its way.",
     statusLabel: "Status",
@@ -36,7 +37,7 @@ export const ORDER_SUCCESS = {
   referenceLabel: "Order reference",
   itemsLabel: "Reserved delicacies",
   totalLabel: "Total",
-  deliveryPending: "Confirmed at dispatch",
+  deliveryPending: "Select an area at checkout",
 
   dispatchLabel: "Dispatched to",
   etaLabel: "Estimated delivery",
@@ -55,7 +56,9 @@ export const ORDER_SUCCESS = {
 
   continueCta: "Continue shopping",
   receiptCta: "Download receipt (PDF)",
-  receiptNote: "PDF receipts are not available yet — your emailed confirmation is the record of this order.",
+  /** Shown only on the sample preview — real orders get a working download. */
+  receiptPreviewNote:
+    "Sample preview has no downloadable receipt. Place a real order to download a PDF.",
 
   community: {
     title: "Share your Lamie moment.",

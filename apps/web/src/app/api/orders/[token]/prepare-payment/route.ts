@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isDatabaseConfigured, isPaystackConfigured } from "@/config/server-env";
+import { amountOwedKobo } from "@/server/orders/amount-owed";
 import { findOrderByToken } from "@/server/orders/repository";
 import { preparePaystackAttempt } from "@/server/orders/paystack";
 import { checkRateLimit, clientIp } from "@/server/security/rate-limit";
@@ -56,7 +57,7 @@ export async function POST(
 
   return NextResponse.json({
     reference,
-    amountKobo: order.subtotal.amount,
+    amountKobo: amountOwedKobo(order),
     email: order.customer.email,
   });
 }

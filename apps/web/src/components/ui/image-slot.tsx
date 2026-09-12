@@ -3,6 +3,22 @@ import { cn } from "@lamiefoods/ui";
 import type { ImageSlot as ImageSlotData } from "@/content/landing";
 
 /**
+ * Vercel Blob is already a CDN. Routing those URLs through `/_next/image`
+ * forces the local (or edge) optimizer to re-download the full original
+ * within Next's hard 7s upstream timeout — multi‑MB product photos fail with
+ * TimeoutError / 500. Serve the blob URL as-is; local `/images/…` still go
+ * through the optimizer.
+ */
+function isVercelBlobUrl(src: string): boolean {
+  try {
+    const host = new URL(src).hostname;
+    return host.endsWith(".public.blob.vercel-storage.com");
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Renders real photography when it exists, and an honest placeholder when it
  * does not.
  *
@@ -32,6 +48,7 @@ export function ImageSlot({
         fill
         sizes={sizes}
         priority={priority}
+        unoptimized={isVercelBlobUrl(slot.src)}
         className={cn("object-cover", className)}
       />
     );

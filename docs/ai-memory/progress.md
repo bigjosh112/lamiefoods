@@ -5,6 +5,53 @@
 > knows exactly where the project stands — what just happened, what's mid-flight, and
 > what's next. Keep entries short; depth belongs in the other docs.
 
+## 2026-09-12 — Order receipt PDF download
+
+- **Done:** Token-gated `GET /api/orders/:token/receipt` builds a PDF via
+  `pdf-lib` (reference, lines, delivery, totals, customer, payment status).
+  Order-success “Download receipt” is a real `ButtonAnchor`; sample preview
+  stays disabled.
+- **Files:** `server/orders/receipt-pdf.ts`,
+  `app/api/orders/[token]/receipt/route.ts`, `order-confirmation.tsx`,
+  `order-success` page/copy, `pdf-lib` dep, docs.
+- **Decisions:** Same auth as viewing the order; unpaid PDFs allowed but
+  labelled Unpaid; Helvetica + `NGN` (no ₦).
+- **Docs updated:** `api-integration.md`, `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Open a real `?token=` order and confirm the PDF
+  downloads.
+
+## 2026-09-12 — Fix `/_next/image` TimeoutError on Vercel Blob
+
+- **Done:** `ImageSlot` sets `unoptimized` for
+  `*.public.blob.vercel-storage.com` URLs so the browser loads from Blob CDN
+  directly. Avoids Next’s hard 7s upstream fetch timeout that was 500-ing on
+  ~1–3MB product photos in local `next dev`.
+- **Files:** `components/ui/image-slot.tsx`, `docs/ai-memory/progress.md`.
+- **Decisions:** Blob is already CDN-hosted; proxying through the optimizer
+  is unnecessary and fragile for large originals.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Prefer uploading smaller / already-resized product
+  photos when practical.
+
+## 2026-09-12 — Delivery areas and checkout fees
+
+- **Done:** Migration `0008` seeds Lagos/interstate `delivery_areas`; admin
+  CRUD at `/admin/delivery`; checkout Area dropdown; order create resolves
+  fee server-side; Paystack/bank/`amountOwedKobo` charge `total`; emails and
+  order UI show area + fee + total. Copy no longer says “quoted separately.”
+- **Files:** `migrations/0008_delivery_areas.sql`, `server/delivery/*`,
+  `server/orders/amount-owed.ts`, checkout form/summary/context, admin
+  delivery UI, `order-emails.ts`, `docs/ai-memory/{architecture,api-integration,progress}.md`.
+- **Decisions:** Supersedes Paystack-subtotal-only (architecture Q16 update);
+  free delivery = explicit `fee_kobo = 0`; dashboard revenue stays on subtotal.
+- **Docs updated:** `architecture.md`, `api-integration.md`, `progress.md`.
+- **Gaps:** none opened; settings “fees not built” note redirected to
+  `/admin/delivery`.
+- **Next / open threads:** Smoke-test checkout → Paystack amount includes fee;
+  confirm migration `0008` applied on each environment.
+
 ## 2026-09-11 — PDP product image auto-slider
 
 - **Done:** `ProductGallery` auto-advances uploaded photos every 4.5s with a

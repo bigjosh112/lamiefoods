@@ -37,8 +37,6 @@ import { DELIVERY } from "@lamiefoods/config";
  * `pk_` public key belongs in `NEXT_PUBLIC_*`.
  *
  * Deliberately not built, because all of it would be invented:
- *   - A delivery-fee table. Fees are not finalised (see GAP-007); a settings
- *     screen showing a fee is a settings screen someone will quote from.
  *   - A tax/VAT configuration. Nobody has stated one.
  *   - Paystack's own SETTLEMENT account (where Paystack pays the business
  *     out to) — a genuinely different thing from the customer-facing
@@ -47,6 +45,9 @@ import { DELIVERY } from "@lamiefoods/config";
  *   - A roles-and-permissions matrix. There are no multi-user roles (Q21) —
  *     one shared credential for one owner, real since `server/admin/session.ts`.
  *   - Notification channel toggles. Nothing can send (GAP-010).
+ *
+ * Delivery area fees live on `/admin/delivery` (not this page) — seeded and
+ * editable there, then charged at checkout with the product total.
  *
  * The ONE exception, as of 2026-09-08: the WhatsApp number and
  * customer-facing bank-transfer account in the "Delivery & payment" panel
@@ -87,7 +88,7 @@ export const SETTINGS_FULFILMENT = {
   missing: [
     {
       label: "Delivery fees",
-      note: "Not finalised. No fee is shown anywhere on the site, and none is invented here.",
+      note: "Managed on Admin → Delivery areas (/admin/delivery). Checkout charges the selected area fee with the order total.",
     },
     {
       label: "Customer bank-transfer account",
@@ -95,7 +96,7 @@ export const SETTINGS_FULFILMENT = {
     },
     {
       label: "Free-delivery threshold",
-      note: "The design mock quoted one. It has never been confirmed and blocks launch (GAP-007).",
+      note: "No automatic free-delivery threshold. Set an area fee to ₦0 explicitly if an area is free.",
     },
     {
       label: "Paystack settlement account",

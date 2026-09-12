@@ -78,7 +78,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await confirmPaystackPayment(match.id, match.subtotalKobo, reference);
+    await confirmPaystackPayment(match.id, match.amountOwedKobo, reference);
   } catch (error) {
     // Genuine verification failures (amount mismatch, wrong currency, a
     // reference reused across orders) are logged, not retried — retrying

@@ -11,12 +11,11 @@ export const SHOP = {
   title: "Shop Chinchin",
   body: "Choose your flavour. Freshly made in small batches with real butter and warm spices.",
   /*
-    Owner-stated 2026-09-10: the customer pays delivery. No naira amount —
-    fees are still quoted per address (Q16). Same policy as checkout's
-    deliveryCostNotice, surfaced here so it is visible before the bag.
+    Customer pays delivery. Area fees are admin-managed and selected at
+    checkout (added to the order total with products).
   */
   deliveryNotice:
-    "Delivery is not included in the prices below. You pay the delivery cost for your address; we confirm it before dispatch.",
+    "Delivery is not included in the prices below. At checkout you pick your area and pay that fee with your products.",
   /*
     `meta` was removed on 2026-09-08 — a "Batch No. 842" and a
     "Kettle Fry Date: Today" the mock invented. Nothing tracked either, and the
@@ -84,7 +83,7 @@ export const ASSURANCES = [
     icon: "truck" as const,
     /** Delivery window is the CONFIRMED 1–5 days. */
     title: `${DELIVERY.minDays}–${DELIVERY.maxDays} days nationwide delivery`,
-    body: "You pay delivery for your address — it is separate from the product price. Sealed pouches, shipped from our kitchen.",
+    body: "You pick a delivery area at checkout — that fee is added to your total and paid with the products. Sealed pouches, shipped from our kitchen.",
   },
 ];
 
@@ -177,7 +176,7 @@ export const ANNOUNCEMENT = {
 export const PRODUCT_ASSURANCES = [
   {
     icon: "truck" as const,
-    label: `Nationwide delivery in ${DELIVERY.minDays}–${DELIVERY.maxDays} business days — you pay delivery, separate from the product price`,
+    label: `Nationwide delivery in ${DELIVERY.minDays}–${DELIVERY.maxDays} business days — pick your area fee at checkout`,
   },
   {
     icon: "mail" as const,

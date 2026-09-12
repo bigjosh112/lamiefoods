@@ -1,7 +1,7 @@
 import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
 import type { Order, OrderStatus, Product } from "@lamiefoods/types";
 import { cn } from "@lamiefoods/ui";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { ArrowRightIcon, CheckIcon, ICONS } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { ORDER_SUCCESS } from "@/content/order-success";
@@ -16,11 +16,12 @@ import { formatKobo } from "@/lib/money";
  *
  * Departures from the mock, all because the claim would be false:
  *   - No payment authorisation token. There is no transaction to reference.
- *   - No "download receipt (PDF)" — nothing generates a receipt, so the control
- *     is disabled rather than dangling.
  *   - No "SMS & WhatsApp alerts synced" or "photo updates" — no notification
  *     system exists to make those promises on behalf of.
  *   - No "10% off next batch" — that is a discount the owner has never offered.
+ *
+ * PDF receipt downloads when `receiptToken` is set (real orders only). The
+ * sample preview keeps the control disabled — there is no token to authorise.
  */
 
 /** The four customer-visible stages, mapped from the domain status. */
@@ -34,12 +35,15 @@ const STAGES: { label: string; statuses: OrderStatus[] }[] = [
 export function OrderConfirmation({
   order,
   products = [],
+  receiptToken = null,
 }: {
   order: Order;
   /** For the per-item photo lookup below — a live product's current image,
    *  not part of the frozen `OrderItem` itself. Optional: an order still
    *  renders correctly (just without photos) if the caller has none handy. */
   products?: Product[];
+  /** Access token for GET /api/orders/:token/receipt. Null on sample preview. */
+  receiptToken?: string | null;
 }) {
   const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
   const { deliveryAddress } = order.customer;
@@ -134,7 +138,14 @@ export function OrderConfirmation({
             </dd>
           </div>
           <div className="flex items-baseline justify-between gap-gutter-sm">
-            <dt className="text-body-sm text-on-surface-variant">Delivery</dt>
+            <dt className="text-body-sm text-on-surface-variant">
+              Delivery
+              {order.deliveryAreaName ? (
+                <span className="block text-nutmeg normal-case">
+                  {order.deliveryAreaName}
+                </span>
+              ) : null}
+            </dt>
             <dd className="shrink-0 font-label text-label-sm text-nutmeg uppercase">
               {order.deliveryFee !== null
                 ? formatKobo(order.deliveryFee.amount)
@@ -267,14 +278,24 @@ export function OrderConfirmation({
               {ORDER_SUCCESS.continueCta}
               <ArrowRightIcon className="h-4 w-4" />
             </ButtonLink>
-            {/* Nothing generates a receipt yet, so this is honestly unavailable
-                rather than a button that downloads nothing. */}
-            <Button variant="inverted" disabled aria-describedby="receipt-note">
-              {ORDER_SUCCESS.receiptCta}
-            </Button>
-            <p id="receipt-note" className="text-body-sm text-linen/60">
-              {ORDER_SUCCESS.receiptNote}
-            </p>
+            {receiptToken ? (
+              <ButtonAnchor
+                href={`/api/orders/${encodeURIComponent(receiptToken)}/receipt`}
+                variant="inverted"
+                download
+              >
+                {ORDER_SUCCESS.receiptCta}
+              </ButtonAnchor>
+            ) : (
+              <>
+                <Button variant="inverted" disabled aria-describedby="receipt-note">
+                  {ORDER_SUCCESS.receiptCta}
+                </Button>
+                <p id="receipt-note" className="text-body-sm text-linen/60">
+                  {ORDER_SUCCESS.receiptPreviewNote}
+                </p>
+              </>
+            )}
           </div>
         </section>
 

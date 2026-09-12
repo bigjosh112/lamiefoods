@@ -39,6 +39,9 @@ export interface OrderEmailInput {
   customer: CustomerDetails;
   items: OrderItem[];
   subtotal: Money;
+  deliveryFee: Money;
+  deliveryAreaName: string;
+  total: Money;
   paymentMethod: PaymentMethod;
 }
 
@@ -110,16 +113,24 @@ function ctaButton(href: string, label: string): string {
   </table>`;
 }
 
-function amountCallout(label: string, amountKobo: number): string {
+function amountCallout(
+  label: string,
+  amountKobo: number,
+  note = "Products + delivery for your selected area",
+): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;background:${C.canvas};border:1px solid ${C.rule};border-radius:4px;">
     <tr>
       <td style="padding:18px 20px;">
         <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:${C.nutmeg};">${escapeHtml(label)}</p>
         <p style="margin:0;font-size:28px;line-height:1.2;font-weight:700;color:${C.cacao};">${formatKobo(amountKobo)}</p>
-        <p style="margin:8px 0 0;font-size:13px;color:${C.nutmeg};">Products only — delivery quoted separately</p>
+        <p style="margin:8px 0 0;font-size:13px;color:${C.nutmeg};">${escapeHtml(note)}</p>
       </td>
     </tr>
   </table>`;
+}
+
+function owedAmount(order: Pick<Order, "subtotal" | "total">): number {
+  return order.total?.amount ?? order.subtotal.amount;
 }
 
 function customerCard(customer: CustomerDetails): string {
@@ -266,7 +277,17 @@ function shell(
 
 /** Sent to the customer. Confirms a record, not a payment. */
 export function customerEmail(input: OrderEmailInput): Mail {
-  const { reference, customer, items, subtotal, token, paymentMethod } = input;
+  const {
+    reference,
+    customer,
+    items,
+    subtotal,
+    deliveryFee,
+    deliveryAreaName,
+    total,
+    token,
+    paymentMethod,
+  } = input;
   const link = `${siteUrl}/order-success?token=${encodeURIComponent(token)}`;
   const name = escapeHtml(customer.fullName);
   const payment = paymentMethodNote(paymentMethod);
@@ -278,7 +299,8 @@ We have received your order ${reference}.
 ${itemLines(items)}
 
 Subtotal: ${formatKobo(subtotal.amount)}
-Delivery: not yet quoted — we will confirm the cost with you by email before any payment is taken.
+Delivery (${deliveryAreaName}): ${formatKobo(deliveryFee.amount)}
+Total due: ${formatKobo(total.amount)}
 
 NOTHING HAS BEEN CHARGED YET. ${payment.text}
 
@@ -298,12 +320,16 @@ ${BRAND.instagramUrl}`;
 
      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;font-size:14px;">
        <tr>
-         <td style="padding:10px 0;font-weight:600;">Subtotal</td>
-         <td style="padding:10px 0;text-align:right;font-weight:600;">${formatKobo(subtotal.amount)}</td>
+         <td style="padding:10px 0;">Subtotal</td>
+         <td style="padding:10px 0;text-align:right;">${formatKobo(subtotal.amount)}</td>
        </tr>
        <tr>
-         <td style="padding:0 0 4px;color:${C.nutmeg};">Delivery</td>
-         <td style="padding:0 0 4px;text-align:right;color:${C.nutmeg};">Not yet quoted</td>
+         <td style="padding:0 0 4px;color:${C.nutmeg};">Delivery (${escapeHtml(deliveryAreaName)})</td>
+         <td style="padding:0 0 4px;text-align:right;color:${C.nutmeg};">${formatKobo(deliveryFee.amount)}</td>
+       </tr>
+       <tr>
+         <td style="padding:10px 0;font-weight:600;">Total due</td>
+         <td style="padding:10px 0;text-align:right;font-weight:600;">${formatKobo(total.amount)}</td>
        </tr>
      </table>
 
@@ -327,7 +353,17 @@ ${BRAND.instagramUrl}`;
 
 /** Sent to the shop. Carries what is needed to actually pack and deliver. */
 export function ownerEmail(input: OrderEmailInput & { to: string }): Mail {
-  const { reference, customer, items, subtotal, to, paymentMethod } = input;
+  const {
+    reference,
+    customer,
+    items,
+    subtotal,
+    deliveryFee,
+    deliveryAreaName,
+    total,
+    to,
+    paymentMethod,
+  } = input;
   const address = customer.deliveryAddress;
   const methodLine =
     paymentMethod === "paystack"
@@ -340,6 +376,8 @@ export function ownerEmail(input: OrderEmailInput & { to: string }): Mail {
 ${itemLines(items)}
 
 Subtotal: ${formatKobo(subtotal.amount)}
+Delivery (${deliveryAreaName}): ${formatKobo(deliveryFee.amount)}
+Total due: ${formatKobo(total.amount)}
 
 ${customer.fullName}
 ${customer.phone}
@@ -354,9 +392,20 @@ Open in admin: ${adminLink}`;
 
   const html = shell(
     `New order ${escapeHtml(reference)}`,
-    `${amountCallout("Subtotal", subtotal.amount)}
+    `${amountCallout("Total due", total.amount)}
 
      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">${itemRows(items)}</table>
+
+     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;font-size:14px;">
+       <tr>
+         <td style="padding:10px 0;">Subtotal</td>
+         <td style="padding:10px 0;text-align:right;">${formatKobo(subtotal.amount)}</td>
+       </tr>
+       <tr>
+         <td style="padding:0 0 4px;color:${C.nutmeg};">Delivery (${escapeHtml(deliveryAreaName)})</td>
+         <td style="padding:0 0 4px;text-align:right;color:${C.nutmeg};">${formatKobo(deliveryFee.amount)}</td>
+       </tr>
+     </table>
 
      ${customerCard(customer)}
 
@@ -382,10 +431,14 @@ export function paymentConfirmedEmail(order: Order, accessToken: string): Mail {
   const { reference, customer } = order;
   const link = `${siteUrl}/order-success?token=${encodeURIComponent(accessToken)}`;
   const name = escapeHtml(customer.fullName);
+  const paid = owedAmount(order);
+  const areaNote = order.deliveryAreaName
+    ? ` (including delivery to ${order.deliveryAreaName})`
+    : "";
 
   const text = `Hello ${customer.fullName},
 
-We've received your payment for order ${reference} — ${formatKobo(order.subtotal.amount)} for your products (delivery is still quoted separately).
+We've received your payment for order ${reference} — ${formatKobo(paid)}${areaNote}.
 
 We'll email you again once your order is on its way. Delivery usually takes ${deliveryWindow} after dispatch.
 
@@ -399,7 +452,7 @@ ${BRAND.displayName}`;
      ${progressSteps("paid")}
      <p style="margin:0 0 18px;font-size:15px;line-height:1.55;">Hello ${name}, thank you — we've received your payment.</p>
 
-     ${amountCallout("Amount paid", order.subtotal.amount)}
+     ${amountCallout("Amount paid", paid)}
 
      <p style="margin:0;font-size:14px;line-height:1.55;color:${C.nutmeg};">
        We'll email you again once your order is on its way — delivery usually
@@ -428,11 +481,16 @@ export function ownerPaymentConfirmedEmail(order: Order, to: string): Mail {
   const adminLink = `${siteUrl}${ADMIN_ROUTES.order(reference)}`;
   const method =
     order.paymentMethod === "paystack" ? "Paystack" : "bank transfer (manual)";
+  const paid = owedAmount(order);
+  const areaLine = order.deliveryAreaName
+    ? `Delivery area: ${order.deliveryAreaName}`
+    : "Delivery area: (legacy order — none recorded)";
 
   const text = `Payment received for order ${reference}
 
-${formatKobo(order.subtotal.amount)} for products (delivery still separate).
+${formatKobo(paid)} total (products + delivery).
 Paid via ${method}.
+${areaLine}
 
 ${customer.fullName}
 ${customer.phone}
@@ -448,10 +506,12 @@ ${BRAND.displayName}`;
   const html = shell(
     `Paid — ${escapeHtml(reference)}`,
     `<p style="margin:0 0 18px;font-size:15px;line-height:1.55;">
-       Payment cleared via <strong>${escapeHtml(method)}</strong>. Delivery is still quoted separately.
+       Payment cleared via <strong>${escapeHtml(method)}</strong>.
      </p>
 
-     ${amountCallout("Amount received", order.subtotal.amount)}
+     ${amountCallout("Amount received", paid)}
+
+     <p style="margin:0 0 16px;font-size:14px;color:${C.nutmeg};">${escapeHtml(areaLine)}</p>
 
      ${customerCard(customer)}
 

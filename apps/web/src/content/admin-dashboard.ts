@@ -48,7 +48,10 @@ export const ADMIN_NAV_SECTIONS = [
   },
   {
     title: "Configuration",
-    items: [{ label: "Settings", href: ADMIN_ROUTES.settings, icon: "gear" as const }],
+    items: [
+      { label: "Delivery areas", href: ADMIN_ROUTES.deliveryAreas, icon: "box" as const },
+      { label: "Settings", href: ADMIN_ROUTES.settings, icon: "gear" as const },
+    ],
   },
 ];
 

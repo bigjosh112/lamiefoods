@@ -5,18 +5,20 @@ import { ImageSlot } from "@/components/ui/image-slot";
 import { CHECKOUT } from "@/content/checkout";
 import { formatKobo } from "@/lib/money";
 import { useCart } from "@/lib/cart/use-cart";
+import { useCheckoutDelivery } from "@/lib/checkout/delivery-context";
 
 /**
  * Order summary beside the checkout form.
  *
- * Reads the same cart store as every other surface, so what someone pays for is
- * what they put in the bag — there is no second copy of the totals to drift.
- *
- * Payment itself still happens on `/order-success`; this panel only shows the
- * product subtotal (with discounts applied) and an honest delivery note.
+ * Reads the same cart store as every other surface, plus the selected delivery
+ * area from checkout context, so the total due matches what Paystack / bank
+ * transfer will charge after place-order.
  */
 export function CheckoutSummary() {
   const { items, count, subtotal, isEmpty } = useCart();
+  const { selectedArea } = useCheckoutDelivery();
+  const deliveryFee = selectedArea?.feeKobo ?? null;
+  const totalDue = deliveryFee === null ? null : subtotal + deliveryFee;
 
   return (
     <aside className="rounded border border-rule/70 bg-surface-container p-inset-card">
@@ -100,6 +102,19 @@ export function CheckoutSummary() {
         </div>
         <div className="flex items-baseline justify-between gap-gutter-sm">
           <dt className="text-body-sm text-on-surface-variant">
+            {CHECKOUT.summary.deliveryLabel}
+            {selectedArea ? (
+              <span className="block text-nutmeg normal-case">{selectedArea.name}</span>
+            ) : null}
+          </dt>
+          <dd className="shrink-0 text-right font-numeral text-label-md text-cacao">
+            {deliveryFee === null
+              ? CHECKOUT.summary.deliveryPending
+              : formatKobo(deliveryFee)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-gutter-sm">
+          <dt className="text-body-sm text-on-surface-variant">
             {CHECKOUT.summary.dispatchLabel}
           </dt>
           <dd className="shrink-0 text-right font-label text-label-sm text-nutmeg uppercase">
@@ -114,7 +129,9 @@ export function CheckoutSummary() {
             {CHECKOUT.summary.totalLabel}
           </span>
           <span className="font-display text-headline-md text-terracotta">
-            {formatKobo(subtotal)}
+            {totalDue === null
+              ? `${formatKobo(subtotal)} + delivery`
+              : formatKobo(totalDue)}
           </span>
         </div>
         <p className="mt-1 text-right text-body-sm text-nutmeg">

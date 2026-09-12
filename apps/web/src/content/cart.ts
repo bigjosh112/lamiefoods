@@ -50,7 +50,7 @@ export const CART = {
   summary: {
     deliveryNote: `Typical dispatch: ${DELIVERY.minDays}–${DELIVERY.maxDays} business days`,
     /** UNVERIFIED — VAT treatment is a tax question for the owner. */
-    totalNote: "Excludes delivery",
+    totalNote: "Delivery fee is added at checkout",
     badges: ["Guest checkout", "No account needed"],
   },
 

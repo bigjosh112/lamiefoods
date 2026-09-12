@@ -118,7 +118,7 @@ export default async function OrderSuccessPage({
                   <PaymentActions
                     token={resolvedToken}
                     reference={order.reference}
-                    amountKobo={order.subtotal.amount}
+                    amountKobo={order.total?.amount ?? order.subtotal.amount}
                     initialMethod={order.paymentMethod}
                     whatsappNumber={paymentSettings.whatsappNumber}
                     bankTransfer={paymentSettings.bankTransfer}
@@ -127,7 +127,11 @@ export default async function OrderSuccessPage({
               )}
 
               <div className="mt-gutter-lg">
-                <OrderConfirmation order={order} products={products} />
+                <OrderConfirmation
+                  order={order}
+                  products={products}
+                  receiptToken={resolvedToken}
+                />
               </div>
             </>
           ) : showSample && sampleOrder ? (

@@ -3,6 +3,11 @@ import { createOrderSchema, type CreateOrderResponse } from "@/lib/orders/order-
 import { isDatabaseConfigured } from "@/config/server-env";
 import { priceLines, subtotalOf, UnknownLineError } from "@/server/orders/pricing";
 import { createOrder } from "@/server/orders/repository";
+import {
+  DeliveryAreaInactiveError,
+  DeliveryAreaNotFoundError,
+  getActiveDeliveryAreaById,
+} from "@/server/delivery/repository";
 import { customerEmail, ownerEmail } from "@/server/email/order-emails";
 import { sendMail } from "@/server/email/send";
 import { serverEnv } from "@/config/server-env";
@@ -29,7 +34,6 @@ export async function POST(request: NextRequest) {
   }
 
   if (!isDatabaseConfigured()) {
-    // Honest failure, not a fake success — the storefront rule extends to the API.
     return NextResponse.json(
       { error: "Ordering is not connected yet. No order has been recorded." },
       { status: 503 },
@@ -51,10 +55,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let deliveryArea;
+  try {
+    deliveryArea = await getActiveDeliveryAreaById(parsed.data.deliveryAreaId);
+  } catch (error) {
+    if (
+      error instanceof DeliveryAreaNotFoundError ||
+      error instanceof DeliveryAreaInactiveError
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
+  }
+
   let items;
   try {
-    // Re-priced from the catalogue here — nothing from `parsed.data` carries a
-    // price for this to trust in the first place.
     items = await priceLines(parsed.data.lines);
   } catch (error) {
     if (error instanceof UnknownLineError) {
@@ -67,11 +82,25 @@ export async function POST(request: NextRequest) {
   }
 
   const subtotal = subtotalOf(items);
+  const totalKobo = subtotal.amount + deliveryArea.fee.amount;
   const { customer, paymentMethod } = parsed.data;
+
+  // Snapshot the area name into city for riders when the form only picked an area.
+  const customerWithCity = {
+    ...customer,
+    deliveryAddress: {
+      ...customer.deliveryAddress,
+      city: customer.deliveryAddress.city || deliveryArea.name,
+    },
+  };
 
   let created;
   try {
-    created = await createOrder(customer, items, paymentMethod);
+    created = await createOrder(customerWithCity, items, paymentMethod, {
+      areaId: deliveryArea.id,
+      areaName: deliveryArea.name,
+      feeKobo: deliveryArea.fee.amount,
+    });
   } catch (error) {
     console.error("[api/orders] Failed to write order:", error);
     return NextResponse.json(
@@ -82,16 +111,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Email is best-effort and happens after the write: an order that is already
-  // saved must not be reported as failed because mail had a bad minute.
   const { ORDER_EMAIL_TO } = serverEnv();
   const emailInput = {
     reference: created.reference,
     token: created.token,
-    customer,
+    customer: customerWithCity,
     items,
     subtotal,
     paymentMethod,
+    deliveryFee: deliveryArea.fee,
+    deliveryAreaName: deliveryArea.name,
+    total: { amount: totalKobo, currency: "NGN" as const },
   };
 
   await sendMail(customerEmail(emailInput));
@@ -102,7 +132,7 @@ export async function POST(request: NextRequest) {
   const response: CreateOrderResponse = {
     reference: created.reference,
     token: created.token,
-    amountKobo: subtotal.amount,
+    amountKobo: totalKobo,
   };
   return NextResponse.json(response, { status: 201 });
 }

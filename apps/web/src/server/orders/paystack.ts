@@ -112,7 +112,7 @@ export async function confirmPaystackPayment(
     // actually owed — this is the check that makes it safe to accept a
     // client-reported reference at all.
     throw new PaystackVerificationFailedError(
-      `Paid amount (${data.amount}) does not match the order subtotal (${expectedAmountKobo}).`,
+      `Paid amount (${data.amount}) does not match the order total (${expectedAmountKobo}).`,
     );
   }
 

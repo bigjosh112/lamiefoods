@@ -46,11 +46,9 @@ export const checkoutSchema = z.object({
     .min(3, { message: "A nearby landmark helps the rider find you" })
     .max(160, { message: "That landmark is too long" }),
   state: z.string().trim().min(1, { message: "Select a state" }),
-  city: z
-    .string()
-    .trim()
-    .min(2, { message: "Enter the city or delivery area" })
-    .max(80, { message: "That is too long" }),
+  /** Server looks up the fee; city is filled from the area name on submit. */
+  deliveryAreaId: z.uuid({ message: "Select a delivery area" }),
+  city: z.string().trim().min(2).max(80),
 });
 
 /** Values as the form holds them, before zod transforms the phone number. */
