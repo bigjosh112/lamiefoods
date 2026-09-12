@@ -25,6 +25,9 @@ export function Pillars() {
         <p className="mt-gutter-sm text-body-md text-on-surface-variant">
           {PILLARS.body}
         </p>
+        <p className="mt-gutter-sm text-body-md text-on-surface-variant">
+          {PILLARS.intro}
+        </p>
       </Reveal>
 
       <ul className="mt-gutter-xl grid gap-gutter-lg md:grid-cols-3">
@@ -46,6 +49,14 @@ export function Pillars() {
           );
         })}
       </ul>
+
+      {/* Closing line. `mt-gutter-xl` mirrors the grid's own top spacing, so it
+          sits as far below the columns as they sit below the intro. */}
+      <Reveal delay={0.3}>
+        <p className="mt-gutter-xl text-center text-body-lg text-cacao">
+          {PILLARS.closing}
+        </p>
+      </Reveal>
     </Section>
   );
 }

@@ -144,6 +144,73 @@ export const MailIcon = (p: IconProps) => (
   </svg>
 );
 
+/*
+ * ── Brand marks ─────────────────────────────────────────────────────────────
+ *
+ * These three are NOT part of the line-icon set above. They carry each
+ * platform's own colours, so they set `fill` and deliberately do not spread
+ * `iconProps` — no `stroke: currentColor`, which is what lets the rest of the
+ * set inherit text colour. A parent's `text-*` class has no effect on them.
+ *
+ * The Instagram gradient needs an element id. The footer is the only place
+ * these render and it appears once per page, so a fixed id is safe; if one of
+ * these is ever used twice in the same document, the id must be made unique
+ * per instance or the second copy will reference the first one's gradient.
+ */
+export const InstagramBrandIcon = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...p}>
+    <defs>
+      <linearGradient id="lamieInstagramGradient" x1="2" y1="22" x2="22" y2="2">
+        <stop offset="0%" stopColor="#FEDA75" />
+        <stop offset="25%" stopColor="#FA7E1E" />
+        <stop offset="50%" stopColor="#D62976" />
+        <stop offset="75%" stopColor="#962FBF" />
+        <stop offset="100%" stopColor="#4F5BD5" />
+      </linearGradient>
+    </defs>
+    <rect
+      x="2"
+      y="2"
+      width="20"
+      height="20"
+      rx="5.5"
+      fill="url(#lamieInstagramGradient)"
+    />
+    <circle cx="12" cy="12" r="4.6" fill="none" stroke="#fff" strokeWidth="1.9" />
+    <circle cx="17.3" cy="6.7" r="1.25" fill="#fff" />
+  </svg>
+);
+
+export const WhatsAppIcon = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...p}>
+    <path
+      fill="#25D366"
+      d="M12.04 2a9.94 9.94 0 0 0-8.5 15.15L2 22.5l5.5-1.44A9.94 9.94 0 1 0 12.04 2Zm0 1.9a8.04 8.04 0 1 1-4.1 14.95l-.3-.18-3.26.86.87-3.18-.2-.31A8.04 8.04 0 0 1 12.04 3.9Z"
+    />
+    <path
+      fill="#25D366"
+      d="M9.3 7.3c-.2-.45-.4-.46-.6-.47h-.5c-.17 0-.45.07-.69.33-.24.25-.9.88-.9 2.15 0 1.26.92 2.48 1.05 2.65.13.17 1.79 2.86 4.42 3.9 2.18.86 2.62.69 3.1.64.47-.04 1.52-.62 1.74-1.22.21-.6.21-1.12.15-1.22-.06-.1-.23-.17-.48-.3-.25-.12-1.5-.73-1.73-.81-.23-.09-.4-.13-.57.12-.17.26-.65.82-.8.99-.14.17-.29.19-.54.06-.25-.12-1.06-.39-2.02-1.24-.75-.67-1.25-1.49-1.4-1.74-.14-.25-.01-.39.11-.51.11-.12.25-.29.37-.44.12-.15.16-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.54-1.33-.76-1.83Z"
+    />
+  </svg>
+);
+
+export const GmailIcon = (p: IconProps) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...p}>
+    <path fill="#fff" d="M4 7h16v11H4z" />
+    <path
+      fill="#4285F4"
+      d="M1.6 19a.9.9 0 0 1-.9-.9V7.7c0-1.24 1.42-1.95 2.4-1.2l1.4 1.05V19Z"
+    />
+    <path
+      fill="#34A853"
+      d="M22.4 19a.9.9 0 0 0 .9-.9V7.7c0-1.24-1.42-1.95-2.4-1.2L19.5 7.55V19Z"
+    />
+    <path fill="#FBBC04" d="m19.5 7.55 3.8-2.85V8.2l-3.8 2.85Z" />
+    <path fill="#C5221F" d="m4.5 7.55-3.8-2.85V8.2l3.8 2.85Z" />
+    <path fill="#EA4335" d="M4.5 7.55 12 13.17l7.5-5.62v3.5L12 16.67 4.5 11.05Z" />
+  </svg>
+);
+
 export const BoxIcon = (p: IconProps) => (
   <svg {...iconProps} {...p}>
     <path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5 12 12l9-4.5M12 12v9" />
@@ -232,6 +299,9 @@ export const ICONS = {
   instagram: InstagramIcon,
   chat: ChatIcon,
   mail: MailIcon,
+  instagramBrand: InstagramBrandIcon,
+  whatsapp: WhatsAppIcon,
+  gmail: GmailIcon,
   box: BoxIcon,
   leaf: LeafIcon,
   sound: SoundIcon,

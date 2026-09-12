@@ -317,6 +317,64 @@
 - **Next / open threads:** Owner enters bank details; register Paystack
   webhook on production domain; optional create-time stock check later.
 
+## 2026-09-12 — Client copy pass: manifesto, pillars, footer
+
+- **Done:** Replaced client-supplied copy across three landing sections and
+  rewired the footer's contact channels. 8 files.
+- **Files:** `content/landing.ts`, `content/shop.ts`, `components/landing/manifesto.tsx`,
+  `components/landing/pillars.tsx`, `components/layout/site-footer.tsx`,
+  `components/ui/icons.tsx`, `packages/config/src/brand.ts`.
+- **The manifesto's three stats are gone** — "100% Churned Dairy Butter",
+  "48 Hrs Kettle To Pack", "Zero Artificial Preservatives". They were the
+  section's last UNVERIFIED claims (GAP-004) and asserted a butterfat
+  composition, a production window and a preservative-free declaration that
+  nobody had confirmed. Replaced by a Quality / Care / Taste feature block that
+  states no measurable fact. The element changed `<dl>` to `<ul>`: the
+  description list existed only because a figure and its label were a
+  term/definition pair (hence the `sr-only` `<dt>`), and the new content has no
+  such pairing. Matches `pillars.tsx`.
+- **The pillars lost their operational claims too** — named ingredients, "made
+  in small pots, not mass-produced", "ships within hours of cooling", and the
+  pouch sizes. Those were owner-written, not invented, but the replacement
+  describes standards instead of specifics, so it no longer needs re-checking
+  when the kitchen, pack range or fulfilment timing changes.
+- **First real phone number and email in the codebase.** Both went into
+  `BRAND` (packages/config), whose own header says not to invent phone numbers
+  — they are confirmed now, so that is where they belong rather than inline in
+  a component. Two forms each: a display form for the accessible name and a
+  `wa.me` / `mailto:` form for the href, because wa.me takes digits only and
+  deriving one from the other by hand would eventually drift.
+- **Footer link handling needed real work, not just data.** The columns render
+  with Next's `<Link>`, which adds no `target`/`rel`; "Contact us" is the first
+  external URL in them, so external detection was added. `mailto:` is treated
+  as external but deliberately does NOT get `target="_blank"` — that strands a
+  blank tab once the mail client opens.
+- **Typecheck caught a genuine regression:** with all three contacts linked,
+  the "no destination yet" fallback branch became unreachable and `entry`
+  narrowed to `never`. That branch enforces the site-wide rule that a link with
+  nowhere to go renders as plain text rather than pointing at a 404, so it was
+  kept and the array given an explicit `ContactEntry` type with
+  `href: string | null`.
+- **Three brand marks added to `icons.tsx`** (Instagram gradient, WhatsApp
+  green, Gmail). They set `fill` and deliberately do not spread `iconProps`, so
+  they ignore inherited text colour — three now-inert classes were removed from
+  the footer chips as a result. NOTE: the Gmail glyph is hand-authored, not
+  Google's official asset, and Google's brand guidelines discourage using the
+  Gmail logo to represent email generically.
+- **Docs updated:** progress.md.
+- **Gaps:** GAP-004 reduced again; not closed.
+- **Verified:** typecheck 5/5, prettier clean, changed files lint clean,
+  production build 2/2, and every copy change confirmed against the rendered
+  HTML rather than the source.
+- **`npm run lint` fails on pre-existing errors** in
+  `components/product/product-gallery.tsx` (ref written during render;
+  `Date.now()` called during render), from commit `632344f`. Untouched here and
+  unrelated. Turbo had been serving a cached lint result, which is why they had
+  not surfaced.
+- **Next / open threads:** The database catalogue has changed under us — see
+  the note in the next entry's thread. `.gitignore`'s stray `/docs` line is
+  still uncommitted.
+
 ## 2026-09-10 — Site-wide typography: Fraunces + General Sans
 
 - **Done:** Replaced the three-typeface system (Bodoni Moda / Epilogue / Space

@@ -12,10 +12,19 @@ import { MANIFESTO } from "@/content/landing";
  * photograph was removed at the owner's request, along with all the positioning
  * it needed. The picture now stands alone.
  *
- * The stat row carries no card either: a hairline separates it from the copy
- * above, and spacing separates the three figures from each other — no vertical
- * rules. The eyebrow runs in sentence case with no leading rule, overridden at
- * the call site since `Eyebrow` is shared.
+ * The feature row carries no card either: a hairline separates it from the
+ * copy above, and spacing separates the three columns from each other — no
+ * vertical rules. The eyebrow runs in sentence case with no leading rule,
+ * overridden at the call site since `Eyebrow` is shared.
+ *
+ * That row was a `<dl>` while it held three figures, because a value and its
+ * label really were a term/definition pair (the visible order put the value
+ * first, so the `<dt>` had to be `sr-only` to keep the markup honest). The
+ * client's replacement copy is a plain feature list — a title, a caps
+ * subheading and a line of description — with no such pairing, so it is a
+ * `<ul>` of `<li>` now, matching `pillars.tsx`. The `<li>` elements are the
+ * grid children directly; no wrapper `<div>`, which would be invalid inside
+ * a list.
  */
 export function Manifesto() {
   return (
@@ -39,22 +48,17 @@ export function Manifesto() {
             </p>
           ))}
 
-          <dl className="mt-gutter-lg grid gap-gutter-lg border-t border-rule/70 pt-gutter-md sm:grid-cols-3">
-            {MANIFESTO.stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="sr-only">{stat.label}</dt>
-                <dd>
-                  <span className="block font-display text-headline-md text-terracotta">
-                    {stat.value}
-                  </span>
-                  <span className="mt-1 block font-label text-label-sm text-cacao uppercase">
-                    {stat.label}
-                  </span>
-                  <span className="block text-body-sm text-nutmeg">{stat.note}</span>
-                </dd>
-              </div>
+          <ul className="mt-gutter-lg grid gap-gutter-lg border-t border-rule/70 pt-gutter-md sm:grid-cols-3">
+            {MANIFESTO.features.map((feature) => (
+              <li key={feature.title}>
+                <h3 className="text-headline-md text-terracotta">{feature.title}</h3>
+                <p className="mt-1 font-label text-label-sm text-cacao uppercase">
+                  {feature.subheading}
+                </p>
+                <p className="text-body-sm text-nutmeg">{feature.description}</p>
+              </li>
             ))}
-          </dl>
+          </ul>
         </Reveal>
       </div>
     </Section>

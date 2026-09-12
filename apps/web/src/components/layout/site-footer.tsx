@@ -14,9 +14,32 @@ import { FOOTER_COLUMNS } from "@/content/shop";
  *
  * One deliberate departure from the design mock: the copyright uses "Lamie
  * Foods", not "Lamie Foods Enterprise" (the customer-facing name). The
- * "Website by Basil Studio" credit ships as plain text, not a link — the owner
- * confirmed it but supplied no URL to link to.
+ * "Website by Basil Studio" credit now links to the studio's Instagram; it
+ * shipped as plain text until the owner supplied that URL.
+ *
+ * The three contact icons are brand marks carrying their own colours, so the
+ * chip below sets no text colour on them — `text-cacao` and
+ * `hover:text-terracotta` would be inert. The border still reacts to hover,
+ * and an entry with no destination keeps `opacity-60` to read as inactive.
  */
+const columnLinkClass =
+  "inline-flex min-h-9 items-center text-body-sm text-on-surface-variant transition-colors hover:text-terracotta";
+
+/**
+ * Whether an href leaves this site. `mailto:` and `tel:` count as external —
+ * they hand off to another application — but they must NOT get
+ * `target="_blank"`, which would leave a blank tab behind after the mail
+ * client opens. Only http(s) destinations open in a new tab.
+ */
+function isExternal(href: string): boolean {
+  return /^(https?:|mailto:|tel:)/.test(href);
+}
+
+function externalLinkProps(href: string) {
+  if (!/^https?:/.test(href)) return {};
+  return { target: "_blank", rel: "noopener noreferrer" } as const;
+}
+
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
@@ -61,17 +84,16 @@ export function SiteFooter() {
               {FOOTER.contact.map((entry) => {
                 const Icon = ICONS[entry.icon];
                 const className =
-                  "border-rule/70 bg-surface text-cacao inline-flex h-10 w-10 items-center justify-center rounded border";
+                  "border-rule/70 bg-surface inline-flex h-10 w-10 items-center justify-center rounded border";
 
                 return (
                   <li key={entry.label}>
                     {entry.href ? (
                       <a
                         href={entry.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...externalLinkProps(entry.href)}
                         aria-label={entry.label}
-                        className={`${className} transition-colors hover:border-cacao hover:text-terracotta`}
+                        className={`${className} transition-colors hover:bg-surface-container`}
                       >
                         <Icon className="h-4 w-4" />
                       </a>
@@ -80,7 +102,7 @@ export function SiteFooter() {
                       <span
                         aria-label={entry.label}
                         title={entry.label}
-                        className={`${className} text-nutmeg opacity-60`}
+                        className={`${className} opacity-60`}
                       >
                         <Icon className="h-4 w-4" />
                       </span>
@@ -100,12 +122,19 @@ export function SiteFooter() {
                 {column.links.map((link) => (
                   <li key={link.label}>
                     {link.href ? (
-                      <Link
-                        href={link.href}
-                        className="inline-flex min-h-9 items-center text-body-sm text-on-surface-variant transition-colors hover:text-terracotta"
-                      >
-                        {link.label}
-                      </Link>
+                      isExternal(link.href) ? (
+                        <a
+                          href={link.href}
+                          {...externalLinkProps(link.href)}
+                          className={columnLinkClass}
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link href={link.href} className={columnLinkClass}>
+                          {link.label}
+                        </Link>
+                      )
                     ) : (
                       <span className="inline-flex min-h-9 items-center text-body-sm text-nutmeg/70">
                         {link.label}
@@ -134,7 +163,15 @@ export function SiteFooter() {
               Staff sign-in
             </Link>
           </p>
-          <p className="text-body-sm text-nutmeg">{FOOTER.credit}</p>
+          <p className="text-body-sm text-nutmeg">
+            <a
+              href={FOOTER.credit.href}
+              {...externalLinkProps(FOOTER.credit.href)}
+              className="transition-colors hover:text-terracotta"
+            >
+              {FOOTER.credit.label}
+            </a>
+          </p>
         </div>
       </div>
     </footer>

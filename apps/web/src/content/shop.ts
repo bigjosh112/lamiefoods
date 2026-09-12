@@ -1,4 +1,4 @@
-import { DELIVERY, ROUTES } from "@lamiefoods/config";
+import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
 
 /**
  * Copy for the shop page. Products themselves come from `products.ts`.
@@ -129,17 +129,24 @@ export const FOOTER_COLUMNS = [
   {
     title: "Customer Care",
     links: [
-      { label: "Track Order", href: null },
-      { label: "Delivery Schedule", href: null },
+      /* "Track Order" and "Delivery Schedule" removed 2026-09-12. Neither
+         existed: there is no order-tracking page, and no delivery schedule has
+         been published. Both were dead text advertising services the brand
+         does not yet offer. */
       { label: "Bulk & Events", href: null },
-      { label: "Contact us", href: null },
+      /* Points at the same WhatsApp line as the footer's social icon — the one
+         contact channel the brand actually has. Routed through
+         `BRAND.whatsappUrl` so the number is never written twice. */
+      { label: "Contact us", href: BRAND.whatsappUrl },
     ],
   },
   {
     title: "Policies",
     links: [
+      /* "Shipping Policy" removed 2026-09-12 — delivery pricing is still
+         unquoted (orders.delivery_fee_kobo is deliberately NULL), so there is
+         no shipping policy to write, let alone link. */
       { label: "Freshness Guarantee", href: null },
-      { label: "Shipping Policy", href: null },
       { label: "Privacy Policy", href: null },
       { label: "Terms of Service", href: null },
     ],

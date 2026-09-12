@@ -64,15 +64,25 @@ export const HERO = {
 
 export const MANIFESTO = {
   eyebrow: "The Lamie manifesto",
-  title: "More than a snack. It's West African pride, in every batch.",
+  title: "Rooted in Tradition. Crafted for Today.",
   /*
-    Owner-written, 2026-09-07. "chinchin" as one word, lowercase, which is the
-    page's dominant convention — 39 one-word uses against 7 hyphenated or
-    spaced. The stragglers are noted in progress.md.
+    Owner-written, 2026-09-12, replacing the 2026-09-07 copy.
+
+    The brand name comes from `BRAND.displayName`, matching about.ts, rather
+    than a literal — the mock's "Lamie Foods Enterprise" must never reach a
+    customer-facing page, and one constant is easier to keep honest than a
+    string repeated across files.
+
+    This rewrite drops the previous ingredient specifics — real butter,
+    stone-ground nutmeg, unbleached flour — and every "chinchin" mention with
+    them. It now speaks to Nigerian favourites generally, which also suits a
+    catalogue the owner has said will widen beyond chinchin. The three stats
+    below still assert the old specifics; see the note on them.
   */
   body: [
-    "We're building a Nigerian food brand on one idea: chinchin should taste this good, every time. That starts with real ingredients, made fresh in small batches — no shortcuts.",
-    "For years, chinchin has been treated like an afterthought — sold in cellophane parcels on the roadside. We think it deserves better: real butter, stone-ground nutmeg, and unbleached flour, made with patience.",
+    `${BRAND.displayName} was built on a love for good food and a desire to give familiar Nigerian favourites the quality and attention they deserve.`,
+    "We carefully select our ingredients and take pride in every stage of preparation, creating snacks that are consistently delicious, beautifully made, and made to be enjoyed.",
+    "Because traditional favourites deserve exceptional standards.",
   ],
   image: {
     src: "/images/newchinchin1.jpeg",
@@ -84,49 +94,78 @@ export const MANIFESTO = {
     photograph was removed at the owner's request. It was supplied artwork
     (`public/images/card.png`), which is now unreferenced but left in place.
   */
-  /** UNVERIFIED — ingredient and shelf-life claims, not yet confirmed. */
-  stats: [
-    { value: "100%", label: "Churned Dairy Butter", note: "Zero synthetic margarine" },
-    { value: "48 Hrs", label: "Kettle To Pack", note: "Uncompromising freshness" },
-    { value: "Zero", label: "Artificial Preservatives", note: "Pure whole ingredients" },
-  ] as Unverified<{ value: string; label: string; note: string }[]>,
+  /*
+    Client-supplied, 2026-09-12. This REPLACES the three stats the mock
+    invented — "100% Churned Dairy Butter", "48 Hrs Kettle To Pack" and "Zero
+    Artificial Preservatives" — which were the last UNVERIFIED claims in this
+    section and are now gone from the site rather than left dormant.
+
+    That matters beyond tidiness: a butterfat composition, a production window
+    and a preservative-free declaration are all claims a customer, a competitor
+    or a regulator can hold the brand to, and none had been confirmed. Nothing
+    below asserts a measurable fact about the food.
+
+    Subheadings are stored in sentence case and uppercased by CSS, matching
+    every other caps label on the site — the casing is a typographic choice,
+    so it belongs in the stylesheet, not baked into the copy.
+  */
+  features: [
+    {
+      title: "Quality",
+      subheading: "Selected ingredients",
+      description: "Chosen with taste and quality in mind.",
+    },
+    {
+      title: "Care",
+      subheading: "Thoughtful preparation",
+      description: "Made with attention to every detail.",
+    },
+    {
+      title: "Taste",
+      subheading: "Consistently delicious",
+      description: "A satisfying crunch in every bite.",
+    },
+  ],
 };
 
 export const PILLARS = {
   eyebrow: "What goes into every batch",
-  title: "The Three Pillars of Lamie Craft",
-  body: "From the nutmeg we grind to the jar we seal it in.",
-  /**
-   * Rewritten by the owner on 2026-09-07, so these are the brand's own
-   * statements about its own kitchen rather than the mock's invented process
-   * copy. No longer UNVERIFIED — with one exception, below.
-   */
+  title: `The Three Pillars of ${BRAND.displayName}`,
+  body: "Quality. Consistency. Craftsmanship.",
+  /*
+    Client-supplied, 2026-09-12, replacing the owner's 2026-09-07 copy.
+
+    Every concrete claim this section used to make is gone with it: the named
+    ingredients ("wheat flour, real butter, farm eggs"), "made in small pots,
+    not mass-produced", "ships within hours of cooling", and the pouch count
+    and sizes. None of those were UNVERIFIED — the owner wrote them — but the
+    replacement deliberately describes standards rather than specifics, which
+    means this copy no longer has to be re-checked whenever the kitchen, the
+    pack range or the fulfilment timing changes.
+  */
+  intro:
+    "We are committed to creating food products that meet a high standard of quality, from the ingredients we select to the way each product is prepared and packaged.",
   items: [
     {
       icon: "award" as const,
       index: "Pillar 01",
-      title: "Obsessive Quality",
-      body: "Wheat flour, real butter, farm eggs, fresh-ground spices. Nothing cut, nothing swapped.",
+      title: "Quality Ingredients",
+      body: "We carefully select our ingredients to create products with great taste, texture, and quality.",
     },
     {
       icon: "timer" as const,
       index: "Pillar 02",
-      title: "Small-Batch Freshness",
-      body: "Made in small pots, not mass-produced. Every pouch ships within hours of cooling.",
+      title: "Consistent Quality",
+      body: `Every product is prepared with attention to detail, ensuring the quality and experience you expect from ${BRAND.displayName}.`,
     },
     {
-      /*
-        "in pouches, in three sizes" now matches the catalogue: the owner
-        supplied 100g / 300g / 500g pouches with prices on 2026-09-08, and
-        `products.ts` was corrected the same day. This copy led the data for a
-        few hours; it no longer does.
-      */
       icon: "sparkle" as const,
       index: "Pillar 03",
-      title: "Thoughtful Craft",
-      body: "Packed fresh in pouches, in three sizes, sealed to stay crisp.",
+      title: "Thoughtful Craftsmanship",
+      body: "From preparation to packaging, every detail is handled with care to deliver products that are made to be enjoyed.",
     },
   ],
+  closing: "Quality you can trust. Taste you'll remember.",
 };
 
 export const CRUNCH = {
@@ -238,25 +277,54 @@ export const FINAL_CTA = {
   ],
 };
 
+/**
+ * A footer contact channel.
+ *
+ * `href` is explicitly nullable even though all three channels are live today.
+ * Widening it keeps the site-wide rule enforceable — a destination that does
+ * not exist yet renders as plain text, never as a link to a 404 — so a future
+ * channel can be added before its URL is known without the footer's fallback
+ * branch becoming unreachable code that TypeScript then rejects.
+ */
+type ContactEntry = {
+  icon: "instagramBrand" | "whatsapp" | "gmail";
+  label: string;
+  href: string | null;
+};
+
 export const FOOTER = {
   tagline: BRAND.tagline,
-  /** Build credit, confirmed by the owner. Plain text — no URL supplied. */
-  credit: "Website by Basil Studio",
+  /** Build credit, confirmed by the owner. Now a link — the studio's Instagram
+   *  was supplied on 2026-09-12. */
+  credit: {
+    label: "Website by Basil Studio",
+    href: "https://www.instagram.com/basilstudio.ng",
+  },
   /* Owner-written, 2026-09-08. Uses "chinchin" one word, the site convention —
      this replaced the last "chin-chin" on the landing page. */
   body: "Nigerian-made chinchin, baked fresh in small batches with real butter and warm spices.",
-  /**
-   * Only Instagram is confirmed. The mock invented an email address and a
-   * WhatsApp line — those render as plain text, never as a live link, until
-   * the owner supplies real ones.
-   */
+  /*
+    Instagram and WhatsApp are both live as of 2026-09-12 — the owner supplied
+    the WhatsApp number, so it links out instead of reading "coming soon".
+
+    Email went live on 2026-09-12 too, when the owner supplied the address. It
+    is a `mailto:`, so the footer does not give it `target="_blank"` — that
+    would open a blank tab alongside the mail client.
+
+    These three use the brand marks, not the line-icon set — see `icons.tsx`
+    for why they ignore inherited text colour.
+  */
   contact: [
     {
-      icon: "instagram" as const,
+      icon: "instagramBrand",
       label: BRAND.instagramHandle,
       href: BRAND.instagramUrl,
     },
-    { icon: "chat" as const, label: "WhatsApp concierge — coming soon", href: null },
-    { icon: "mail" as const, label: "Email — coming soon", href: null },
-  ],
+    {
+      icon: "whatsapp",
+      label: `WhatsApp ${BRAND.whatsappNumber}`,
+      href: BRAND.whatsappUrl,
+    },
+    { icon: "gmail", label: `Email ${BRAND.email}`, href: BRAND.emailUrl },
+  ] as ContactEntry[],
 };
