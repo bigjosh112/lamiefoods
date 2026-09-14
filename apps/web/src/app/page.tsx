@@ -11,8 +11,7 @@ import { Pillars } from "@/components/landing/pillars";
 import { JsonLd } from "@/components/seo/json-ld";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
-import { isDatabaseConfigured } from "@/config/server-env";
-import { listPublishedProducts } from "@/server/products/repository";
+import { listPublishedProductsForPage } from "@/server/db/prerender-reads";
 
 /*
  * Copy here stays natural and descriptive. The category terms that matter for
@@ -45,7 +44,7 @@ export const revalidate = 60;
  * misrepresent the business to search engines. It lands with real pricing.
  */
 export default async function HomePage() {
-  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+  const products = await listPublishedProductsForPage();
   const featured = products.filter((product) => product.featureOnHomepage);
 
   return (

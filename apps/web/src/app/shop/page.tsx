@@ -8,8 +8,8 @@ import { Eyebrow, Section } from "@/components/ui/section";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
 import { SHOP } from "@/content/shop";
-import { isDatabaseConfigured } from "@/config/server-env";
-import { listPublishedProducts } from "@/server/products/repository";
+import { CatalogProvider } from "@/lib/products/catalog-context";
+import { listPublishedProductsForPage } from "@/server/db/prerender-reads";
 
 export const metadata: Metadata = buildMetadata({
   title: "Shop Chinchin",
@@ -36,12 +36,11 @@ export const metadata: Metadata = buildMetadata({
  * Offers, not the data source. Breadcrumbs are safe because they describe
  * navigation, not commerce.
  */
-import { CatalogProvider } from "@/lib/products/catalog-context";
 
 export const revalidate = 60;
 
 export default async function ShopPage() {
-  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+  const products = await listPublishedProductsForPage();
 
   return (
     <CatalogProvider products={products}>

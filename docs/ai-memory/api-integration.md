@@ -60,7 +60,11 @@
 
 - **Base URL:** same-origin. `NEXT_PUBLIC_API_URL` is checked first for a
   genuinely external backend; when unset (the normal case), `apiFetch` resolves
-  against this app's own `siteUrl` (`config/env.ts`).
+  against this app's own `siteUrl` (`config/env.ts`). On Railway
+  `@lamiefoods/web` leave `NEXT_PUBLIC_API_URL` unset and set
+  `NEXT_PUBLIC_SITE_URL=https://shoplamiefoods.com` (literal — not a Railway
+  variable self-reference). `DATABASE_URL` is `${{Postgres.DATABASE_URL}}` on
+  that same web service.
 - **Auth scheme:** none. Guest checkout only — no accounts exist (owner
   confirmed, Q12/Q13). Reading an order back is gated by a random 32-byte
   `access_token` in the URL, not a session.

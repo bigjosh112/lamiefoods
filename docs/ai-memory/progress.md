@@ -5,6 +5,25 @@
 > knows exactly where the project stands — what just happened, what's mid-flight, and
 > what's next. Keep entries short; depth belongs in the other docs.
 
+## 2026-09-14 — Fail-soft ISR so Railway `next build` can finish
+
+- **Done:** Storefront ISR pages, `generateStaticParams`, and the sitemap now
+  read the catalogue through `prerender-reads.ts`. Unset, unreachable, or
+  unmigrated Postgres logs and returns `[]` instead of crashing `next build`.
+  Route Handlers still 503. Typecheck green. Railway migrate was **not** run
+  from this machine (project not linked; wait until web is Online).
+- **Files:** `server/db/prerender-reads.ts`, homepage/shop/slug/cart/checkout/
+  sitemap, `.env.example`.
+- **Decisions:** Keep `revalidate = 60`. Do not `force-dynamic` the catalogue.
+- **Docs updated:** `architecture.md` (Railway web env + migrate commands),
+  `api-integration.md`, `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Commit + redeploy `@lamiefoods/web`. Then **new**
+  Console on web (not backend): `echo "${DATABASE_URL:+set}"` must print
+  `set`; install `postgresql-client`; apply `0001`–`0010` (skip files that
+  already exist). Set `NEXT_PUBLIC_SITE_URL=https://shoplamiefoods.com` if
+  it is still a Railway self-reference.
+
 ## 2026-09-14 — Remove checkout bank transfer
 
 - **Done:** Checkout no longer offers Bank transfer. New orders are
