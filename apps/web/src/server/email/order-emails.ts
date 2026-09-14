@@ -19,16 +19,17 @@ import { escapeHtml, type Mail } from "./send";
  * hands before it actually has. The two emails sent at order-creation time
  * (`customerEmail`/`ownerEmail`) still say nothing was charged — that's true
  * regardless of payment method, since choosing Paystack doesn't mean the
- * popup was completed. The payment / processing / shipped / delivered emails
- * below (`paymentConfirmedEmail`, `ownerPaymentConfirmedEmail`,
- * `orderProcessingEmail` / `ownerProcessingEmail`,
- * `orderShippedEmail` / `ownerShippedEmail`,
- * `orderDeliveredEmail` / `ownerDeliveredEmail`) are the ones that report
- * something as having actually happened, and each is fired exactly once —
- * payment/shipped/delivered via their timestamp guards, and processing via
- * the forward-only status transition (`paid` → `processing` — see
- * `server/orders/repository.ts`). Shop copies only send when `ORDER_EMAIL_TO`
- * is set.
+ * popup was completed. The payment / processing / shipped / delivered /
+ * cancelled emails below (`paymentConfirmedEmail`,
+ * `ownerPaymentConfirmedEmail`, `orderProcessingEmail` /
+ * `ownerProcessingEmail`, `orderShippedEmail` / `ownerShippedEmail`,
+ * `orderDeliveredEmail` / `ownerDeliveredEmail`, `orderCancelledEmail` /
+ * `ownerCancelledEmail`) are the ones that report something as having
+ * actually happened, and each is fired exactly once — payment/shipped/
+ * delivered via their timestamp guards, processing via the forward-only
+ * `paid` → `processing` transition, and cancelled via the first move to
+ * `'cancelled'` (see `server/orders/repository.ts`). Cancel copy never
+ * invents a refund. Shop copies only send when `ORDER_EMAIL_TO` is set.
  *
  * HTML is table + inline styles only (email-client safe). Colors match
  * frontend-conventions brand tokens, hardcoded as hex for the mail client.
@@ -775,6 +776,106 @@ ${BRAND.displayName}`;
   return {
     to,
     subject: `Delivered — ${reference} — ${customer.fullName}`,
+    html,
+    text,
+  };
+}
+
+/**
+ * Sent once, the moment `status` first becomes `'cancelled'`. Does not
+ * invent a refund — paid orders are told the shop will follow up.
+ */
+export function orderCancelledEmail(order: Order, accessToken: string): Mail {
+  const { reference, customer } = order;
+  const link = `${siteUrl}/order-success?token=${encodeURIComponent(accessToken)}`;
+  const name = escapeHtml(customer.fullName);
+  const paid = order.paymentStatus === "paid";
+  const moneyNote = paid
+    ? "If you already paid, we will follow up about next steps."
+    : "You were not charged.";
+
+  const text = `Hello ${customer.fullName},
+
+We've cancelled your order ${reference}. ${moneyNote}
+
+${itemLines(order.items)}
+
+View your order: ${link}
+
+${BRAND.displayName}`;
+
+  const html = shell(
+    "This order has been cancelled",
+    `${orderRefBanner(reference)}
+     <p style="margin:0 0 8px;font-size:15px;line-height:1.55;">Hello ${name}, we've cancelled your order.</p>
+
+     ${itemsSection(order.items)}
+
+     ${notice(escapeHtml(moneyNote))}
+
+     ${ctaButton(link, "View your order")}`,
+    { status: "Cancelled" },
+  );
+
+  return {
+    to: customer.email,
+    subject: `Cancelled — order ${reference}`,
+    html,
+    text,
+  };
+}
+
+/**
+ * Shop copy when an order first becomes `'cancelled'`. Only when `ORDER_EMAIL_TO` is set.
+ */
+export function ownerCancelledEmail(order: Order, to: string): Mail {
+  const { reference, customer } = order;
+  const adminLink = `${siteUrl}${ADMIN_ROUTES.order(reference)}`;
+  const paid = order.paymentStatus === "paid";
+  const moneyNote = paid
+    ? "This order was marked paid. Follow up with the customer about next steps — this email does not process a refund."
+    : "This order was unpaid. Nothing was charged.";
+
+  const text = `Cancelled — order ${reference}
+
+${moneyNote}
+
+${itemLines(order.items)}
+
+${customer.fullName}
+${customer.phone}
+${customer.email}
+${customer.deliveryAddress.addressLine}
+Landmark: ${customer.deliveryAddress.landmark}
+${customer.deliveryAddress.city}, ${customer.deliveryAddress.state}
+
+Open in admin: ${adminLink}
+
+${BRAND.displayName}`;
+
+  const html = shell(
+    `Cancelled — ${escapeHtml(reference)}`,
+    `${orderRefBanner(reference)}
+     <p style="margin:0 0 8px;font-size:15px;line-height:1.55;">
+       This order is marked <strong>cancelled</strong>.
+     </p>
+
+     ${itemsSection(order.items, "Order items")}
+
+     ${notice(escapeHtml(moneyNote))}
+
+     ${customerCard(customer)}
+
+     ${ctaButton(adminLink, "Open in admin")}`,
+    {
+      status: "Cancelled",
+      footerNote: "Shop notification — a Lamie Foods order was cancelled.",
+    },
+  );
+
+  return {
+    to,
+    subject: `Cancelled — ${reference} — ${customer.fullName}`,
     html,
     text,
   };

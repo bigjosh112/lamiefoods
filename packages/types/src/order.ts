@@ -44,11 +44,10 @@ export function canTransitionOrderStatus(
 export type PaymentStatus = "unpaid" | "paid" | "failed" | "refunded";
 
 /**
- * How the customer chose to pay, picked at checkout. `paystack` is the
- * primary path (an inline card/transfer/USSD popup, verified server-side).
- * `whatsapp_transfer` is the fallback: the customer transfers to a bank
- * account shown on `/order-success` and sends proof over WhatsApp; the owner
- * confirms receipt manually from the admin.
+ * How the customer chose to pay. New orders are always `paystack` (inline
+ * card/transfer/USSD, verified server-side). `whatsapp_transfer` remains on
+ * this union for orders placed before 2026-09-14, when checkout offered a
+ * manual bank-transfer fallback; admin can still mark those paid.
  */
 export type PaymentMethod = "paystack" | "whatsapp_transfer";
 

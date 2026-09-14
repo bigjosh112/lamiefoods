@@ -23,7 +23,7 @@
 > 3. **Delivery fee — UPDATE 2026-09-12: built.** Checkout requires
 >    `deliveryAreaId`. Server looks up an active `delivery_areas` row, sets
 >    `delivery_fee_kobo` + `total_kobo = subtotal + fee`, and snapshots the
->    area name. Paystack / bank transfer charge `amountOwedKobo` =
+>    area name. Paystack charges `amountOwedKobo` =
 >    `total ?? subtotal` (legacy unpaid orders without a fee still fall back
 >    to subtotal). Free delivery must be an explicit `fee_kobo = 0` on an
 >    area — never invent `0` when no area is selected.
@@ -118,14 +118,14 @@ template.
         "deliveryAddress": {
           "addressLine": "string, 6–160 chars",
           "landmark": "string, 3–160 chars — required, not optional",
-          "city": "string, 2–80 chars — typically the delivery area name snapshot",
-          "state": "string, 1–80 chars"
+          "city": "string, 2–80 chars — client may send the area name; server overwrites from the area",
+          "state": "string, 1–80 chars — client may send the area's Nigerian state; server overwrites from the area (checkout no longer collects State / region)"
         }
       },
       "lines": [
         { "slug": "string, matches catalogue", "pack": "string, exact pack display name, e.g. \"250g Pouch\"", "quantity": "integer 1–20" }
       ],
-      "paymentMethod": "\"paystack\" | \"whatsapp_transfer\"",
+      "paymentMethod": "\"paystack\" — new orders are Paystack-only (2026-09-14). `whatsapp_transfer` is rejected on create; it remains on stored orders placed before this change.",
       "deliveryAreaId": "uuid — must match an active row in delivery_areas"
     }
     ```
@@ -133,6 +133,11 @@ template.
     omission — see the pricing decision in `architecture.md`. Up to 24 lines.
   - **No client-sent delivery fee.** Fee always comes from the server lookup
     of `deliveryAreaId`.
+  - **No trusted client-sent city/state.** `POST /api/orders` overwrites
+    `deliveryAddress.city` with the area `name` and `deliveryAddress.state`
+    with the area `state` (Nigerian state stored on `delivery_areas`, not
+    `region` which remains `lagos | interstate`). A crafted Ibadan + Osun
+    payload cannot persist. Evidence: 2026-09-14, this repo.
 - **Response 2xx:** `201`
   ```jsonc
   { "reference": "LF-7K2QX4", "token": "base64url, 32 random bytes", "amountKobo": 760000 }
@@ -172,11 +177,20 @@ template.
   ```jsonc
   {
     "areas": [
-      { "id": "uuid", "name": "Mainland Ikeja", "feeKobo": 350000, "region": "lagos" | "interstate" }
+      {
+        "id": "uuid",
+        "name": "Mainland Ikeja",
+        "feeKobo": 350000,
+        "region": "lagos" | "interstate",
+        "state": "Lagos"
+      }
     ]
   }
   ```
   Sorted by `region` then `sort_order`. Inactive areas are omitted.
+  `state` is the Nigerian state (36 + FCT) this area ships in — used to
+  snapshot `orders.state`. Distinct from `region` (Lagos vs interstate
+  grouping). Evidence update: 2026-09-14, this repo.
 - **Errors:** `503` if DB unset; `500` on query failure.
 - **Consumed by:** checkout page loads via `listActiveDeliveryAreas()`
   in-process (Server Component); client helper `listDeliveryAreas` exists for
@@ -190,23 +204,29 @@ template.
 - **Auth:** admin session cookie.
 - **Evidence:** `apps/web/src/app/api/admin/delivery-areas/route.ts`, 2026-09-12.
 - **Response 2xx:** `{ "areas": DeliveryArea[] }` (full admin shape with
-  `sortOrder`, `active`, timestamps).
+  `state`, `sortOrder`, `active`, timestamps).
 - **Consumed by:** `/admin/delivery` UI.
 
 ### POST `/api/admin/delivery-areas`
 
 - **Purpose:** Create a delivery area.
 - **Auth:** admin session.
-- **Body:** `{ name, feeKobo, region, sortOrder?, active? }` via
-  `lib/admin/delivery-area-schema.ts`.
+- **Body:** `{ name, feeNaira, region, state, sortOrder?, active? }` via
+  `lib/admin/delivery-area-schema.ts`. Fee is entered in whole naira and
+  converted to kobo on the server. `state` is a Nigerian state from
+  `NIGERIAN_STATES`. `region: "lagos"` always stores `state: "Lagos"`
+  regardless of the submitted value.
 - **Response 2xx:** `201` with the created area.
 - **Errors:** `400` validation; `401` / `403` session; `409` duplicate name.
+- **Evidence update:** 2026-09-14 — `state` added (migration `0010`); body
+  field is `feeNaira`, not `feeKobo`.
 
 ### PATCH `/api/admin/delivery-areas/:id`
 
-- **Purpose:** Update name / fee / region / sort / active.
+- **Purpose:** Update name / fee / region / state / sort / active.
 - **Auth:** admin session.
-- **Body:** partial of the write schema (at least one field).
+- **Body:** partial of the write schema (at least one field). Switching
+  `region` to `lagos` forces `state` to `Lagos`.
 - **Response 2xx:** updated area. `404` if missing.
 
 ### DELETE `/api/admin/delivery-areas/:id`
@@ -382,9 +402,77 @@ template.
   `maxAge` 12h (or 30d if `remember`).
 - **Errors:** `400` bad body · `401` incorrect email or password (identical
   message for both — see `login-schema.ts` on why) · `429` rate limited ·
-  `503` `ADMIN_EMAIL`/`ADMIN_PASSWORD_HASH`/`ADMIN_SESSION_SECRET` not all set.
+  `503` `ADMIN_EMAIL` / `ADMIN_SESSION_SECRET` / `DATABASE_URL` not all set
+  (password hash is in `admin_auth`, bootstrapped from `ADMIN_PASSWORD_HASH`).
 - **Consumed by:** client `adminLogin` (`lib/api/admin.ts`) · no hook · UI
   `AdminLoginForm` (`components/admin/admin-login-form.tsx`)
+
+---
+
+### POST `/api/admin/forgot-password`
+
+- **Purpose:** Emails a one-hour password-reset link to `ADMIN_EMAIL` when the
+  submitted address matches. Always returns the same success body when the
+  stack is configured (no email enumeration).
+- **Auth:** none (starts the reset).
+- **Evidence:** `apps/web/src/app/api/admin/forgot-password/route.ts` +
+  `server/admin/password.ts` + `server/email/admin-emails.ts`, built 2026-09-14.
+- **Rate limit:** 5 requests / 15 min per IP.
+- **Request:** `{ "email": "string" }` (`lib/admin/password-reset-schema.ts`).
+- **Response 2xx:** `200`
+  ```jsonc
+  { "ok": true, "message": "If that email matches the admin account, a reset link is on its way. Check your inbox." }
+  ```
+- **Errors:** `400` bad email · `429` rate limited · `503` admin auth / DB /
+  Resend not configured.
+- **Quirks:** Requires migration `0009_admin_auth.sql`. Token stored as
+  SHA-256 hash; raw token only in the email URL.
+- **Consumed by:** client `adminForgotPassword` · UI
+  `AdminForgotPasswordForm`.
+
+---
+
+### POST `/api/admin/reset-password`
+
+- **Purpose:** Consumes a reset token and writes a new `password_hash` into
+  `admin_auth`.
+- **Auth:** the raw token in the body.
+- **Evidence:** `apps/web/src/app/api/admin/reset-password/route.ts`, built
+  2026-09-14.
+- **Rate limit:** 10 requests / 15 min per IP.
+- **Request:**
+  ```jsonc
+  { "token": "string", "password": "string ≥10", "confirmPassword": "string" }
+  ```
+- **Response 2xx:** `200`, `{ "ok": true }`.
+- **Errors:** `400` validation / invalid or expired token · `429` · `503` ·
+  `500` update failed.
+- **Consumed by:** client `adminResetPassword` · UI `AdminResetPasswordForm`
+  on `/admin/reset-password?token=…`.
+
+---
+
+### POST `/api/admin/change-password`
+
+- **Purpose:** Signed-in admin updates the live password hash in `admin_auth`
+  (also clears any pending reset token).
+- **Auth:** admin session cookie (`getAdminSession()`).
+- **Evidence:** `apps/web/src/app/api/admin/change-password/route.ts`, built
+  2026-09-14.
+- **Rate limit:** 10 requests / 15 min per IP.
+- **Request:**
+  ```jsonc
+  {
+    "currentPassword": "string",
+    "password": "string ≥10",
+    "confirmPassword": "string"
+  }
+  ```
+- **Response 2xx:** `200`, `{ "ok": true }`.
+- **Errors:** `401` not signed in / wrong current password · `400` validation
+  · `429` · `503` auth/DB not configured · `500` update failed.
+- **Consumed by:** client `adminChangePassword` · UI `AdminChangePasswordForm`
+  on `/admin/settings` (Access panel).
 
 ---
 
@@ -430,18 +518,20 @@ template.
   stale, or conflicting transition ·
   `503` `DATABASE_URL` unset.
 - **Side effects/idempotency:** Sends whichever milestone email was reached
-  (`justProcessing`/`justShipped`/`justDelivered`/`justPaid` from
-  `repository.updateOrderStatus`). Customer always gets the matching
+  (`justProcessing`/`justShipped`/`justDelivered`/`justPaid`/`justCancelled`
+  from `repository.updateOrderStatus`). Customer always gets the matching
   template (`paymentConfirmedEmail` / `orderProcessingEmail` /
-  `orderShippedEmail` / `orderDeliveredEmail`). When `ORDER_EMAIL_TO` is set,
-  the shop also gets `ownerPaymentConfirmedEmail` /
-  `ownerProcessingEmail` / `ownerShippedEmail` / `ownerDeliveredEmail`. The
-  transaction locks the current order and uses the persisted
+  `orderShippedEmail` / `orderDeliveredEmail` / `orderCancelledEmail`). When
+  `ORDER_EMAIL_TO` is set, the shop also gets `ownerPaymentConfirmedEmail` /
+  `ownerProcessingEmail` / `ownerShippedEmail` / `ownerDeliveredEmail` /
+  `ownerCancelledEmail`. Cancel copy never invents a refund: unpaid orders
+  are told they were not charged; paid orders are told the shop will follow
+  up. The transaction locks the current order and uses the persisted
   `shipped_at`/`delivered_at`/`paid_at` timestamps (and the forward-only
-  `paid` → `processing` transition for preparing), so a milestone
-  notification is attempted only once and a concurrent stale write cannot
-  overwrite the winning transition. Email remains best-effort: a provider
-  failure does not roll back the saved status.
+  `paid` → `processing` / first-move-to-`cancelled` transitions), so a
+  milestone notification is attempted only once and a concurrent stale write
+  cannot overwrite the winning transition. Email remains best-effort: a
+  provider failure does not roll back the saved status.
   A Paystack-paid order can never trigger the `justPaid` email through this
   route, since `confirmPaystackPayment` already sent its own the moment
   payment cleared — this route's `paymentStatus: "paid"` path exists for the

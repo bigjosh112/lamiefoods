@@ -479,6 +479,11 @@
   those email attempts. Reliability is unchanged: setting the timestamp and
   then failing to send still leaves no retry/resend path or owner-visible
   failure, so this gap remains open.
+- **Update 2026-09-14:** Cancellation now attempts `orderCancelledEmail` the
+  same best-effort way (still no retry). `sendMail` logs a hint when
+  `ORDER_EMAIL_FROM` looks like gmail/yahoo/outlook. Adding a domain in Resend
+  is not enough — FROM must be `Name <mailbox@that-verified-domain>` and
+  `next` must be restarted after env changes.
 - **Status:** open
 
 ### GAP-013 — Bank-transfer account details are unset; bank-transfer path still inert
@@ -526,8 +531,13 @@
   explicit banner when bank fields are unset, and SETTINGS copy names GAP-013
   as the blocker. Customer bank-transfer UI still refuses to invent numbers.
   No code path can finish this gap — only the owner's real account details.
-- **Status:** open — needs owner input only (bank account details); the
-  mechanism to set them without a code deploy now exists
+- **Update 2026-09-14 — customer path removed.** Owner asked to drop the
+  checkout Bank transfer option. New orders are Paystack-only;
+  `whatsapp_transfer` is rejected at create. Bank fields on `/admin/settings`
+  remain only for any older unpaid bank-transfer orders. This gap no longer
+  blocks checkout.
+- **Status:** residual — historical unpaid `whatsapp_transfer` rows only;
+  customer fallback path closed
 
 ### GAP-014 — Paystack webhook is unregistered; only tested against Paystack's test mode, not live traffic
 

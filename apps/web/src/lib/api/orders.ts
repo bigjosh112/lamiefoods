@@ -1,4 +1,4 @@
-import type { CustomerDetails, PaymentMethod } from "@lamiefoods/types";
+import type { CustomerDetails } from "@lamiefoods/types";
 import { apiFetch } from "./client";
 import type { CreateOrderRequest, CreateOrderResponse } from "@/lib/orders/order-request";
 
@@ -25,13 +25,12 @@ export interface OrderLineInput {
 export async function createOrder(
   customer: CustomerDetails,
   lines: OrderLineInput[],
-  paymentMethod: PaymentMethod,
   deliveryAreaId: string,
 ): Promise<CreateOrderResponse> {
   const payload: CreateOrderRequest = {
     customer,
     lines,
-    paymentMethod,
+    paymentMethod: "paystack",
     deliveryAreaId,
   };
   return apiFetch<CreateOrderResponse>("/api/orders", {

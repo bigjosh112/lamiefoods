@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { cn } from "@lamiefoods/ui";
-import type { PaymentMethod } from "@lamiefoods/types";
 import { Button } from "@/components/ui/button";
-import { ArrowRightIcon, CheckIcon, ICONS } from "@/components/ui/icons";
-import { CHECKOUT, NIGERIAN_STATES } from "@/content/checkout";
+import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
+import { CHECKOUT } from "@/content/checkout";
 import {
   checkoutSchema,
   toCustomerDetails,
@@ -70,17 +69,14 @@ function messageForCheckoutFailure(error: unknown): string {
  * has failed — correcting a mistake gives immediate feedback, but you are not
  * scolded while first typing.
  *
- * Payment method is chosen here but never ACTED on here — actually paying
- * happens on `/order-success`, once the order exists, since that page is
- * where a retry or a method switch also needs to work. This form's only job
- * is "create the order, redirect." All four required UI states are here —
+ * Payment itself happens on `/order-success`. This form's only job is
+ * "create the order, redirect." All four required UI states are here —
  * loading, error with retry, empty, success — per
  * `docs/ai-memory/api-integration.md`.
  */
 export function CheckoutForm() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
   const { isEmpty, items } = useCart();
   const { clearCart } = useCartActions();
   const { areas, setSelectedAreaId } = useCheckoutDelivery();
@@ -126,7 +122,6 @@ export function CheckoutForm() {
       const { token } = await createOrder(
         customer,
         orderLines,
-        paymentMethod,
         parsed.deliveryAreaId,
       );
       // Cleared only on confirmed success — a failed submit must leave the bag
@@ -221,6 +216,10 @@ export function CheckoutForm() {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
+                setValue("state", area?.state ?? "", {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
               },
             })}
           >
@@ -253,32 +252,9 @@ export function CheckoutForm() {
           <FieldError id={`${fieldId("deliveryAreaId")}-error`}>
             {errors.deliveryAreaId?.message}
           </FieldError>
-          {/* Hidden city snapshot — filled from the selected area name. */}
+          {/* Hidden snapshots — filled from the selected area. */}
           <input type="hidden" {...register("city")} />
-        </div>
-
-        <div>
-          <FieldLabel htmlFor={fieldId("state")}>
-            {CHECKOUT.delivery.stateLabel}
-          </FieldLabel>
-          <select
-            id={fieldId("state")}
-            autoComplete="address-level1"
-            aria-invalid={Boolean(errors.state)}
-            aria-describedby={errors.state ? `${fieldId("state")}-error` : undefined}
-            className={inputClasses(Boolean(errors.state))}
-            {...register("state")}
-          >
-            <option value="">Select a state</option>
-            {NIGERIAN_STATES.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          <FieldError id={`${fieldId("state")}-error`}>
-            {errors.state?.message}
-          </FieldError>
+          <input type="hidden" {...register("state")} />
         </div>
 
         <div className="mt-gutter-sm flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface-container p-gutter-sm">
@@ -299,23 +275,13 @@ export function CheckoutForm() {
         step={CHECKOUT.paymentMethod.step}
         title={CHECKOUT.paymentMethod.title}
       >
-        <div
-          className="grid gap-gutter-xs sm:grid-cols-2"
-          role="radiogroup"
-          aria-label={CHECKOUT.paymentMethod.title}
-        >
-          <PaymentMethodOption
-            selected={paymentMethod === "paystack"}
-            onSelect={() => setPaymentMethod("paystack")}
-            label={CHECKOUT.paymentMethod.paystack.label}
-            note={CHECKOUT.paymentMethod.paystack.note}
-          />
-          <PaymentMethodOption
-            selected={paymentMethod === "whatsapp_transfer"}
-            onSelect={() => setPaymentMethod("whatsapp_transfer")}
-            label={CHECKOUT.paymentMethod.whatsappTransfer.label}
-            note={CHECKOUT.paymentMethod.whatsappTransfer.note}
-          />
+        <div className="rounded border border-terracotta bg-secondary-container/40 p-gutter-sm">
+          <p className="font-label text-label-md text-cacao">
+            {CHECKOUT.paymentMethod.paystack.label}
+          </p>
+          <p className="mt-1 text-body-sm text-on-surface-variant">
+            {CHECKOUT.paymentMethod.paystack.note}
+          </p>
         </div>
       </Fieldset>
 
@@ -358,49 +324,6 @@ const inputClasses = (invalid: boolean) =>
     "mt-1 min-h-11 w-full rounded border bg-[#f8f3ec] px-3 text-body-md text-cacao placeholder:text-nutmeg/70 focus:outline-none",
     invalid ? "border-error focus:border-error" : "border-rule focus:border-terracotta",
   );
-
-/** Same visual pattern as the pack-size selector on the product page
- *  (`product-purchase.tsx`) — a radio card, not a native `<select>`, since
- *  there are only ever two options and both benefit from a visible note. */
-function PaymentMethodOption({
-  selected,
-  onSelect,
-  label,
-  note,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  label: string;
-  note: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={cn(
-        "rounded border p-gutter-sm text-left transition-colors",
-        selected
-          ? "border-terracotta bg-secondary-container/40"
-          : "border-rule bg-surface hover:border-cacao",
-      )}
-    >
-      <span className="flex items-start justify-between gap-gutter-xs">
-        <span className="font-label text-label-md text-cacao">{label}</span>
-        {selected && (
-          <span
-            aria-hidden="true"
-            className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-terracotta text-linen"
-          >
-            <CheckIcon className="h-3 w-3" />
-          </span>
-        )}
-      </span>
-      <span className="mt-1 block text-body-sm text-on-surface-variant">{note}</span>
-    </button>
-  );
-}
 
 function Fieldset({
   index,

@@ -5,6 +5,103 @@
 > knows exactly where the project stands — what just happened, what's mid-flight, and
 > what's next. Keep entries short; depth belongs in the other docs.
 
+## 2026-09-14 — Remove checkout bank transfer
+
+- **Done:** Checkout no longer offers Bank transfer. New orders are
+  Paystack-only (`createOrder` always sends `paystack`; API rejects
+  `whatsapp_transfer`). Order-success has no Bank transfer tab; the old
+  panel remains only for historical unpaid bank-transfer rows. Admin can
+  still mark those paid. Verified checkout step 3 shows Pay online now only.
+- **Files:** `checkout-form.tsx`, `checkout.ts`, `payment-actions.tsx`,
+  `order-request.ts`, `lib/api/orders.ts`, product/settings copy.
+- **Decisions:** Supersedes Paystack + bank-transfer fallback. Type/DB
+  union kept for history.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `gaps.md`
+  (GAP-013 residual), `progress.md`.
+- **Gaps:** GAP-013 no longer blocks checkout.
+- **Next / open threads:** none for this change.
+
+## 2026-09-14 — Admin change password (Settings)
+
+- **Done:** Replaced Settings “Team & access” invite/roles placeholder with an
+  Access panel showing `ADMIN_EMAIL` and a signed-in change-password form.
+  `POST /api/admin/change-password` verifies the current password against
+  `admin_auth`, writes the new hash, clears pending reset tokens; rate-limited.
+- **Files:** `change-password/route.ts`, `password-reset-schema.ts`,
+  `lib/api/admin.ts`, `admin-change-password-form.tsx`, `settings-view.tsx`,
+  `admin-settings.ts`, settings page.
+- **Decisions:** Single owner (Q21); no invite/roles; email not editable in UI;
+  forgot-password stays for lockout.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Smoke-test change password on Settings while signed in.
+
+## 2026-09-14 — Derive Nigerian state from delivery area
+
+- **Done:** Checkout no longer has a State / region picker. Each
+  `delivery_areas` row stores a Nigerian state (Ibadan → Oyo, Lagos zones →
+  Lagos). `POST /api/orders` overwrites city/state from the area so a
+  crafted mismatch cannot persist. Admin `/admin/delivery` requires State;
+  Lagos grouping locks to Lagos. Migration `0010` applied on the running DB.
+- **Files:** `migrations/0010_delivery_area_state.sql`,
+  `packages/types/src/delivery.ts`, delivery repository + admin/public APIs,
+  `checkout-form.tsx`, `delivery-areas-view.tsx`.
+- **Decisions:** State lives on the area, not the customer. `region` stays
+  lagos/interstate (fee grouping). Historical `orders.state` left as-is.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Apply `0010` on production. Confirm checkout
+  Ibadan shows Oyo on the order, and admin create of an interstate area.
+
+## 2026-09-14 — Cancel confirm panel + customer cancel email
+
+- **Done:** Replaced native `window.confirm` on admin cancel with an in-page
+  panel (detail + compact table). Cancelling now emails the customer
+  (`orderCancelledEmail`) and the shop when `ORDER_EMAIL_TO` is set. Paid
+  cancel copy does not invent a refund. `sendMail` warns if FROM looks like
+  gmail/yahoo/outlook.
+- **Files:** `order-status-control.tsx`, `order-emails.ts`,
+  `orders/[reference]/route.ts`, `repository.ts`, `send.ts`, `.env.example`.
+- **Decisions:** Confirm is inline, not a browser alert. FROM must be a
+  mailbox on the Resend-verified domain (`contact.shoplamiefoods.com`), with
+  angle brackets; adding the domain alone does not send mail.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `gaps.md`
+  (GAP-012), `progress.md`.
+- **Gaps:** GAP-012 still open (no retry / owner-visible send failure).
+- **Next / open threads:** Set `ORDER_EMAIL_FROM` to
+  `Lamie Foods <hello@contact.shoplamiefoods.com>` (or any local-part on that
+  verified host), restart `next`, then cancel a test order and check the
+  inbox. Stock is still not restored on paid-then-cancelled orders.
+
+## 2026-09-14 — Dashboard date ranges live
+
+- **Done:** Dashboard Today / 7d / 30d / Custom now filter via `?range=` —
+  revenue chart + settled revenue / order count for the period. Custom uses
+  native date inputs (max 90 days). Best sellers / inventory remain all-time.
+- **Files:** `lib/admin/dashboard-range.ts`, `server/orders/repository.ts`
+  (`getRevenueTrendBetween`, period stats), `app/admin/(portal)/page.tsx`,
+  `admin-dashboard.tsx`, `revenue-chart.tsx` (single-day axis).
+- **Decisions:** SSR search params; no calendar library; UTC calendar days.
+- **Docs updated:** `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Click through ranges on `/admin` and Apply a custom
+  from/to window.
+
+## 2026-09-14 — Admin forgot / reset password
+
+- **Done:** Migration `0009` `admin_auth`; login verifies DB hash (bootstraps
+  from `ADMIN_PASSWORD_HASH`); forgot/reset APIs + Resend email; pages
+  `/admin/forgot-password` and `/admin/reset-password`; login link wired.
+- **Files:** `migrations/0009_admin_auth.sql`, `server/admin/password.ts`,
+  auth/login APIs, `admin-emails.ts`, forgot/reset UI, routes, docs.
+- **Decisions:** Writable hash in DB; env hash bootstrap-only; same success
+  copy whether email matches (no enumeration); 1h SHA-256 token.
+- **Docs updated:** `api-integration.md`, `architecture.md`, `progress.md`.
+- **Gaps:** none.
+- **Next / open threads:** Apply `0009` on production DB; keep
+  `ADMIN_PASSWORD_HASH` until first login/bootstrap, then optional remove;
+  ensure Resend + `NEXT_PUBLIC_SITE_URL` are production values.
+
 ## 2026-09-12 — Order receipt PDF download
 
 - **Done:** Token-gated `GET /api/orders/:token/receipt` builds a PDF via

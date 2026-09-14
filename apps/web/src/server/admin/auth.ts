@@ -1,7 +1,11 @@
 import "server-only";
 
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { serverEnv } from "@/config/server-env";
+import { timingSafeEqual } from "node:crypto";
+import { serverEnv, isDatabaseConfigured } from "@/config/server-env";
+import {
+  getOrBootstrapPasswordHash,
+  verifyPassword,
+} from "@/server/admin/password";
 
 /**
  * Single shared admin credential — one owner, no team accounts today (Q21
@@ -9,8 +13,10 @@ import { serverEnv } from "@/config/server-env";
  * needs zero new dependency (house rule 11: audit every new one — the
  * cheapest audit is not adding it).
  *
- * `ADMIN_PASSWORD_HASH` format is `salt:hash`, both hex, both from `scrypt`.
- * To generate one for a chosen password, run:
+ * Live hash is stored in `admin_auth` (see `server/admin/password.ts`). Env
+ * `ADMIN_PASSWORD_HASH` is only a one-time bootstrap when that table is empty.
+ *
+ * Historical generate recipe (still valid for seeding env / bootstrap):
  *
  *   node -e "
  *     const { scryptSync, randomBytes } = require('crypto');
@@ -19,26 +25,9 @@ import { serverEnv } from "@/config/server-env";
  *     const hash = scryptSync(password, salt, 64).toString('hex');
  *     console.log(salt + ':' + hash);
  *   "
- *
- * Set the printed value as `ADMIN_PASSWORD_HASH`, and the matching address
- * as `ADMIN_EMAIL`. Never commit either — both are secrets.
  */
-export function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
 
-function verifyPassword(password: string, stored: string): boolean {
-  const [salt, hashHex] = stored.split(":");
-  if (!salt || !hashHex) return false;
-
-  const candidate = scryptSync(password, salt, 64);
-  const expected = Buffer.from(hashHex, "hex");
-  if (candidate.length !== expected.length) return false;
-
-  return timingSafeEqual(candidate, expected);
-}
+export { hashPassword } from "@/server/admin/password";
 
 /**
  * Deliberately non-specific about which part was wrong — the login form
@@ -47,9 +36,15 @@ function verifyPassword(password: string, stored: string): boolean {
  * comparison below is pointless (see `login-schema.ts`'s existing comment on
  * why staff-email enumeration matters).
  */
-export function verifyCredentials(email: string, password: string): boolean {
-  const { ADMIN_EMAIL, ADMIN_PASSWORD_HASH } = serverEnv();
-  if (!ADMIN_EMAIL || !ADMIN_PASSWORD_HASH) return false;
+export async function verifyCredentials(
+  email: string,
+  password: string,
+): Promise<boolean> {
+  const { ADMIN_EMAIL } = serverEnv();
+  if (!ADMIN_EMAIL || !isDatabaseConfigured()) return false;
+
+  const storedHash = await getOrBootstrapPasswordHash();
+  if (!storedHash) return false;
 
   // Constant-time email compare too — a fast-reject on a mismatched email
   // would let a timing attack narrow down the configured address.
@@ -57,12 +52,12 @@ export function verifyCredentials(email: string, password: string): boolean {
     email.trim().toLowerCase(),
     ADMIN_EMAIL.toLowerCase(),
   );
-  const passwordMatches = verifyPassword(password, ADMIN_PASSWORD_HASH);
+  const passwordMatches = verifyPassword(password, storedHash);
 
   return emailMatches && passwordMatches;
 }
 
-function timingSafeEqualStrings(a: string, b: string): boolean {
+export function timingSafeEqualStrings(a: string, b: string): boolean {
   const aBuf = Buffer.from(a);
   const bBuf = Buffer.from(b);
   if (aBuf.length !== bBuf.length) return false;

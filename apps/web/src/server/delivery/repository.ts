@@ -1,6 +1,7 @@
 import "server-only";
 
-import type { DeliveryArea, DeliveryRegion, Money } from "@lamiefoods/types";
+import type { DeliveryArea, DeliveryRegion, Money, NigerianState } from "@lamiefoods/types";
+import { resolveDeliveryAreaState } from "@lamiefoods/types";
 import { db } from "@/server/db/client";
 
 const ngn = (amount: number): Money => ({ amount, currency: "NGN" });
@@ -19,11 +20,19 @@ export class DeliveryAreaInactiveError extends Error {
   }
 }
 
+export class DeliveryAreaStateError extends Error {
+  constructor(message = "Interstate delivery areas need a Nigerian state.") {
+    super(message);
+    this.name = "DeliveryAreaStateError";
+  }
+}
+
 interface DeliveryAreaRow {
   id: string;
   name: string;
   fee_kobo: number;
   region: string;
+  state: string;
   sort_order: number;
   active: boolean;
   created_at: Date;
@@ -36,6 +45,7 @@ function rowToArea(row: DeliveryAreaRow): DeliveryArea {
     name: row.name,
     fee: ngn(row.fee_kobo),
     region: row.region as DeliveryRegion,
+    state: row.state as NigerianState,
     sortOrder: row.sort_order,
     active: row.active,
     createdAt: row.created_at.toISOString(),
@@ -43,11 +53,21 @@ function rowToArea(row: DeliveryAreaRow): DeliveryArea {
   };
 }
 
+function stateFor(region: DeliveryRegion, state: string | undefined): NigerianState {
+  try {
+    return resolveDeliveryAreaState(region, state);
+  } catch (error) {
+    throw error instanceof Error
+      ? new DeliveryAreaStateError(error.message)
+      : new DeliveryAreaStateError();
+  }
+}
+
 /** Active areas for checkout, Lagos then interstate, by sort_order. */
 export async function listActiveDeliveryAreas(): Promise<DeliveryArea[]> {
   const sql = db();
   const rows = await sql`
-    select id, name, fee_kobo, region, sort_order, active, created_at, updated_at
+    select id, name, fee_kobo, region, state, sort_order, active, created_at, updated_at
     from delivery_areas
     where active = true
     order by
@@ -62,7 +82,7 @@ export async function listActiveDeliveryAreas(): Promise<DeliveryArea[]> {
 export async function listAllDeliveryAreas(): Promise<DeliveryArea[]> {
   const sql = db();
   const rows = await sql`
-    select id, name, fee_kobo, region, sort_order, active, created_at, updated_at
+    select id, name, fee_kobo, region, state, sort_order, active, created_at, updated_at
     from delivery_areas
     order by
       case region when 'lagos' then 0 else 1 end,
@@ -77,7 +97,7 @@ export async function getActiveDeliveryAreaById(
 ): Promise<DeliveryArea> {
   const sql = db();
   const [row] = await sql`
-    select id, name, fee_kobo, region, sort_order, active, created_at, updated_at
+    select id, name, fee_kobo, region, state, sort_order, active, created_at, updated_at
     from delivery_areas
     where id = ${id}
   `;
@@ -91,18 +111,21 @@ export async function createDeliveryArea(input: {
   name: string;
   feeKobo: number;
   region: DeliveryRegion;
+  state: string;
   sortOrder?: number;
 }): Promise<DeliveryArea> {
   const sql = db();
+  const state = stateFor(input.region, input.state);
   const [row] = await sql`
-    insert into delivery_areas (name, fee_kobo, region, sort_order)
+    insert into delivery_areas (name, fee_kobo, region, state, sort_order)
     values (
       ${input.name},
       ${input.feeKobo},
       ${input.region},
+      ${state},
       ${input.sortOrder ?? 500}
     )
-    returning id, name, fee_kobo, region, sort_order, active, created_at, updated_at
+    returning id, name, fee_kobo, region, state, sort_order, active, created_at, updated_at
   `;
   if (!row) throw new Error("Delivery area insert returned no row.");
   return rowToArea(row as unknown as DeliveryAreaRow);
@@ -114,13 +137,14 @@ export async function updateDeliveryArea(
     name?: string;
     feeKobo?: number;
     region?: DeliveryRegion;
+    state?: string;
     sortOrder?: number;
     active?: boolean;
   },
 ): Promise<DeliveryArea | null> {
   const sql = db();
   const [existing] = await sql`
-    select id, name, fee_kobo, region, sort_order, active
+    select id, name, fee_kobo, region, state, sort_order, active
     from delivery_areas where id = ${id}
   `;
   if (!existing) return null;
@@ -128,6 +152,7 @@ export async function updateDeliveryArea(
   const name = input.name ?? (existing.name as string);
   const feeKobo = input.feeKobo ?? (existing.fee_kobo as number);
   const region = input.region ?? (existing.region as DeliveryRegion);
+  const state = stateFor(region, input.state ?? (existing.state as string));
   const sortOrder = input.sortOrder ?? (existing.sort_order as number);
   const active = input.active ?? (existing.active as boolean);
 
@@ -136,11 +161,12 @@ export async function updateDeliveryArea(
       name = ${name},
       fee_kobo = ${feeKobo},
       region = ${region},
+      state = ${state},
       sort_order = ${sortOrder},
       active = ${active},
       updated_at = now()
     where id = ${id}
-    returning id, name, fee_kobo, region, sort_order, active, created_at, updated_at
+    returning id, name, fee_kobo, region, state, sort_order, active, created_at, updated_at
   `;
   return row ? rowToArea(row as unknown as DeliveryAreaRow) : null;
 }

@@ -29,14 +29,14 @@ export const orderLineSchema = z.object({
   quantity: z.int().min(1).max(MAX_LINE_QUANTITY),
 });
 
-/** Matches `PaymentMethod` in `@lamiefoods/types`. Duplicated as a literal
- *  union rather than imported so this file (imported by the checkout form)
- *  never has to pull in more of the shared types package than it needs. */
-export const paymentMethodSchema = z.enum(["paystack", "whatsapp_transfer"]);
+/** New orders are Paystack-only. Historical rows may still be
+ *  `whatsapp_transfer`; create-order rejects that value. */
+export const paymentMethodSchema = z.literal("paystack");
 
 export const createOrderSchema = z.object({
   paymentMethod: paymentMethodSchema,
-  /** Active delivery area id — fee resolved server-side, never trusted from client. */
+  /** Active delivery area id — fee, city, and Nigerian state resolved
+   *  server-side from the area row; client-sent city/state are overwritten. */
   deliveryAreaId: z.uuid(),
   customer: z.object({
     fullName: z.string().trim().min(2).max(80),

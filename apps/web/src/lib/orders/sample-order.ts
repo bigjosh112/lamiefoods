@@ -88,7 +88,7 @@ export async function buildSampleOrder(): Promise<Order> {
     deliveryFee: null,
     total: null,
     // Mirrors what a freshly captured order actually looks like: recorded,
-    // unpaid. Payment happens on a real order via Paystack or bank transfer,
+    // unpaid. Payment happens on a real order via Paystack,
     // and a sample claiming "paid" would misrepresent the one thing on this
     // page that must never be faked.
     status: "pending",

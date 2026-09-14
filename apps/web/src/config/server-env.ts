@@ -117,10 +117,11 @@ export function isPaystackConfigured(): boolean {
   return Boolean(serverEnv().PAYSTACK_SECRET_KEY);
 }
 
-/** Without all three, nobody can sign in — the admin panel stays 404'd. */
+/** Without email + session secret + database, nobody can sign in.
+ *  Password hash lives in `admin_auth` (bootstrapped from ADMIN_PASSWORD_HASH). */
 export function isAdminAuthConfigured(): boolean {
   const env = serverEnv();
-  return Boolean(env.ADMIN_EMAIL && env.ADMIN_PASSWORD_HASH && env.ADMIN_SESSION_SECRET);
+  return Boolean(env.ADMIN_EMAIL && env.ADMIN_SESSION_SECRET && env.DATABASE_URL);
 }
 
 /** Without this, the admin image-upload control stays honestly disabled. */

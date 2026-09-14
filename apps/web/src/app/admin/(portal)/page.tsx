@@ -3,40 +3,20 @@ import { redirect } from "next/navigation";
 import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
+import { chartDayLabel, resolveDashboardDateWindow } from "@/lib/admin/dashboard-range";
 
 export const metadata: Metadata = {
   title: "Admin dashboard",
   robots: { index: false, follow: false, nocache: true },
 };
 
-// Security-critical: never let this bake as a static build artifact. See
-// server/admin/session.ts for why relying on cookies() usage alone is
-// too fragile for a gate this important.
 export const dynamic = "force-dynamic";
-
-/** The last `n` calendar days, oldest first, as "YYYY-MM-DD" (UTC) — matches
- *  the format `getRevenueTrend`'s `to_char(..., 'YYYY-MM-DD')` returns. */
-function lastNDays(n: number): string[] {
-  const days: string[] = [];
-  const today = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
-    );
-    d.setUTCDate(d.getUTCDate() - i);
-    days.push(d.toISOString().slice(0, 10));
-  }
-  return days;
-}
-
-const weekdayLabel = (isoDay: string) =>
-  new Date(`${isoDay}T00:00:00Z`).toLocaleDateString("en-US", {
-    weekday: "short",
-    timeZone: "UTC",
-  });
 
 /**
  * Operations dashboard route.
+ *
+ * Date range comes from `?range=` (today | 7d | 30d | custom&from&to) and
+ * scopes the revenue chart plus period revenue/order tiles.
  *
  * The gate lives HERE, before anything else, and the dashboard is behind a
  * dynamic import — both deliberately.
@@ -53,8 +33,15 @@ const weekdayLabel = (isoDay: string) =>
  * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009) — see
  * docs/ai-memory/architecture.md's 2026-09-07 decision log.
  */
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
+}) {
   if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
+
+  const params = await searchParams;
+  const window = resolveDashboardDateWindow(params);
 
   const { AdminDashboard } = await import("@/components/admin/admin-dashboard");
 
@@ -72,6 +59,7 @@ export default async function AdminDashboardPage() {
         revenueSeries={{ days: [], series: [], unit: "₦" }}
         bestSellers={[]}
         lowStockPacks={[]}
+        dateWindow={window}
       />
     );
   }
@@ -80,7 +68,7 @@ export default async function AdminDashboardPage() {
     listOrdersNeedingDispatch,
     listOrdersForAdmin,
     getDashboardStats,
-    getRevenueTrend,
+    getRevenueTrendBetween,
     getBestSellers,
   } = await import("@/server/orders/repository");
   const { listPublishedProducts, listProductsForAdmin } =
@@ -97,23 +85,19 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     listOrdersNeedingDispatch(),
     listOrdersForAdmin(),
-    getDashboardStats(),
+    getDashboardStats({ from: window.from, to: window.to }),
     listPublishedProducts(),
-    getRevenueTrend(7),
+    getRevenueTrendBetween(window.from, window.to),
     getBestSellers(3),
     listProductsForAdmin(),
   ]);
 
-  const days = lastNDays(7);
+  const dayCount = window.days.length;
   const revenueSeries = {
-    days: days.map(weekdayLabel),
-    // One line per published product, defaulting to 0 on days with no paid
-    // sales — a currently-empty order history is an honest flat line, not a
-    // gap to hide. Whole naira, not thousands: at this catalogue's price
-    // points, scaling down would round small real days to 0.
+    days: window.days.map((day) => chartDayLabel(day, dayCount)),
     series: publishedProducts.map((product) => ({
       name: product.name,
-      values: days.map((day) => {
+      values: window.days.map((day) => {
         const point = trend.find((t) => t.day === day && t.slug === product.slug);
         return point ? Math.round(point.revenue.amount / 100) : 0;
       }),
@@ -137,6 +121,7 @@ export default async function AdminDashboardPage() {
       revenueSeries={revenueSeries}
       bestSellers={bestSellers}
       lowStockPacks={lowStockPacks}
+      dateWindow={window}
     />
   );
 }

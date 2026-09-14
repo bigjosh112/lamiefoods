@@ -10,9 +10,11 @@ import {
 } from "@/server/orders/repository";
 import { serverEnv } from "@/config/server-env";
 import {
+  orderCancelledEmail,
   orderProcessingEmail,
   orderShippedEmail,
   orderDeliveredEmail,
+  ownerCancelledEmail,
   ownerDeliveredEmail,
   ownerPaymentConfirmedEmail,
   ownerProcessingEmail,
@@ -121,6 +123,12 @@ export async function PATCH(
     await sendMail(orderDeliveredEmail(result.order, result.accessToken));
     if (ORDER_EMAIL_TO) {
       await sendMail(ownerDeliveredEmail(result.order, ORDER_EMAIL_TO));
+    }
+  }
+  if (result.justCancelled) {
+    await sendMail(orderCancelledEmail(result.order, result.accessToken));
+    if (ORDER_EMAIL_TO) {
+      await sendMail(ownerCancelledEmail(result.order, ORDER_EMAIL_TO));
     }
   }
 

@@ -584,6 +584,7 @@ export interface UpdateOrderStatusResult {
   justShipped: boolean;
   justDelivered: boolean;
   justPaid: boolean;
+  justCancelled: boolean;
 }
 
 export class OrderStatusConflictError extends Error {
@@ -597,8 +598,9 @@ export class OrderStatusConflictError extends Error {
  * The one write path admin order actions use — changing delivery status,
  * and/or manually confirming a bank-transfer payment. Reports which
  * milestones were freshly reached (rather than already true) so the caller
- * sends each notification email exactly once, the same idempotency shape as
- * `confirmPayment` above but for admin-driven changes instead of Paystack's.
+ * sends each notification email exactly once, including cancellation, the
+ * same idempotency shape as `confirmPayment` above but for admin-driven
+ * changes instead of Paystack's.
  */
 export async function updateOrderStatus(
   orderId: string,
@@ -656,6 +658,8 @@ export async function updateOrderStatus(
     const justShipped = nextStatus === "shipped" && before.shipped_at === null;
     const justDelivered = nextStatus === "delivered" && before.delivered_at === null;
     const justPaid = confirmingPayment && before.paid_at === null;
+    const justCancelled =
+      nextStatus === "cancelled" && currentStatus !== "cancelled";
 
     const [row] = await tx`
       update orders set
@@ -703,6 +707,7 @@ export async function updateOrderStatus(
       justShipped,
       justDelivered,
       justPaid,
+      justCancelled,
     };
   });
 }
@@ -716,11 +721,45 @@ export interface DashboardStats {
 
 /**
  * Settled revenue is `sum(subtotal_kobo)` over paid orders, not `total_kobo`
- * — matches how Paystack actually charges today (`server/orders/paystack.ts`:
- * delivery is still unpriced, so `total_kobo` stays null on every order).
+ * — product revenue only (dashboard keeps subtotal; delivery is separate).
+ *
+ * When `from`/`to` (YYYY-MM-DD UTC) are provided, settled revenue and order
+ * count are scoped to that inclusive window; customer count stays all-time.
  */
-export async function getDashboardStats(): Promise<DashboardStats> {
+export async function getDashboardStats(options?: {
+  from?: string;
+  to?: string;
+}): Promise<DashboardStats> {
   const sql = db();
+  const from = options?.from;
+  const to = options?.to;
+
+  if (from && to) {
+    const [row] = await sql`
+      select
+        coalesce(
+          sum(subtotal_kobo) filter (
+            where payment_status = 'paid'
+              and paid_at >= ${from}::date
+              and paid_at < (${to}::date + interval '1 day')
+          ),
+          0
+        )::int as settled_revenue_kobo,
+        count(*) filter (
+          where created_at >= ${from}::date
+            and created_at < (${to}::date + interval '1 day')
+        )::int as order_count,
+        count(distinct customer_email)::int as customer_count
+      from orders
+    `;
+
+    return {
+      settledRevenue: ngn((row?.settled_revenue_kobo as number) ?? 0),
+      orderCount: (row?.order_count as number) ?? 0,
+      customerCount: (row?.customer_count as number) ?? 0,
+    };
+  }
+
   const [row] = await sql`
     select
       coalesce(sum(subtotal_kobo) filter (where payment_status = 'paid'), 0)::int
@@ -746,11 +785,12 @@ export interface RevenueTrendPoint {
 }
 
 /**
- * Daily paid revenue per product over the last `days` days, oldest first.
- * Empty/all-zero with no paid orders yet — that's the honest state, not an
- * error case: `RevenueChart` renders flat lines rather than special-casing it.
+ * Daily paid revenue per product for inclusive UTC dates `[fromIso, toIso]`.
  */
-export async function getRevenueTrend(days = 7): Promise<RevenueTrendPoint[]> {
+export async function getRevenueTrendBetween(
+  fromIso: string,
+  toIso: string,
+): Promise<RevenueTrendPoint[]> {
   const sql = db();
   const rows = await sql`
     select
@@ -760,7 +800,8 @@ export async function getRevenueTrend(days = 7): Promise<RevenueTrendPoint[]> {
     from orders o
     join order_items oi on oi.order_id = o.id
     where o.payment_status = 'paid'
-      and o.paid_at >= now() - make_interval(days => ${days})
+      and o.paid_at >= ${fromIso}::date
+      and o.paid_at < (${toIso}::date + interval '1 day')
     group by day, oi.product_slug, oi.product_name
     order by day asc
   `;
@@ -771,6 +812,22 @@ export async function getRevenueTrend(days = 7): Promise<RevenueTrendPoint[]> {
     productName: row.product_name as string,
     revenue: ngn(row.revenue_kobo as number),
   }));
+}
+
+/**
+ * Daily paid revenue per product over the last `days` calendar days ending today (UTC).
+ */
+export async function getRevenueTrend(days = 7): Promise<RevenueTrendPoint[]> {
+  const today = new Date();
+  const to = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
+  );
+  const from = new Date(to);
+  from.setUTCDate(from.getUTCDate() - (days - 1));
+  return getRevenueTrendBetween(
+    from.toISOString().slice(0, 10),
+    to.toISOString().slice(0, 10),
+  );
 }
 
 export interface BestSeller {

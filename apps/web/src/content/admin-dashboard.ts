@@ -2,7 +2,7 @@ import { ADMIN_ROUTES } from "@lamiefoods/config";
 
 /**
  * Static page furniture for the admin dashboard — nav, the signed-in-user
- * label, and the (currently decorative) date-range control.
+ * label, and date-range preset labels (filtering is live via `?range=`).
  *
  * As of 2026-09-08 the dashboard's actual numbers (revenue, orders,
  * customers, best sellers, stock) are real, fetched in
@@ -24,9 +24,8 @@ export const ADMIN_NAV_SECTIONS = [
     items: [
       { label: "Dashboard", href: ADMIN_ROUTES.dashboard, icon: "award" as const },
       /*
-        "Orders", not "Orders & Paystack": these orders also settle by bank
-        transfer, so naming one provider in the nav was inaccurate as well as
-        longer than every sibling item.
+        "Orders", not "Orders & Paystack": a few historical rows still
+        settled by bank transfer, and the label is shorter than every sibling.
       */
       { label: "Orders", href: ADMIN_ROUTES.orders, icon: "box" as const },
       /*
@@ -64,10 +63,10 @@ export const ADMIN_NAV_SECTIONS = [
  */
 export const ADMIN_USER = { name: "Operations Lead", location: "Lagos HQ" };
 
-/** Ranges do not filter anything yet — see AdminDashboard's comment. */
+/** Dashboard date-range presets — wired via `?range=` on `/admin`. */
 export const ADMIN_RANGES = [
-  { label: "Today", icon: null },
-  { label: "7 days", icon: null },
-  { label: "30 days", icon: null },
-  { label: "Custom", icon: "calendar" as const },
+  { id: "today" as const, label: "Today", icon: null },
+  { id: "7d" as const, label: "7 days", icon: null },
+  { id: "30d" as const, label: "30 days", icon: null },
+  { id: "custom" as const, label: "Custom", icon: "calendar" as const },
 ];

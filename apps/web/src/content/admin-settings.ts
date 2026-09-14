@@ -45,16 +45,15 @@ import { DELIVERY } from "@lamiefoods/config";
  *   - A roles-and-permissions matrix. There are no multi-user roles (Q21) —
  *     one shared credential for one owner, real since `server/admin/session.ts`.
  *   - Notification channel toggles. Nothing can send (GAP-010).
+ *   - Changing `ADMIN_EMAIL` from the UI (env only).
  *
  * Delivery area fees live on `/admin/delivery` (not this page) — seeded and
  * editable there, then charged at checkout with the product total.
  *
- * The ONE exception, as of 2026-09-08: the WhatsApp number and
- * customer-facing bank-transfer account in the "Delivery & payment" panel
- * ARE admin-editable (`server/settings/repository.ts`, backed by the
- * `site_settings` table) — the first real form on this page. Everything
- * else stays exactly as read-only as described above; this is a change to
- * one panel, not a reversal of the page's whole design.
+ * Editable forms on this page:
+ *   - WhatsApp + bank-transfer contact (`server/settings/repository.ts`).
+ *   - Change password while signed in (`POST /api/admin/change-password`);
+ *     lockout still uses forgot/reset on the login flow.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export interface SettingRow {
@@ -72,15 +71,20 @@ export const SETTINGS_PAGE = {
 export const SETTINGS_FULFILMENT = {
   title: "Delivery & payment",
   /*
-    The panel's opening paragraph was removed on 2026-09-13. It explained which
-    values were read-only, which saved, and what customers see when the bank
-    details are incomplete — useful, but stacked at the top of the page, far
-    from the fields it described. The one part worth keeping now sits directly
-    above those fields as `paymentNote`, where it is read at the moment it
-    matters.
+    MERGE, 2026-09-14. The owner removed this panel's opening paragraph and its
+    source-file tag on 2026-09-13 — a repo path means nothing to the person
+    running the shop, and the guidance belonged beside the fields it describes,
+    not stacked at the top of the page. Both stay removed.
+
+    What DID change on the incoming side is a fact, not presentation: bank
+    transfer is no longer offered at checkout (Paystack-only as of
+    2026-09-14), which made the previous note wrong — it told the owner
+    customers would see "details being confirmed" at a checkout path that no
+    longer exists. Reworded to the new reality, still positioned above the
+    fields.
   */
   paymentNote:
-    "Note: customers see “details being confirmed” at checkout for bank transfer until all three bank fields below are filled in.",
+    "Note: new orders are Paystack-only. The bank fields below apply only to older unpaid bank-transfer orders.",
   rows: [
     {
       label: "Delivery window",
@@ -90,7 +94,7 @@ export const SETTINGS_FULFILMENT = {
       label: "Pickup",
       value: DELIVERY.pickupAvailable ? "Available" : "Not available",
     },
-    { label: "Payment provider", value: "Paystack (primary) · bank transfer (fallback)" },
+    { label: "Payment provider", value: "Paystack" },
   ] satisfies SettingRow[],
   /** Things a settings screen would normally show that nobody has supplied. */
   missing: [
@@ -100,7 +104,9 @@ export const SETTINGS_FULFILMENT = {
     },
     {
       label: "Customer bank-transfer account",
-      note: "Until bank name, account number and account name are all saved below, the bank-transfer checkout path cannot show transfer instructions.",
+      /* Incoming fact kept; the GAP tag stripped, per the owner's 2026-09-13
+         pass removing internal tracking references from this screen. */
+      note: "No longer offered at checkout (Paystack-only as of 2026-09-14). Fields below still apply to any older unpaid bank-transfer orders.",
     },
     {
       label: "Free-delivery threshold",
@@ -120,10 +126,32 @@ export const SETTINGS_FULFILMENT = {
 /* ── Environment & integrations ──────────────────────────────────────────── */
 
 export const SETTINGS_ACCESS = {
-  title: "Team & access",
-  body: "There are no accounts.",
-  detail:
-    "Nobody is signed in, because there is nothing to sign in to. The admin sign-in form validates what you type and then says so plainly; it creates no session. Every admin route is compiled out of production builds and returns 404 — that is a stopgap standing in for authentication, not authentication.",
+  /*
+    MERGE, 2026-09-14: the incoming side wins outright here.
+
+    This panel used to say "There are no accounts" and "the sign-in form
+    creates no session... every admin route is compiled out of production
+    builds and returns 404". All of that had been untrue since real
+    authentication landed, and it was flagged as needing a backend decision.
+    That decision arrived with this branch: a shared owner login plus a
+    working change-password flow. The old paragraph is gone, not reworded.
+
+    Only the `file: "ADMIN_EMAIL · admin_auth"` tag is dropped, matching the
+    owner's 2026-09-13 removal of source-file tags from this screen.
+  */
+  title: "Admin access",
+  body: "One shared owner login. Teammate invites and roles are not part of this site.",
+  emailLabel: "Sign-in email",
+  changePasswordTitle: "Change password",
+  changePasswordBody:
+    "Enter your current password, then choose a new one (at least 10 characters).",
+  currentPasswordLabel: "Current password",
+  newPasswordLabel: "New password",
+  confirmPasswordLabel: "Confirm new password",
+  submitLabel: "Update password",
+  success: "Password updated.",
+  wrongCurrent: "Current password is incorrect.",
+  genericError: "Something went wrong — please try again.",
 };
 
 /* ── Before launch ───────────────────────────────────────────────────────── */

@@ -18,9 +18,10 @@ import { BRAND } from "@lamiefoods/config";
  * they would keep reassuring after a real compromise.
  *
  * What replaces them is a plain "restricted area" statement — and, while
- * ADMIN_EMAIL/ADMIN_PASSWORD_HASH/ADMIN_SESSION_SECRET are unset, an equally
- * plain admission that sign-in isn't connected yet. Both are true statements
- * about the actual state of the system, which is what an operator needs.
+ * ADMIN_EMAIL/ADMIN_SESSION_SECRET/DATABASE_URL are unset, an equally
+ * plain admission that sign-in isn't connected yet. Password hash lives in
+ * `admin_auth` (bootstrapped from ADMIN_PASSWORD_HASH). Both are true
+ * statements about the actual state of the system, which is what an operator needs.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export const ADMIN_LOGIN = {
@@ -31,9 +32,8 @@ export const ADMIN_LOGIN = {
   notice: {
     title: "Restricted area",
     body: "Access is limited to authorised staff.",
-    /** Shown instead, while ADMIN_EMAIL/ADMIN_PASSWORD_HASH/ADMIN_SESSION_SECRET
-     *  are unset — see `isAdminAuthConfigured()`. Sign-in is real now; this is
-     *  no longer the default state. */
+    /** Shown instead, while admin auth env / database are unset — see
+     *  `isAdminAuthConfigured()`. */
     bodyNotConfigured:
       "Access is limited to authorised staff. Sign-in is not connected yet, so this form cannot grant access to anything.",
   },
@@ -53,4 +53,32 @@ export const ADMIN_LOGIN = {
   notConfiguredError: "Sign-in is not connected yet.",
 
   footerNote: "Trouble signing in? Speak to whoever administers this site.",
+};
+
+export const ADMIN_FORGOT_PASSWORD = {
+  eyebrow: "Staff portal",
+  title: "Reset your password",
+  body: "Enter the admin email. If it matches, we will send a one-hour reset link.",
+  emailLabel: "Work email address",
+  emailPlaceholder: "you@example.com",
+  submitLabel: "Send reset link",
+  backLabel: "Back to sign in",
+  successDefault:
+    "If that email matches the admin account, a reset link is on its way. Check your inbox.",
+  notConfiguredError: "Password reset is not connected yet.",
+  genericError: "Something went wrong — please try again.",
+};
+
+export const ADMIN_RESET_PASSWORD = {
+  eyebrow: "Staff portal",
+  title: "Choose a new password",
+  body: "Use at least 10 characters. You will sign in with this password after saving.",
+  passwordLabel: "New password",
+  confirmLabel: "Confirm new password",
+  submitLabel: "Update password",
+  backLabel: "Back to sign in",
+  missingToken: "This reset link is missing or incomplete. Request a new one from the sign-in page.",
+  success: "Password updated. You can sign in now.",
+  genericError: "Something went wrong — please try again.",
+  notConfiguredError: "Password reset is not connected yet.",
 };
