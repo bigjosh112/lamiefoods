@@ -33,14 +33,21 @@ export function RevenueChart({ days, series, unit }: RevenueChartSeries) {
   const plotWidth = WIDTH - PADDING.left - PADDING.right;
   const plotHeight = HEIGHT - PADDING.top - PADDING.bottom;
 
-  const pointsFor = (values: number[]) =>
-    values
+  const pointsFor = (values: number[]) => {
+    if (values.length === 0) return "";
+    if (values.length === 1) {
+      const y = PADDING.top + plotHeight - (values[0]! / max) * plotHeight;
+      const x = PADDING.left + plotWidth / 2;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }
+    return values
       .map((value, index) => {
         const x = PADDING.left + (index / (values.length - 1)) * plotWidth;
         const y = PADDING.top + plotHeight - (value / max) * plotHeight;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       })
       .join(" ");
+  };
 
   return (
     <div>
@@ -79,19 +86,31 @@ export function RevenueChart({ days, series, unit }: RevenueChartSeries) {
           />
         ))}
 
-        {days.map((day, index) => (
-          <text
-            key={day}
-            x={PADDING.left + (index / (days.length - 1)) * plotWidth}
-            y={HEIGHT - 6}
-            textAnchor={
-              index === 0 ? "start" : index === days.length - 1 ? "end" : "middle"
-            }
-            className="fill-[var(--color-nutmeg)] text-[11px]"
-          >
-            {day}
-          </text>
-        ))}
+        {days.map((day, index) => {
+          const x =
+            days.length === 1
+              ? PADDING.left + plotWidth / 2
+              : PADDING.left + (index / (days.length - 1)) * plotWidth;
+          return (
+            <text
+              key={`${day}-${index}`}
+              x={x}
+              y={HEIGHT - 6}
+              textAnchor={
+                days.length === 1
+                  ? "middle"
+                  : index === 0
+                    ? "start"
+                    : index === days.length - 1
+                      ? "end"
+                      : "middle"
+              }
+              className="fill-[var(--color-nutmeg)] text-[11px]"
+            >
+              {day}
+            </text>
+          );
+        })}
       </svg>
 
       <ul className="mt-gutter-sm flex flex-wrap gap-gutter-md">

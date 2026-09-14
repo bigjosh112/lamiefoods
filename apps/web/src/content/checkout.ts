@@ -7,11 +7,10 @@ import { DELIVERY } from "@lamiefoods/config";
  *   - "Direct atelier chat" is dropped — no chat channel exists to link to.
  *   - "1-3 business days" corrected to the confirmed 1–5.
  *
- * Paystack (card/bank transfer/USSD) is now genuinely connected — the owner
- * confirmed an account exists this session. Bank transfer via WhatsApp is the
- * fallback. Neither is acted on by THIS form: choosing one just records the
- * intent on the order; actually paying happens on `/order-success`, so a
- * retry or a method switch has one place to work from.
+ * Paystack (card / Paystack bank transfer / USSD) is the only way to pay
+ * a new order. Choosing a method is not this form's job: payment happens
+ * on `/order-success`. Manual bank transfer via WhatsApp was removed from
+ * checkout on 2026-09-14.
  *
  * UNVERIFIED (GAP-004 / GAP-007): per-item batch numbers, the small-batch
  * quality guarantee, and the replacement promise, which is a commercial warranty
@@ -49,7 +48,6 @@ export const CHECKOUT = {
     landmarkLabel: "Nearest landmark / area directions",
     landmarkPlaceholder: "e.g. Opposite Ebeano Supermarket",
     landmarkHelp: "Helps the rider hand off without a delayed dispatch call.",
-    stateLabel: "State / region",
     areaLabel: "Delivery area",
     areaPlaceholder: "Select where we should deliver",
     areaHelp: "Fee is fixed per area and added to your total at checkout.",
@@ -59,19 +57,14 @@ export const CHECKOUT = {
     },
   },
 
-  /** Paystack is the primary path ("the main way") — listed first and
-   *  selected by default; bank transfer is the fallback for anyone who'd
-   *  rather not pay online. */
+  /** Paystack is the only path for new orders. This step is a notice, not a
+   *  choice — payment itself happens on `/order-success`. */
   paymentMethod: {
     step: "Step 3 of 3",
-    title: "How would you like to pay?",
+    title: "Payment",
     paystack: {
       label: "Pay online now",
-      note: "Card, bank transfer or USSD via Paystack — secure and instant.",
-    },
-    whatsappTransfer: {
-      label: "Bank transfer",
-      note: "Transfer directly, then send your receipt on WhatsApp — we confirm it manually.",
+      note: "Card, bank transfer or USSD via Paystack — on the next page after you place the order.",
     },
   },
 
@@ -87,7 +80,7 @@ export const CHECKOUT = {
       "Products (discounts applied) plus the delivery fee for your selected area.",
     paymentTitle: "Payment",
     paymentNote:
-      "You'll pay this total on the next page (Paystack or bank transfer). Nothing is charged by this button.",
+      "You'll pay this total on the next page with Paystack. Nothing is charged by this button.",
     cta: "Place order",
     badges: ["Guest checkout", "Pay on the next page", "Confirmed by email"],
   },
@@ -106,48 +99,3 @@ export const CHECKOUT = {
     body: "Hand-rolled in small batches with whole spices, fresh butter, and West African pastry precision. If your sealed pouch is anything less than impeccably crunchy, we will make it right.",
   },
 };
-
-/**
- * Nigeria's 36 states plus the Federal Capital Territory. Factual reference
- * data, not invented: the mock offered only two made-up "delivery zones", which
- * would have blocked every customer outside Lagos from checking out.
- */
-export const NIGERIAN_STATES = [
-  "Abia",
-  "Adamawa",
-  "Akwa Ibom",
-  "Anambra",
-  "Bauchi",
-  "Bayelsa",
-  "Benue",
-  "Borno",
-  "Cross River",
-  "Delta",
-  "Ebonyi",
-  "Edo",
-  "Ekiti",
-  "Enugu",
-  "Federal Capital Territory",
-  "Gombe",
-  "Imo",
-  "Jigawa",
-  "Kaduna",
-  "Kano",
-  "Katsina",
-  "Kebbi",
-  "Kogi",
-  "Kwara",
-  "Lagos",
-  "Nasarawa",
-  "Niger",
-  "Ogun",
-  "Ondo",
-  "Osun",
-  "Oyo",
-  "Plateau",
-  "Rivers",
-  "Sokoto",
-  "Taraba",
-  "Yobe",
-  "Zamfara",
-] as const;

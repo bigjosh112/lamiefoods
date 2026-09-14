@@ -45,16 +45,15 @@ import { DELIVERY } from "@lamiefoods/config";
  *   - A roles-and-permissions matrix. There are no multi-user roles (Q21) —
  *     one shared credential for one owner, real since `server/admin/session.ts`.
  *   - Notification channel toggles. Nothing can send (GAP-010).
+ *   - Changing `ADMIN_EMAIL` from the UI (env only).
  *
  * Delivery area fees live on `/admin/delivery` (not this page) — seeded and
  * editable there, then charged at checkout with the product total.
  *
- * The ONE exception, as of 2026-09-08: the WhatsApp number and
- * customer-facing bank-transfer account in the "Delivery & payment" panel
- * ARE admin-editable (`server/settings/repository.ts`, backed by the
- * `site_settings` table) — the first real form on this page. Everything
- * else stays exactly as read-only as described above; this is a change to
- * one panel, not a reversal of the page's whole design.
+ * Editable forms on this page:
+ *   - WhatsApp + bank-transfer contact (`server/settings/repository.ts`).
+ *   - Change password while signed in (`POST /api/admin/change-password`);
+ *     lockout still uses forgot/reset on the login flow.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 export interface SettingRow {
@@ -71,7 +70,7 @@ export const SETTINGS_PAGE = {
 
 export const SETTINGS_FULFILMENT = {
   title: "Delivery & payment",
-  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number and bank-transfer account below are real and editable — the form saves to the database. Until all three bank fields are set, customers who choose bank transfer see “details being confirmed” instead of account numbers (GAP-013).",
+  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number below is shown as a contact on order pages. Bank-account fields remain for any older unpaid bank-transfer orders; new checkout is Paystack-only.",
   file: "packages/config/src/brand.ts · server/settings/repository.ts",
   rows: [
     {
@@ -82,7 +81,7 @@ export const SETTINGS_FULFILMENT = {
       label: "Pickup",
       value: DELIVERY.pickupAvailable ? "Available" : "Not available",
     },
-    { label: "Payment provider", value: "Paystack (primary) · bank transfer (fallback)" },
+    { label: "Payment provider", value: "Paystack" },
   ] satisfies SettingRow[],
   /** Things a settings screen would normally show that nobody has supplied. */
   missing: [
@@ -92,7 +91,7 @@ export const SETTINGS_FULFILMENT = {
     },
     {
       label: "Customer bank-transfer account",
-      note: "Until bank name, account number and account name are all saved below, the bank-transfer checkout path cannot show transfer instructions (GAP-013).",
+      note: "No longer offered at checkout (Paystack-only as of 2026-09-14). Fields below still apply to any older unpaid bank-transfer orders (GAP-013).",
     },
     {
       label: "Free-delivery threshold",
@@ -112,17 +111,20 @@ export const SETTINGS_FULFILMENT = {
 /* ── Environment & integrations ──────────────────────────────────────────── */
 
 export const SETTINGS_ACCESS = {
-  title: "Team & access",
-  body: "There are no accounts.",
-  file: "docs/ai-memory/gaps.md — GAP-009",
-  detail:
-    "Nobody is signed in, because there is nothing to sign in to. The admin sign-in form validates what you type and then says so plainly; it creates no session. Every admin route is compiled out of production builds and returns 404 — that is a stopgap standing in for authentication, not authentication.",
-  rules: [
-    "The session belongs in an httpOnly, Secure, SameSite cookie set by the backend.",
-    "Authorisation is checked server-side on every request, not once at sign-in.",
-    "A client-side guard is not a substitute — anything the browser checks, the browser can be told to skip.",
-    "Un-gate the customer directory last. It is nothing but personal data.",
-  ],
+  title: "Admin access",
+  body: "One shared owner login. Teammate invites and roles are not part of this site.",
+  file: "ADMIN_EMAIL · admin_auth",
+  emailLabel: "Sign-in email",
+  changePasswordTitle: "Change password",
+  changePasswordBody:
+    "Enter your current password, then choose a new one (at least 10 characters).",
+  currentPasswordLabel: "Current password",
+  newPasswordLabel: "New password",
+  confirmPasswordLabel: "Confirm new password",
+  submitLabel: "Update password",
+  success: "Password updated.",
+  wrongCurrent: "Current password is incorrect.",
+  genericError: "Something went wrong — please try again.",
 };
 
 /* ── Before launch ───────────────────────────────────────────────────────── */

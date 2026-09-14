@@ -2,7 +2,12 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { DeliveryArea, DeliveryRegion } from "@lamiefoods/types";
+import {
+  NIGERIAN_STATES,
+  type DeliveryArea,
+  type DeliveryRegion,
+  type NigerianState,
+} from "@lamiefoods/types";
 import { formatKobo } from "@/lib/money";
 import {
   createAdminDeliveryArea,
@@ -17,9 +22,48 @@ const REGION_LABEL: Record<DeliveryRegion, string> = {
   interstate: "Interstate",
 };
 
+function stateForRegion(
+  next: DeliveryRegion,
+  current: NigerianState | "",
+): NigerianState | "" {
+  if (next === "lagos") return "Lagos";
+  return current === "Lagos" ? "" : current;
+}
+
+function StateSelect({
+  region,
+  value,
+  onChange,
+  className,
+}: {
+  region: DeliveryRegion;
+  value: NigerianState | "";
+  onChange: (state: NigerianState | "") => void;
+  className: string;
+}) {
+  const locked = region === "lagos";
+  return (
+    <select
+      value={locked ? "Lagos" : value}
+      disabled={locked}
+      onChange={(event) => onChange(event.target.value as NigerianState | "")}
+      className={className}
+      required={!locked}
+    >
+      {!locked && <option value="">Select a state</option>}
+      {NIGERIAN_STATES.map((state) => (
+        <option key={state} value={state}>
+          {state}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 /**
  * Admin CRUD for delivery zones and fees. Fees are entered in naira and stored
- * as kobo server-side.
+ * as kobo server-side. Nigerian state is stored on the area so checkout does
+ * not ask the customer to pick one.
  */
 export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] }) {
   const router = useRouter();
@@ -28,10 +72,12 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
   const [name, setName] = useState("");
   const [feeNaira, setFeeNaira] = useState("");
   const [region, setRegion] = useState<DeliveryRegion>("lagos");
+  const [state, setState] = useState<NigerianState | "">("Lagos");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editFee, setEditFee] = useState("");
   const [editRegion, setEditRegion] = useState<DeliveryRegion>("lagos");
+  const [editState, setEditState] = useState<NigerianState | "">("Lagos");
 
   const sorted = useMemo(() => initial, [initial]);
 
@@ -43,14 +89,26 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
     event.preventDefault();
     setError(null);
     const fee = Number.parseInt(feeNaira, 10);
+    const resolvedState = region === "lagos" ? "Lagos" : state;
     if (!name.trim() || Number.isNaN(fee) || fee < 0) {
       setError("Enter a name and a non-negative fee in naira.");
       return;
     }
+    if (!resolvedState) {
+      setError("Pick the Nigerian state this area is in.");
+      return;
+    }
     try {
-      await createAdminDeliveryArea({ name: name.trim(), feeNaira: fee, region });
+      await createAdminDeliveryArea({
+        name: name.trim(),
+        feeNaira: fee,
+        region,
+        state: resolvedState,
+      });
       setName("");
       setFeeNaira("");
+      setRegion("lagos");
+      setState("Lagos");
       refresh();
     } catch (err) {
       setError(
@@ -66,14 +124,20 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
     setEditName(area.name);
     setEditFee(String(Math.round(area.fee.amount / 100)));
     setEditRegion(area.region);
+    setEditState(area.state);
     setError(null);
   }
 
   async function saveEdit(id: string) {
     setError(null);
     const fee = Number.parseInt(editFee, 10);
+    const resolvedState = editRegion === "lagos" ? "Lagos" : editState;
     if (!editName.trim() || Number.isNaN(fee) || fee < 0) {
       setError("Enter a name and a non-negative fee in naira.");
+      return;
+    }
+    if (!resolvedState) {
+      setError("Pick the Nigerian state this area is in.");
       return;
     }
     try {
@@ -81,6 +145,7 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
         name: editName.trim(),
         feeNaira: fee,
         region: editRegion,
+        state: resolvedState,
       });
       setEditingId(null);
       refresh();
@@ -120,6 +185,9 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
     }
   }
 
+  const selectClass =
+    "rounded border border-rule bg-surface-container-lowest px-3 py-2";
+
   return (
     <div className="space-y-gutter-md">
       <header>
@@ -131,7 +199,8 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
         </h1>
         <p className="mt-gutter-xs max-w-2xl text-body-md text-on-surface-variant">
           Zones customers pick at checkout. The fee is added to the product
-          total and charged with Paystack or bank transfer.
+          total and charged with Paystack. Nigerian state is
+          stored here so checkout cannot pair Ibadan with Osun.
         </p>
       </header>
 
@@ -143,7 +212,7 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
 
       <form
         onSubmit={(event) => void onCreate(event)}
-        className="grid gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-md sm:grid-cols-[1fr_8rem_10rem_auto]"
+        className="grid gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-md sm:grid-cols-[1fr_8rem_9rem_11rem_auto]"
       >
         <label className="grid gap-1 text-body-sm">
           <span className="font-label text-label-sm text-nutmeg">Name</span>
@@ -171,12 +240,25 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
           <span className="font-label text-label-sm text-nutmeg">Region</span>
           <select
             value={region}
-            onChange={(event) => setRegion(event.target.value as DeliveryRegion)}
-            className="rounded border border-rule bg-surface-container-lowest px-3 py-2"
+            onChange={(event) => {
+              const next = event.target.value as DeliveryRegion;
+              setRegion(next);
+              setState(stateForRegion(next, state));
+            }}
+            className={selectClass}
           >
             <option value="lagos">Lagos</option>
             <option value="interstate">Interstate</option>
           </select>
+        </label>
+        <label className="grid gap-1 text-body-sm">
+          <span className="font-label text-label-sm text-nutmeg">State</span>
+          <StateSelect
+            region={region}
+            value={state}
+            onChange={setState}
+            className={selectClass}
+          />
         </label>
         <div className="flex items-end">
           <Button type="submit" disabled={pending}>
@@ -186,11 +268,12 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
       </form>
 
       <div className="overflow-x-auto rounded border border-rule/70">
-        <table className="w-full min-w-[40rem] text-left text-body-sm">
+        <table className="w-full min-w-[48rem] text-left text-body-sm">
           <thead className="bg-surface-container-low font-label text-label-sm uppercase tracking-wide text-nutmeg">
             <tr>
               <th className="px-gutter-sm py-3">Area</th>
               <th className="px-gutter-sm py-3">Region</th>
+              <th className="px-gutter-sm py-3">State</th>
               <th className="px-gutter-sm py-3">Fee</th>
               <th className="px-gutter-sm py-3">Status</th>
               <th className="px-gutter-sm py-3">Actions</th>
@@ -199,7 +282,7 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
           <tbody>
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-gutter-sm py-8 text-on-surface-variant">
+                <td colSpan={6} className="px-gutter-sm py-8 text-on-surface-variant">
                   No delivery areas yet. Add the first zone above.
                 </td>
               </tr>
@@ -221,9 +304,11 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
                     {editingId === area.id ? (
                       <select
                         value={editRegion}
-                        onChange={(event) =>
-                          setEditRegion(event.target.value as DeliveryRegion)
-                        }
+                        onChange={(event) => {
+                          const next = event.target.value as DeliveryRegion;
+                          setEditRegion(next);
+                          setEditState(stateForRegion(next, editState));
+                        }}
                         className="rounded border border-rule px-2 py-1"
                       >
                         <option value="lagos">Lagos</option>
@@ -231,6 +316,18 @@ export function DeliveryAreasView({ areas: initial }: { areas: DeliveryArea[] })
                       </select>
                     ) : (
                       REGION_LABEL[area.region]
+                    )}
+                  </td>
+                  <td className="px-gutter-sm py-3 align-top">
+                    {editingId === area.id ? (
+                      <StateSelect
+                        region={editRegion}
+                        value={editState}
+                        onChange={setEditState}
+                        className="rounded border border-rule px-2 py-1"
+                      />
+                    ) : (
+                      area.state
                     )}
                   </td>
                   <td className="px-gutter-sm py-3 align-top whitespace-nowrap">

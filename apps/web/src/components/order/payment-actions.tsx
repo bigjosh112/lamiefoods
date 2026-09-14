@@ -31,20 +31,19 @@ declare global {
 type Status = "idle" | "opening" | "verifying" | "cancelled" | "failed";
 
 /**
- * `/order-success`'s payment hub — the ONE place either payment method is
- * actually initiated, whether this is the first visit right after checkout
- * or someone returning later via their emailed link to finish paying. See
- * the design decision in the plan this shipped from for why it isn't on
- * `/checkout` instead.
+ * `/order-success`'s payment hub — the ONE place Paystack is actually
+ * initiated, whether this is the first visit right after checkout or someone
+ * returning later via their emailed link to finish paying.
  *
  * Receives only what it needs as props — never imports order data directly.
  * That's the exact rule that closed the two client-bundle PII leaks recorded
  * in GAP-009: a Client Component's imports ship in full to every visitor's
  * browser; its props do not. As of 2026-09-08 that rule extends to
  * `whatsappNumber`/`bankTransfer` too — both are admin-editable
- * (`server/settings/repository.ts`) now, not static build-time constants, so
- * this component can no longer import them from `@lamiefoods/config` and
- * expect to see a value set after the component last built.
+ * (`server/settings/repository.ts`) now, not static build-time constants.
+ *
+ * New orders are Paystack-only (2026-09-14). The bank-transfer panel is only
+ * rendered for historical `whatsapp_transfer` rows that still need to settle.
  */
 export function PaymentActions({
   token,
@@ -61,12 +60,12 @@ export function PaymentActions({
   whatsappNumber: string | null;
   bankTransfer: BankTransferDetails | null;
 }) {
-  const [method, setMethod] = useState<PaymentMethod>(initialMethod);
   const [status, setStatus] = useState<Status>("idle");
   const [scriptReady, setScriptReady] = useState(false);
   const router = useRouter();
 
   const paystackAvailable = Boolean(env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY);
+  const legacyBankTransfer = initialMethod === "whatsapp_transfer";
 
   const openPaystack = async () => {
     if (!paystackAvailable) return;
@@ -139,29 +138,13 @@ export function PaymentActions({
         Order {reference} — {formatKobo(amountKobo)} total (products + delivery).
       </p>
 
-      {!paystackAvailable && (
+      {!paystackAvailable && !legacyBankTransfer && (
         <p className="mt-gutter-sm rounded border border-rule/70 bg-surface p-gutter-sm text-body-sm text-on-surface-variant">
-          Online payment is unavailable right now. Use bank transfer below, or try again
-          later.
+          Online payment is unavailable right now. Please try again later.
         </p>
       )}
 
       {paystackAvailable && (
-        <div className="mt-gutter-sm grid gap-gutter-xs sm:grid-cols-2" role="radiogroup">
-          <MethodTab
-            selected={method === "paystack"}
-            onSelect={() => setMethod("paystack")}
-            label="Pay online"
-          />
-          <MethodTab
-            selected={method === "whatsapp_transfer"}
-            onSelect={() => setMethod("whatsapp_transfer")}
-            label="Bank transfer"
-          />
-        </div>
-      )}
-
-      {method === "paystack" && paystackAvailable ? (
         <div className="mt-gutter-md">
           <Button
             onClick={() => void openPaystack()}
@@ -179,10 +162,7 @@ export function PaymentActions({
             className="mt-gutter-xs text-body-sm text-on-surface-variant"
           >
             {status === "cancelled" && (
-              <p>
-                Payment wasn&apos;t completed — you can try again, or pay by bank transfer
-                instead.
-              </p>
+              <p>Payment wasn&apos;t completed — you can try again.</p>
             )}
             {status === "failed" && (
               <p className="text-error">
@@ -192,7 +172,9 @@ export function PaymentActions({
             )}
           </div>
         </div>
-      ) : (
+      )}
+
+      {legacyBankTransfer && (
         <BankTransferPanel
           reference={reference}
           amountKobo={amountKobo}
@@ -201,32 +183,6 @@ export function PaymentActions({
         />
       )}
     </div>
-  );
-}
-
-function MethodTab({
-  selected,
-  onSelect,
-  label,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={
-        selected
-          ? "rounded border border-terracotta bg-secondary-container/40 p-gutter-sm text-left font-label text-label-md text-cacao"
-          : "rounded border border-rule bg-surface p-gutter-sm text-left font-label text-label-md text-cacao hover:border-cacao"
-      }
-    >
-      {label}
-    </button>
   );
 }
 

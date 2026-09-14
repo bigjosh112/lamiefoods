@@ -45,8 +45,8 @@ export const checkoutSchema = z.object({
     .trim()
     .min(3, { message: "A nearby landmark helps the rider find you" })
     .max(160, { message: "That landmark is too long" }),
-  state: z.string().trim().min(1, { message: "Select a state" }),
-  /** Server looks up the fee; city is filled from the area name on submit. */
+  state: z.string().trim().min(1, { message: "Select a delivery area" }),
+  /** Server looks up the fee; city and state are filled from the area. */
   deliveryAreaId: z.uuid({ message: "Select a delivery area" }),
   city: z.string().trim().min(2).max(80),
 });

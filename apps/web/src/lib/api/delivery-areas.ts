@@ -1,4 +1,4 @@
-import type { DeliveryRegion } from "@lamiefoods/types";
+import type { DeliveryRegion, NigerianState } from "@lamiefoods/types";
 import { apiFetch } from "./client";
 
 export interface PublicDeliveryArea {
@@ -6,6 +6,7 @@ export interface PublicDeliveryArea {
   name: string;
   feeKobo: number;
   region: DeliveryRegion;
+  state: NigerianState;
 }
 
 export async function listDeliveryAreas(): Promise<PublicDeliveryArea[]> {

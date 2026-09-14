@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   const { email, password, remember } = parsed.data;
 
-  if (!verifyCredentials(email, password)) {
+  if (!(await verifyCredentials(email, password))) {
     return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
   }
 

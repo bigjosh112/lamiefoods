@@ -3,9 +3,10 @@ import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { cn } from "@lamiefoods/ui";
 import type { Product, ProductPack } from "@lamiefoods/types";
 import { RevenueChart, type RevenueChartSeries } from "@/components/admin/revenue-chart";
-import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonAnchor, ButtonLink } from "@/components/ui/button";
 import { ArrowRightIcon, ICONS } from "@/components/ui/icons";
 import { ADMIN_RANGES } from "@/content/admin-dashboard";
+import type { DashboardDateWindow } from "@/lib/admin/dashboard-range";
 import { formatKobo } from "@/lib/money";
 import type {
   AdminOrderSummary,
@@ -39,21 +40,10 @@ const PAYMENT_LABEL: Record<string, string> = {
 /**
  * Operations dashboard.
  *
- * As of 2026-09-08 every number on this page is real — fetched by the page
- * from `server/orders/repository.ts` and `server/products/repository.ts` and
- * passed in as props, the same rule that closed the client-bundle PII leak
- * in GAP-009 (never import sensitive data directly into a client component).
- * With no real orders yet, that means every figure below legitimately reads
- * as zero or empty — that IS the correct state, not a placeholder for one.
- *
- * Two things the previous, sample-data version of this page showed have no
- * real data source anywhere in the schema and were removed rather than kept
- * fake: a rider/delivery-fleet tracking card, and packaging-materials stock
- * (kraft pouches, glass jars) — `products` only tracks finished-goods stock.
- *
- * Controls that would act on real data (date range, CSV export, reorder, log a
- * batch) are disabled rather than wired to nothing: on an operations screen, a
- * button that silently does nothing is worse than one that is plainly not ready.
+ * Numbers are server-fetched and passed as props. Date range (`dateWindow`)
+ * scopes settled revenue, order count, and the flavour revenue chart via
+ * `?range=` on this page. Best sellers, customers, flavours, and inventory
+ * stay all-time / operational.
  */
 export function AdminDashboard({
   needsDispatch,
@@ -63,6 +53,7 @@ export function AdminDashboard({
   revenueSeries,
   bestSellers,
   lowStockPacks,
+  dateWindow,
 }: {
   needsDispatch: AdminOrderSummary[];
   recentOrders: AdminOrderSummary[];
@@ -71,22 +62,24 @@ export function AdminDashboard({
   revenueSeries: RevenueChartSeries;
   bestSellers: BestSeller[];
   lowStockPacks: { product: Product; pack: ProductPack }[];
+  dateWindow: DashboardDateWindow;
 }) {
+  const periodNote = dateWindow.label;
   const statTiles = [
     {
       label: "Settled revenue",
       value: formatKobo(stats.settledRevenue.amount),
-      note: "Paystack- or bank-transfer-settled, all time",
+      note: `Paid product revenue · ${periodNote}`,
     },
     {
       label: "Orders",
       value: stats.orderCount.toLocaleString("en-NG"),
-      note: "All orders placed, any status",
+      note: `Orders placed · ${periodNote}`,
     },
     {
       label: "Customers",
       value: stats.customerCount.toLocaleString("en-NG"),
-      note: "Distinct customer emails",
+      note: "Distinct customer emails (all time)",
     },
     {
       label: "Active flavours",
@@ -148,28 +141,71 @@ export function AdminDashboard({
           </p>
         </div>
 
-        {/* Ranges do not filter anything yet — every figure above is all-time. */}
-        <div
-          role="group"
-          aria-label="Date range (not active)"
-          className="flex max-w-full flex-wrap rounded-md border border-rule/70 bg-surface"
-        >
-          {ADMIN_RANGES.map((range, index) => {
-            const RangeIcon = range.icon ? ICONS[range.icon] : null;
-            return (
-              <span
-                key={range.label}
-                aria-disabled="true"
-                className={cn(
-                  "flex min-h-11 min-w-0 items-center gap-gutter-xs px-gutter-sm font-label text-label-sm",
-                  index === 1 ? "bg-primary-container text-linen" : "text-nutmeg/70",
-                )}
-              >
-                {range.label}
-                {RangeIcon && <RangeIcon className="h-4 w-4" />}
-              </span>
-            );
-          })}
+        <div className="flex w-full flex-col items-stretch gap-gutter-xs sm:w-auto sm:items-end">
+          <div
+            role="group"
+            aria-label="Date range"
+            className="flex max-w-full flex-wrap rounded-md border border-rule/70 bg-surface"
+          >
+            {ADMIN_RANGES.map((range, index) => {
+              const RangeIcon = range.icon ? ICONS[range.icon] : null;
+              const active = dateWindow.range === range.id;
+              const href =
+                range.id === "custom"
+                  ? `${ADMIN_ROUTES.dashboard}?range=custom&from=${encodeURIComponent(dateWindow.from)}&to=${encodeURIComponent(dateWindow.to)}`
+                  : `${ADMIN_ROUTES.dashboard}?range=${range.id}`;
+              return (
+                <Link
+                  key={range.id}
+                  href={href}
+                  aria-current={active ? "true" : undefined}
+                  className={cn(
+                    "flex min-h-11 min-w-0 items-center gap-gutter-xs px-gutter-sm font-label text-label-sm transition-colors",
+                    index > 0 && "border-l border-rule/70",
+                    active
+                      ? "bg-primary-container text-linen"
+                      : "text-nutmeg hover:bg-surface-container hover:text-cacao",
+                  )}
+                >
+                  {range.label}
+                  {RangeIcon && <RangeIcon className="h-4 w-4" />}
+                </Link>
+              );
+            })}
+          </div>
+
+          {dateWindow.range === "custom" ? (
+            <form
+              method="get"
+              action={ADMIN_ROUTES.dashboard}
+              className="flex flex-wrap items-end gap-gutter-xs rounded-md border border-rule/70 bg-surface p-gutter-xs"
+            >
+              <input type="hidden" name="range" value="custom" />
+              <label className="grid gap-1 text-body-sm text-nutmeg">
+                From
+                <input
+                  type="date"
+                  name="from"
+                  required
+                  defaultValue={dateWindow.from}
+                  className="min-h-11 rounded border border-rule bg-[#f8f3ec] px-2 text-body-md text-cacao"
+                />
+              </label>
+              <label className="grid gap-1 text-body-sm text-nutmeg">
+                To
+                <input
+                  type="date"
+                  name="to"
+                  required
+                  defaultValue={dateWindow.to}
+                  className="min-h-11 rounded border border-rule bg-[#f8f3ec] px-2 text-body-md text-cacao"
+                />
+              </label>
+              <Button type="submit" variant="secondary" className="normal-case">
+                Apply
+              </Button>
+            </form>
+          ) : null}
         </div>
       </div>
 
@@ -192,7 +228,7 @@ export function AdminDashboard({
         <section className="rounded border border-rule/70 bg-surface p-gutter-md xl:col-span-2">
           <p className="font-label text-label-sm text-terracotta">Revenue</p>
           <h2 className="mt-1 text-headline-sm text-cacao">
-            Flavour revenue (last 7 days)
+            Flavour revenue ({dateWindow.label.toLowerCase()})
           </h2>
 
           <div className="mt-gutter-md">

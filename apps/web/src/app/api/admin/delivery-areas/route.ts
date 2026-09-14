@@ -4,6 +4,7 @@ import { isDatabaseConfigured } from "@/config/server-env";
 import { deliveryAreaWriteSchema } from "@/lib/admin/delivery-area-schema";
 import {
   createDeliveryArea,
+  DeliveryAreaStateError,
   listAllDeliveryAreas,
 } from "@/server/delivery/repository";
 
@@ -53,10 +54,14 @@ export async function POST(request: Request) {
       name: parsed.data.name,
       feeKobo: parsed.data.feeNaira * 100,
       region: parsed.data.region,
+      state: parsed.data.state,
       sortOrder: parsed.data.sortOrder,
     });
     return NextResponse.json({ area }, { status: 201 });
   } catch (error) {
+    if (error instanceof DeliveryAreaStateError) {
+      return NextResponse.json({ error: error.message }, { status: 400 }); 
+    }
     if (
       error &&
       typeof error === "object" &&

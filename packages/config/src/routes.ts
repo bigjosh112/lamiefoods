@@ -11,6 +11,8 @@ export const ROUTES = {
 
 export const ADMIN_ROUTES = {
   login: "/admin/login",
+  forgotPassword: "/admin/forgot-password",
+  resetPassword: "/admin/reset-password",
   dashboard: "/admin",
   orders: "/admin/orders",
   order: (id: string) => `/admin/orders/${id}`,

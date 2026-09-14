@@ -33,6 +33,12 @@ export default async function AdminSettingsPage() {
 
   const { SettingsView } = await import("@/components/admin/settings-view");
   const { getSettings } = await import("@/server/settings/repository");
+  const { serverEnv } = await import("@/config/server-env");
 
-  return <SettingsView paymentSettings={await getSettings()} />;
+  const email = serverEnv().ADMIN_EMAIL;
+  if (!email) notFound();
+
+  return (
+    <SettingsView paymentSettings={await getSettings()} adminEmail={email} />
+  );
 }

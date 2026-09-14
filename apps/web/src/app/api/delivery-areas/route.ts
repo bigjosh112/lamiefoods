@@ -22,6 +22,7 @@ export async function GET() {
       name: area.name,
       feeKobo: area.fee.amount,
       region: area.region,
+      state: area.state,
     })),
   });
 }

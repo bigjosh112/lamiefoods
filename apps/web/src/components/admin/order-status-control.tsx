@@ -44,6 +44,7 @@ export function OrderStatusControl({
   const [status, setStatus] = useState<OrderStatus>(order.status);
   const [paymentStatus, setPaymentStatus] = useState(order.paymentStatus);
   const [saving, setSaving] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
 
@@ -54,6 +55,7 @@ export function OrderStatusControl({
       const updated = await updateOrderStatus(order.reference, patch);
       setStatus(updated.status);
       setPaymentStatus(updated.paymentStatus);
+      setConfirmCancel(false);
       setMessage("Saved.");
       router.refresh();
     } catch (error) {
@@ -102,13 +104,12 @@ export function OrderStatusControl({
         onChange={(event) => {
           const nextStatus = event.target.value as OrderStatus;
           if (nextStatus === status) return;
-          if (
-            nextStatus === "cancelled" &&
-            !window.confirm(`Cancel order ${order.reference}? This cannot be undone.`)
-          ) {
-            event.currentTarget.value = status;
+          if (nextStatus === "cancelled") {
+            setConfirmCancel(true);
+            setMessage(null);
             return;
           }
+          setConfirmCancel(false);
           void save({ status: nextStatus });
         }}
         className={cn(
@@ -122,6 +123,56 @@ export function OrderStatusControl({
           </option>
         ))}
       </select>
+
+      {confirmCancel && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`${selectId}-cancel-title`}
+          className={cn(
+            "rounded border border-error/40 bg-error-container/40",
+            compact ? "mt-gutter-xs p-gutter-sm" : "mt-gutter-sm p-gutter-md",
+          )}
+        >
+          <h2
+            id={`${selectId}-cancel-title`}
+            className={cn(
+              "text-cacao",
+              compact ? "text-label-md" : "text-headline-sm",
+            )}
+          >
+            Cancel order {order.reference}?
+          </h2>
+          <p
+            className={cn(
+              "text-on-surface-variant",
+              compact ? "mt-1 text-body-sm" : "mt-gutter-xs text-body-sm",
+            )}
+          >
+            This cannot be undone. The customer will get an email that the
+            order has been cancelled.
+          </p>
+          <div className="mt-gutter-sm flex flex-wrap gap-gutter-xs">
+            <Button
+              type="button"
+              disabled={saving}
+              onClick={() => void save({ status: "cancelled" })}
+              className="normal-case bg-error hover:bg-error/90"
+            >
+              {saving ? "Cancelling…" : "Cancel order"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={() => setConfirmCancel(false)}
+              className="normal-case"
+            >
+              Keep order
+            </Button>
+          </div>
+        </div>
+      )}
 
       {!compact && paymentStatus !== "paid" && status !== "cancelled" && (
         <p className="mt-1 text-body-sm text-on-surface-variant">

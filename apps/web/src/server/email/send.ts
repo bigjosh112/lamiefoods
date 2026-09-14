@@ -11,6 +11,9 @@ import { isEmailConfigured, serverEnv } from "@/config/server-env";
  */
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
+const PERSONAL_MAILBOX =
+  /@(gmail|googlemail|yahoo|hotmail|outlook|live|icloud)\./i;
+
 export interface Mail {
   to: string;
   subject: string;
@@ -32,6 +35,12 @@ export async function sendMail(mail: Mail): Promise<boolean> {
   }
 
   const { RESEND_API_KEY, ORDER_EMAIL_FROM } = serverEnv();
+
+  if (ORDER_EMAIL_FROM && PERSONAL_MAILBOX.test(ORDER_EMAIL_FROM)) {
+    console.warn(
+      "[email] ORDER_EMAIL_FROM looks like a personal mailbox. Resend requires a verified domain sender such as Lamie Foods <hello@your-verified-domain>, not gmail/yahoo/outlook.",
+    );
+  }
 
   try {
     const response = await fetch(RESEND_ENDPOINT, {

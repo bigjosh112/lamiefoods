@@ -174,7 +174,7 @@ export function ProductPurchase({ product }: { product: Product }) {
       </p>
 
       <p id="purchase-note" className="text-body-sm text-nutmeg">
-        Pay online with Paystack, or by bank transfer — you&apos;ll choose at checkout.
+        Pay online with Paystack at checkout.
       </p>
     </div>
   );

@@ -12,6 +12,7 @@ import { ADMIN_LOGIN } from "@/content/admin";
 import { adminLoginSchema, type AdminLoginValues } from "@/lib/admin/login-schema";
 import { adminLogin } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api";
+import Link from "next/link";
 
 /**
  * Admin sign-in form.
@@ -107,8 +108,12 @@ export function AdminLoginForm() {
           >
             {ADMIN_LOGIN.passwordLabel}
           </label>
-          {/* No reset flow exists, so this is not a link to a dead page. */}
-          <span className="text-body-sm text-nutmeg">{ADMIN_LOGIN.forgotLabel}</span>
+          <Link
+            href={ADMIN_ROUTES.forgotPassword}
+            className="text-body-sm text-terracotta underline underline-offset-4 hover:text-cacao"
+          >
+            {ADMIN_LOGIN.forgotLabel}
+          </Link>
         </div>
 
         <div className="relative">

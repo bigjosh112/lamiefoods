@@ -85,12 +85,14 @@ export async function POST(request: NextRequest) {
   const totalKobo = subtotal.amount + deliveryArea.fee.amount;
   const { customer, paymentMethod } = parsed.data;
 
-  // Snapshot the area name into city for riders when the form only picked an area.
+  // Snapshot area name + Nigerian state. Do not trust client-sent city/state —
+  // otherwise Ibadan could be stored with Osun.
   const customerWithCity = {
     ...customer,
     deliveryAddress: {
       ...customer.deliveryAddress,
-      city: customer.deliveryAddress.city || deliveryArea.name,
+      city: deliveryArea.name,
+      state: deliveryArea.state,
     },
   };
 

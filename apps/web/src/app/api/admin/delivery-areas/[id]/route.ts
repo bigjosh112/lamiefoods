@@ -4,6 +4,7 @@ import { isDatabaseConfigured } from "@/config/server-env";
 import { deliveryAreaPatchSchema } from "@/lib/admin/delivery-area-schema";
 import {
   deleteDeliveryArea,
+  DeliveryAreaStateError,
   updateDeliveryArea,
 } from "@/server/delivery/repository";
 
@@ -46,6 +47,7 @@ export async function PATCH(
           ? undefined
           : parsed.data.feeNaira * 100,
       region: parsed.data.region,
+      state: parsed.data.state,
       sortOrder: parsed.data.sortOrder,
       active: parsed.data.active,
     });
@@ -54,6 +56,9 @@ export async function PATCH(
     }
     return NextResponse.json({ area });
   } catch (error) {
+    if (error instanceof DeliveryAreaStateError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     if (
       error &&
       typeof error === "object" &&
