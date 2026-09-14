@@ -80,13 +80,28 @@ Only the parts that matter for placing new code correctly.
 ## Production env (Railway `@lamiefoods/web`)
 
 Live origin is `https://shoplamiefoods.com`. Set these on the **web** service
-(not the retired `@lamiefoods/backend` stub, not only the Postgres plugin):
+(not the retired `@lamiefoods/backend` stub, not only the Postgres plugin).
+The storefront **is** the API (`apps/web/src/app/api/`); backend Variables
+are never read. Putting `BLOB_READ_WRITE_TOKEN` (or any other secret) on
+backend leaves `/admin/products/new` showing “Image upload isn’t connected
+yet” with no Add tile.
 
 | Variable | Value |
 |---|---|
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` — needed at **runtime** and in a **new** web Console (env is captured when the shell starts) |
 | `NEXT_PUBLIC_SITE_URL` | `https://shoplamiefoods.com` — a literal public origin. Never a Railway `${{VAR}}` self-reference (that resolved to localhost) |
 | `NEXT_PUBLIC_API_URL` | **Leave unset.** `apiFetch` uses `NEXT_PUBLIC_SITE_URL` |
+| `ADMIN_EMAIL` | Sign-in email for `/admin` |
+| `ADMIN_PASSWORD_HASH` | `salt:hash` from `server/admin/auth.ts` (bootstrap into `admin_auth` on first login after `0009`) |
+| `ADMIN_SESSION_SECRET` | Random string, at least 16 characters |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob **read-write** token (`vercel_blob_rw_…`) from a Vercel Storage → Blob store. Railway does not mint this. Without it on **web**, the photo Add tile stays hidden |
+| `PAYSTACK_SECRET_KEY` | `sk_…` if online payment should work |
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | `pk_…` — baked into the image at **build** time; changing it requires a rebuild |
+| `RESEND_API_KEY` | `re_…` if order email should send |
+| `ORDER_EMAIL_FROM` | Mailbox on a Resend-verified domain, with angle brackets |
+| `ORDER_EMAIL_TO` | Optional shop notification inbox |
+
+`NEXT_PUBLIC_*` are inlined at image build. Server-only vars (`BLOB_READ_WRITE_TOKEN`, `DATABASE_URL`, `ADMIN_*`) take effect on the next web restart/redeploy.
 
 Railway's image build cannot reach `postgres.railway.internal`. ISR pages
 therefore go through `prerender-reads.ts` so `next build` still succeeds when
