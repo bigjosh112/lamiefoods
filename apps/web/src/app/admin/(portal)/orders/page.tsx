@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import type { OrderStatus } from "@lamiefoods/types";
 import { ORDER_STATUSES } from "@lamiefoods/types";
 import { getAdminSession } from "@/server/admin/session";
@@ -21,15 +22,15 @@ export const dynamic = "force-dynamic";
  * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009). The
  * check still runs BEFORE the dynamic import and before any query: this
  * screen shows customer names, phone numbers, addresses and order values, and
- * a `notFound()` after the data was already read would be too late — see the
- * RSC-payload leak this exact pattern was written to prevent.
+ * bouncing to the login screen after the data was already read would be too
+ * late — see the RSC-payload leak this exact pattern was written to prevent.
  */
 export default async function AdminOrdersPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
 
   const { status: statusParam } = await searchParams;
   const activeStatus: OrderStatus | "all" =

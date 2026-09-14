@@ -7,8 +7,8 @@ import { Button, ButtonLink, StoryLink } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
-import { applyDiscount, formatKobo } from "@/lib/money";
 import { useCartActions } from "@/lib/cart/use-cart";
+import { DiscountBadge, ProductPrice } from "@/components/product/price";
 
 /**
  * The rest of the range. `products` arrives as a PROP from the server page
@@ -68,6 +68,15 @@ export function RelatedProducts({
                     }}
                     sizes="(min-width: 1024px) 20vw, 40vw"
                   />
+                  {/* No "New" badge on this rail, so the badge takes the
+                      top-left corner — the image column is only 2/5 wide and
+                      a right-aligned chip would crowd the card's text. */}
+                  {product.discountPercent && (
+                    <DiscountBadge
+                      percent={product.discountPercent}
+                      className="absolute top-2 left-2"
+                    />
+                  )}
                 </div>
 
                 <div className="flex flex-1 flex-col p-inset-card">
@@ -85,11 +94,13 @@ export function RelatedProducts({
                   </p>
 
                   <div className="mt-gutter-md flex flex-wrap items-center gap-gutter-sm">
-                    <span className="font-numeral text-label-md text-terracotta">
-                      {Number.isFinite(cheapest)
-                        ? formatKobo(applyDiscount(cheapest, product.discountPercent))
-                        : ""}
-                    </span>
+                    {Number.isFinite(cheapest) && (
+                      <ProductPrice
+                        priceKobo={cheapest}
+                        discountPercent={product.discountPercent}
+                        className="text-terracotta"
+                      />
+                    )}
                     <Button
                       onClick={() => {
                         const pack = product.packs[0];

@@ -71,8 +71,16 @@ export const SETTINGS_PAGE = {
 
 export const SETTINGS_FULFILMENT = {
   title: "Delivery & payment",
-  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number and bank-transfer account below are real and editable — the form saves to the database. Until all three bank fields are set, customers who choose bank transfer see “details being confirmed” instead of account numbers (GAP-013).",
-  file: "packages/config/src/brand.ts · server/settings/repository.ts",
+  /*
+    The panel's opening paragraph was removed on 2026-09-13. It explained which
+    values were read-only, which saved, and what customers see when the bank
+    details are incomplete — useful, but stacked at the top of the page, far
+    from the fields it described. The one part worth keeping now sits directly
+    above those fields as `paymentNote`, where it is read at the moment it
+    matters.
+  */
+  paymentNote:
+    "Note: customers see “details being confirmed” at checkout for bank transfer until all three bank fields below are filled in.",
   rows: [
     {
       label: "Delivery window",
@@ -92,7 +100,7 @@ export const SETTINGS_FULFILMENT = {
     },
     {
       label: "Customer bank-transfer account",
-      note: "Until bank name, account number and account name are all saved below, the bank-transfer checkout path cannot show transfer instructions (GAP-013).",
+      note: "Until bank name, account number and account name are all saved below, the bank-transfer checkout path cannot show transfer instructions.",
     },
     {
       label: "Free-delivery threshold",
@@ -114,15 +122,8 @@ export const SETTINGS_FULFILMENT = {
 export const SETTINGS_ACCESS = {
   title: "Team & access",
   body: "There are no accounts.",
-  file: "docs/ai-memory/gaps.md — GAP-009",
   detail:
     "Nobody is signed in, because there is nothing to sign in to. The admin sign-in form validates what you type and then says so plainly; it creates no session. Every admin route is compiled out of production builds and returns 404 — that is a stopgap standing in for authentication, not authentication.",
-  rules: [
-    "The session belongs in an httpOnly, Secure, SameSite cookie set by the backend.",
-    "Authorisation is checked server-side on every request, not once at sign-in.",
-    "A client-side guard is not a substitute — anything the browser checks, the browser can be told to skip.",
-    "Un-gate the customer directory last. It is nothing but personal data.",
-  ],
 };
 
 /* ── Before launch ───────────────────────────────────────────────────────── */

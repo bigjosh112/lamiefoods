@@ -23,9 +23,14 @@ import {
  * What remains is still real. Values come from the shared config package and,
  * for the payment contact, from the `site_settings` table via
  * `server/settings/repository.ts` — a settings page showing invented values
- * would tell the owner the site is configured in ways it is not. Each section
- * names the file it comes from rather than showing a disabled input with no
- * explanation.
+ * would tell the owner the site is configured in ways it is not.
+ *
+ * Each panel used to print the source file it read from, next to an
+ * explanatory banner, so "why can't I edit this?" had an answer on screen.
+ * The owner removed both on 2026-09-13: a repo path means nothing to the
+ * person running the shop, and it leaked the codebase's internal layout into
+ * a business screen. The panel copy still says in plain English which values
+ * are read-only and which save, which is the part that was actually useful.
  *
  * Two things went with the removed tabs whose information now surfaces nowhere
  * the owner will see it:
@@ -49,21 +54,6 @@ import {
 export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSettings }) {
   return (
     <>
-      <div
-        role="note"
-        className="mb-gutter-md flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface-container p-gutter-sm text-on-surface-variant"
-      >
-        <ICONS.seal className="mt-0.5 h-5 w-5 shrink-0 text-terracotta" />
-        <p className="text-body-sm">
-          <strong className="font-semibold text-cacao">
-            These values are real — this page invents nothing.
-          </strong>{" "}
-          Unlike the rest of the admin, every figure below is read from the code and
-          environment that serve the live site. Most of it is read-only because there is
-          no backend to save to; each panel says which file it comes from.
-        </p>
-      </div>
-
       <div className="mb-gutter-md flex flex-wrap items-start justify-between gap-gutter-md">
         <div className="max-w-2xl">
           <p className="font-label text-label-caps text-terracotta uppercase">
@@ -83,11 +73,7 @@ export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSett
       </div>
 
       <div className="space-y-4">
-        <Panel
-          title={SETTINGS_FULFILMENT.title}
-          body={SETTINGS_FULFILMENT.body}
-          file={SETTINGS_FULFILMENT.file}
-        >
+        <Panel title={SETTINGS_FULFILMENT.title}>
           <Rows rows={SETTINGS_FULFILMENT.rows} />
 
           <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
@@ -104,13 +90,18 @@ export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSett
             >
               <ICONS.shield className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
               <span>
-                <strong className="font-semibold">Bank transfer is inactive for customers.</strong>{" "}
-                Save bank name, account number and account name together below. Until then,
-                checkout still offers the option, but the order page only says details are
-                being confirmed — no invented account numbers.
+                <strong className="font-semibold">
+                  Bank transfer is inactive for customers.
+                </strong>{" "}
+                Save bank name, account number and account name together below. Until
+                then, checkout still offers the option, but the order page only says
+                details are being confirmed — no invented account numbers.
               </span>
             </p>
           )}
+          <p className="mt-gutter-sm text-body-sm text-nutmeg">
+            {SETTINGS_FULFILMENT.paymentNote}
+          </p>
           <PaymentSettingsForm settings={paymentSettings} />
 
           <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
@@ -132,11 +123,7 @@ export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSett
           </ul>
         </Panel>
 
-        <Panel
-          title={SETTINGS_ACCESS.title}
-          body={SETTINGS_ACCESS.body}
-          file={SETTINGS_ACCESS.file}
-        >
+        <Panel title={SETTINGS_ACCESS.title} body={SETTINGS_ACCESS.body}>
           <p className="text-body-sm text-on-surface-variant">{SETTINGS_ACCESS.detail}</p>
 
           {/* The operator card is the one piece of sample data here, and it is
@@ -157,21 +144,6 @@ export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSett
             </span>
           </div>
 
-          <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
-            Rules for whoever wires this up
-          </h3>
-          <ul className="mt-gutter-xs space-y-2">
-            {SETTINGS_ACCESS.rules.map((rule) => (
-              <li
-                key={rule}
-                className="flex items-start gap-gutter-sm text-body-sm text-on-surface-variant"
-              >
-                <ICONS.shield className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
-                {rule}
-              </li>
-            ))}
-          </ul>
-
           <div className="mt-gutter-md flex flex-wrap gap-gutter-xs">
             {/* Disabled: there are no accounts to invite anyone to. */}
             <Button variant="secondary" disabled>
@@ -190,26 +162,19 @@ export function SettingsView({ paymentSettings }: { paymentSettings: PaymentSett
 function Panel({
   title,
   body,
-  file,
   children,
 }: {
   title: string;
-  body: string;
-  file: string;
+  /* Optional: "Delivery & payment" carries no standing description any more.
+     Its guidance moved down beside the fields it describes. */
+  body?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded border border-rule/70 bg-surface p-gutter-md">
-      <div className="mb-gutter-sm flex flex-wrap items-baseline justify-between gap-gutter-sm">
-        <div className="max-w-2xl">
-          <h2 className="text-headline-sm text-cacao">{title}</h2>
-          <p className="mt-1 text-body-sm text-on-surface-variant">{body}</p>
-        </div>
-        {/* Where the value actually lives, so "why can't I edit this?" has an
-            answer on the screen rather than in someone's head. */}
-        <code className="shrink-0 rounded-sm bg-surface-container px-2 py-0.5 font-label text-label-sm text-nutmeg">
-          {file}
-        </code>
+      <div className="mb-gutter-sm max-w-2xl">
+        <h2 className="text-headline-sm text-cacao">{title}</h2>
+        {body && <p className="mt-1 text-body-sm text-on-surface-variant">{body}</p>}
       </div>
       {children}
     </section>

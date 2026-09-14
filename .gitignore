@@ -43,3 +43,5 @@ next-env.d.ts
 # name: any NEXT_DIST_DIR used to build or serve without disturbing a running
 # dev server should be covered without editing this file again.
 .next-*/
+
+/docs

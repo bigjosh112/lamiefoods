@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
 
@@ -31,7 +32,7 @@ export default async function AdminOrderDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
   if (!isDatabaseConfigured()) notFound();
 
   const { id } = await params;

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
 
@@ -22,7 +23,7 @@ export const dynamic = "force-dynamic";
  * before the dynamic import and the module is never evaluated without a session.
  */
 export default async function AdminInventoryPage() {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
 
   const { InventoryView } = await import("@/components/admin/inventory-view");
 

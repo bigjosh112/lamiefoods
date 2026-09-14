@@ -7,8 +7,8 @@ import { Button, StoryLink } from "@/components/ui/button";
 import { ArrowRightIcon, BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
-import { applyDiscount, formatKobo } from "@/lib/money";
 import { useCart, useCartActions } from "@/lib/cart/use-cart";
+import { DiscountBadge, ProductPrice } from "@/components/product/price";
 
 /**
  * "You might also like" row, shared by the cart and the order confirmation —
@@ -84,6 +84,13 @@ export function ProductSuggestions({
                   }}
                   sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
                 />
+                {/* No "New" badge on this rail, so the corner is free. */}
+                {product.discountPercent && (
+                  <DiscountBadge
+                    percent={product.discountPercent}
+                    className="absolute top-3 right-3"
+                  />
+                )}
               </div>
 
               <div className="flex flex-1 flex-col p-inset-card">
@@ -100,13 +107,13 @@ export function ProductSuggestions({
                 </p>
 
                 <div className="mt-gutter-md flex items-center justify-between gap-gutter-sm">
-                  <span className="font-numeral text-label-md text-terracotta">
-                    {pack
-                      ? formatKobo(
-                          applyDiscount(pack.price.amount, product.discountPercent),
-                        )
-                      : ""}
-                  </span>
+                  {pack && (
+                    <ProductPrice
+                      priceKobo={pack.price.amount}
+                      discountPercent={product.discountPercent}
+                      className="text-terracotta"
+                    />
+                  )}
                   {pack && (
                     <Button
                       variant="secondary"

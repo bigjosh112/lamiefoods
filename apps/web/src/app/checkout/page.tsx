@@ -54,7 +54,12 @@ export default async function CheckoutPage() {
         <SiteHeader />
 
         <main id="main">
-          <Section className="pb-0">
+          {/* `pb-0` overrode Section's `py-section`, leaving the guarantee card
+              flush against the footer's top rule. `pb-gutter-lg` (2.5rem / 40px)
+              restores a gap in the 32-48px range asked for; the footer's own
+              `py-section` supplies the rest of the breathing room below the
+              line. */}
+          <Section className="pb-gutter-lg">
             <div className="flex flex-wrap items-start justify-between gap-gutter-md">
               <div>
                 <Eyebrow withRule>

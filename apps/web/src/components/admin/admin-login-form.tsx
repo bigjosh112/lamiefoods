@@ -152,7 +152,10 @@ export function AdminLoginForm() {
         {ADMIN_LOGIN.rememberLabel}
       </label>
 
-      <Button type="submit" className="w-full" disabled={submitting}>
+      {/* `normal-case` overrides the `uppercase` in Button's shared base class.
+          Scoped to this one button on purpose — every other button on the site
+          keeps its caps. */}
+      <Button type="submit" className="w-full normal-case" disabled={submitting}>
         {submitting ? "Signing in…" : ADMIN_LOGIN.submitLabel}
         <ArrowRightIcon className="h-4 w-4" />
       </Button>

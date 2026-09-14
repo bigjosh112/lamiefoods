@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { getAdminSession } from "@/server/admin/session";
 
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
  * Shell for the signed-in admin area — and, for now, its only protection.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * WHY THIS 404s WITHOUT A SESSION.
+ * WHY THIS REDIRECTS TO LOGIN WITHOUT A SESSION.
  *
  * These pages show revenue, order values, customer names and delivery
  * addresses. `robots.txt` and `noindex` keep pages out of search results; they
@@ -29,6 +30,13 @@ export const dynamic = "force-dynamic";
  * the owner — could ever use it. `getAdminSession()` verifies a signed,
  * unexpired session cookie (`server/admin/session.ts`) instead.
  *
+ * It USED to answer 404, to avoid disclosing that a portal exists. That bought
+ * nothing real — `/admin/login` is a public, prerendered page, so the portal's
+ * existence was already discoverable — while making an ordinary 12-hour
+ * expiry look to the owner like a broken site. It now redirects to the login
+ * screen. The gate itself is unchanged: no session still means no page and no
+ * data, only the response differs.
+ *
  * This layout-level gate is defense in depth for `AdminShell`, NOT the whole
  * story: each page repeats its own gate before its own dynamic import — see
  * that page's comment for why the layout alone was proven insufficient
@@ -40,7 +48,7 @@ export default async function AdminPortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
 
   return <AdminShell>{children}</AdminShell>;
 }

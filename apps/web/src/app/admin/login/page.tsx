@@ -37,7 +37,7 @@ export default async function AdminLoginPage() {
               className="h-8 w-8"
             />
           </span>
-          <p className="mt-gutter-sm font-label text-label-caps text-terracotta uppercase">
+          <p className="mt-gutter-sm font-label text-label-sm text-terracotta">
             {ADMIN_LOGIN.eyebrow}
           </p>
           <h1 className="mt-1 text-headline-md text-cacao">{ADMIN_LOGIN.title}</h1>
@@ -51,7 +51,7 @@ export default async function AdminLoginPage() {
         <div className="mt-gutter-md flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface p-gutter-sm">
           <ICONS.shield className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
           <div>
-            <p className="font-label text-label-sm text-cacao uppercase">
+            <p className="font-label text-label-sm text-cacao">
               {ADMIN_LOGIN.notice.title}
             </p>
             <p className="mt-1 text-body-sm text-on-surface-variant">

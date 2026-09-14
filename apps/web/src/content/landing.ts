@@ -300,9 +300,16 @@ export const FOOTER = {
     label: "Website by Basil Studio",
     href: "https://www.instagram.com/basilstudio.ng",
   },
-  /* Owner-written, 2026-09-08. Uses "chinchin" one word, the site convention —
-     this replaced the last "chin-chin" on the landing page. */
-  body: "Nigerian-made chinchin, baked fresh in small batches with real butter and warm spices.",
+  /*
+    Owner-written, reworded 2026-09-14. Keeps "chinchin" as one word, the site
+    convention.
+
+    This was the last place on the site still claiming "real butter" and
+    "small batches" — the shop subheading and the shop trust strip both
+    dropped those specifics on 2026-09-13, so the footer had been contradicting
+    them on every page since. Nothing here asserts a measurable fact now.
+  */
+  body: "Nigerian made chinchin, carefully prepared with quality ingredients and a signature blend of warm spices.",
   /*
     Instagram and WhatsApp are both live as of 2026-09-12 — the owner supplied
     the WhatsApp number, so it links out instead of reading "coming soon".

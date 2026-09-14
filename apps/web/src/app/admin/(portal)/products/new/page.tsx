@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isBlobStorageConfigured } from "@/config/server-env";
 
@@ -22,7 +23,7 @@ export const dynamic = "force-dynamic";
  * closed.
  */
 export default async function AdminNewProductPage() {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
 
   const { NewProductView } = await import("@/components/admin/new-product-view");
   return <NewProductView blobConfigured={isBlobStorageConfigured()} />;

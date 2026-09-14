@@ -20,7 +20,10 @@ import { DELIVERY } from "@lamiefoods/config";
 export const CART = {
   eyebrow: "Batch Reservation",
   title: "Your Shopping Bag",
-  body: "Freshly prepared batches reserved in your bag. Sealed in small-batch air-tight tins and pouches.",
+  /* Reworded 2026-09-14. Drops "small-batch", which the shop subheading, the
+     shop trust strip and the footer all dropped on 2026-09-13/14 — this was
+     the last place still asserting it. */
+  body: "Freshly prepared. Carefully sealed. Packed in airtight tins and pouches to preserve freshness and crunch.",
 
   empty: {
     title: "Your bag is empty",

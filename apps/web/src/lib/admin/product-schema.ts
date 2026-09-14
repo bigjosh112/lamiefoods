@@ -26,6 +26,11 @@ export const ALLERGENS = [
 ] as const;
 
 const MAX_TEASER = 140;
+/* The origin story has always been capped at 2000 in this schema, but the cap
+   was a bare literal with no message, so exceeding it produced zod's raw
+   default text on submit and nothing warned you while typing. Named and
+   exported so the form can show a counter, exactly as it does for the teaser. */
+const MAX_NARRATIVE = 2000;
 
 const priceField = z
   .string()
@@ -64,7 +69,12 @@ export const productSchema = z
       .trim()
       .min(10, { message: "Write a short card description" })
       .max(MAX_TEASER, { message: `Keep this under ${MAX_TEASER} characters` }),
-    narrative: z.string().trim().max(2000).optional().or(z.literal("")),
+    narrative: z
+      .string()
+      .trim()
+      .max(MAX_NARRATIVE, { message: `Keep this under ${MAX_NARRATIVE} characters` })
+      .optional()
+      .or(z.literal("")),
 
     pairings: z.string().trim().optional().or(z.literal("")),
     crunch: z.number().min(1).max(10),
@@ -146,6 +156,7 @@ export const productSchema = z
 export type ProductFormValues = z.input<typeof productSchema>;
 
 export const TEASER_LIMIT = MAX_TEASER;
+export const NARRATIVE_LIMIT = MAX_NARRATIVE;
 export const MAX_PRODUCT_IMAGES = 5;
 
 /** Naira string ("3,600") to kobo integer (360000). Strips the same

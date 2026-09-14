@@ -19,6 +19,7 @@ import {
 import {
   ALLERGENS,
   MAX_PRODUCT_IMAGES,
+  NARRATIVE_LIMIT,
   TEASER_LIMIT,
   fromProduct,
   productSchema,
@@ -104,7 +105,9 @@ export function ProductForm({
           allergensConfirmed: false,
           shelfLife: "",
           storage: "",
-          tiers: [{ name: "100g Pouch", price: "", sku: "", stock: "", restockThreshold: "" }],
+          tiers: [
+            { name: "100g Pouch", price: "", sku: "", stock: "", restockThreshold: "" },
+          ],
           storefrontActive: true,
           featureOnHomepage: false,
           seasonalEdition: false,
@@ -118,6 +121,7 @@ export function ProductForm({
   // `useWatch` rather than `watch()`: it subscribes to a value instead of
   // handing back a function the React Compiler has to bail out on.
   const teaser = useWatch({ control, name: "teaser" }) ?? "";
+  const narrative = useWatch({ control, name: "narrative" }) ?? "";
   const crunch = useWatch({ control, name: "crunch" });
   const discountPercent = useWatch({ control, name: "discountPercent" });
   const images = useWatch({ control, name: "images" }) ?? [];
@@ -261,30 +265,30 @@ export function ProductForm({
               <FieldError>{errors.teaser?.message}</FieldError>
             </div>
 
+            {/* The formatting toolbar that sat here was four disabled spans —
+                it never wrote markup, so removing it changes no saved value.
+                The field is a plain textarea styled exactly like "Card
+                description" above, just taller. */}
             <div>
-              <Label htmlFor={`${formId}-narrative`}>Origin story</Label>
-              {/* Formatting needs a rich-text editor, which is not worth a
-                dependency yet — the toolbar is shown disabled rather than
-                pretending to work. */}
-              <div className="mt-1 flex gap-gutter-xs rounded-t border border-b-0 border-rule/70 bg-surface-container-low px-2 py-1">
-                {["B", "I", "“", "•"].map((mark) => (
-                  <span
-                    key={mark}
-                    aria-disabled="true"
-                    title="Rich text editing is not wired up yet"
-                    className="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center font-label text-label-sm text-nutmeg/60"
-                  >
-                    {mark}
-                  </span>
-                ))}
+              <div className="flex flex-wrap items-baseline justify-between gap-gutter-sm">
+                <Label htmlFor={`${formId}-narrative`}>Origin story</Label>
+                <span
+                  className={cn(
+                    "font-label text-label-sm",
+                    narrative.length > NARRATIVE_LIMIT ? "text-error" : "text-nutmeg",
+                  )}
+                >
+                  {narrative.length} / {NARRATIVE_LIMIT}
+                </span>
               </div>
               <textarea
                 id={`${formId}-narrative`}
-                rows={5}
+                rows={6}
                 placeholder="The longer story shown on the product page."
-                className={cn(inputClasses(false), "mt-0 rounded-t-none")}
+                className={inputClasses(Boolean(errors.narrative))}
                 {...register("narrative")}
               />
+              <FieldError>{errors.narrative?.message}</FieldError>
             </div>
           </Section>
 
@@ -677,10 +681,7 @@ function Label({
   children: React.ReactNode;
 }) {
   return (
-    <label
-      htmlFor={htmlFor}
-      className="block font-label text-label-caps text-nutmeg uppercase"
-    >
+    <label htmlFor={htmlFor} className="block font-label text-label-sm text-nutmeg">
       {children}
       {required && <span className="text-terracotta"> *</span>}
     </label>
