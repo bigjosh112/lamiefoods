@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
 
@@ -11,15 +12,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDeliveryAreasPage() {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
   if (!isDatabaseConfigured()) notFound();
 
-  const { DeliveryAreasView } = await import(
-    "@/components/admin/delivery-areas-view"
-  );
-  const { listAllDeliveryAreas } = await import(
-    "@/server/delivery/repository"
-  );
+  const { DeliveryAreasView } = await import("@/components/admin/delivery-areas-view");
+  const { listAllDeliveryAreas } = await import("@/server/delivery/repository");
 
   return <DeliveryAreasView areas={await listAllDeliveryAreas()} />;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
 
@@ -18,13 +19,13 @@ export const dynamic = "force-dynamic";
  *
  * This is the most sensitive screen in the admin: it is nothing but customer
  * PII. The gate runs before the dynamic import, so the module is never
- * evaluated in production and nothing reaches the flight payload of the 404.
+ * evaluated in production and nothing reaches the flight payload.
  *
  * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009) — a
- * verified session is real authentication; a 404 alone never was.
+ * verified session is real authentication; a bare 404 never was.
  */
 export default async function AdminCustomersPage() {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
 
   const { CustomersView } = await import("@/components/admin/customers-view");
 

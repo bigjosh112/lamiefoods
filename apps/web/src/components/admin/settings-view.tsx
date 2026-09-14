@@ -27,9 +27,14 @@ import {
  * What remains is still real. Values come from the shared config package and,
  * for the payment contact, from the `site_settings` table via
  * `server/settings/repository.ts` — a settings page showing invented values
- * would tell the owner the site is configured in ways it is not. Each section
- * names the file it comes from rather than showing a disabled input with no
- * explanation.
+ * would tell the owner the site is configured in ways it is not.
+ *
+ * Each panel used to print the source file it read from, next to an
+ * explanatory banner, so "why can't I edit this?" had an answer on screen.
+ * The owner removed both on 2026-09-13: a repo path means nothing to the
+ * person running the shop, and it leaked the codebase's internal layout into
+ * a business screen. The panel copy still says in plain English which values
+ * are read-only and which save, which is the part that was actually useful.
  *
  * Chrome comes from `AdminShell`.
  */
@@ -42,21 +47,6 @@ export function SettingsView({
 }) {
   return (
     <>
-      <div
-        role="note"
-        className="mb-gutter-md flex items-start gap-gutter-sm rounded border border-rule/70 bg-surface-container p-gutter-sm text-on-surface-variant"
-      >
-        <ICONS.seal className="mt-0.5 h-5 w-5 shrink-0 text-terracotta" />
-        <p className="text-body-sm">
-          <strong className="font-semibold text-cacao">
-            These values are real — this page invents nothing.
-          </strong>{" "}
-          Unlike the rest of the admin, every figure below is read from the code and
-          environment that serve the live site. Most of it is read-only because there is
-          no backend to save to; each panel says which file it comes from.
-        </p>
-      </div>
-
       <div className="mb-gutter-md flex flex-wrap items-start justify-between gap-gutter-md">
         <div className="max-w-2xl">
           <p className="font-label text-label-caps text-terracotta uppercase">
@@ -76,19 +66,15 @@ export function SettingsView({
       </div>
 
       <div className="space-y-4">
-        <Panel
-          title={SETTINGS_FULFILMENT.title}
-          body={SETTINGS_FULFILMENT.body}
-          file={SETTINGS_FULFILMENT.file}
-        >
+        <Panel title={SETTINGS_FULFILMENT.title}>
           <Rows rows={SETTINGS_FULFILMENT.rows} />
 
           <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
             Customer contact for payment
           </h3>
           <p className="mt-1 text-body-sm text-nutmeg">
-            Shown as a customer contact. Bank account details only appear for
-            older unpaid bank-transfer orders — new checkout is Paystack-only.
+            Shown as a customer contact. Bank account details only appear for older unpaid
+            bank-transfer orders — new checkout is Paystack-only.
           </p>
           {!paymentSettings.bankTransfer && (
             <p
@@ -97,13 +83,16 @@ export function SettingsView({
             >
               <ICONS.shield className="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
               <span>
-                <strong className="font-semibold">Not used at checkout.</strong>{" "}
-                New orders pay with Paystack only. Save bank name, account number
-                and account name together if you still need them for an older
-                unpaid bank-transfer order.
+                <strong className="font-semibold">Not used at checkout.</strong> New
+                orders pay with Paystack only. Save bank name, account number and account
+                name together if you still need them for an older unpaid bank-transfer
+                order.
               </span>
             </p>
           )}
+          <p className="mt-gutter-sm text-body-sm text-nutmeg">
+            {SETTINGS_FULFILMENT.paymentNote}
+          </p>
           <PaymentSettingsForm settings={paymentSettings} />
 
           <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
@@ -125,11 +114,12 @@ export function SettingsView({
           </ul>
         </Panel>
 
-        <Panel
-          title={SETTINGS_ACCESS.title}
-          body={SETTINGS_ACCESS.body}
-          file={SETTINGS_ACCESS.file}
-        >
+        {/* Incoming panel kept wholesale: a real sign-in email and a working
+            change-password form replace the sample operator card and the two
+            disabled "invite a teammate" / "manage roles" buttons. `file` is
+            not passed - the owner removed source-file tags from this screen on
+            2026-09-13, and `Panel` no longer accepts the prop. */}
+        <Panel title={SETTINGS_ACCESS.title} body={SETTINGS_ACCESS.body}>
           <dl className="divide-y divide-rule/70 rounded border border-rule/70">
             <div className="flex flex-wrap items-start justify-between gap-gutter-sm p-gutter-sm">
               <dt className="min-w-0">
@@ -146,7 +136,9 @@ export function SettingsView({
           <h3 className="mt-gutter-md font-label text-label-caps text-nutmeg uppercase">
             {SETTINGS_ACCESS.changePasswordTitle}
           </h3>
-          <p className="mt-1 text-body-sm text-nutmeg">{SETTINGS_ACCESS.changePasswordBody}</p>
+          <p className="mt-1 text-body-sm text-nutmeg">
+            {SETTINGS_ACCESS.changePasswordBody}
+          </p>
           <AdminChangePasswordForm />
         </Panel>
       </div>
@@ -157,26 +149,19 @@ export function SettingsView({
 function Panel({
   title,
   body,
-  file,
   children,
 }: {
   title: string;
-  body: string;
-  file: string;
+  /* Optional: "Delivery & payment" carries no standing description any more.
+     Its guidance moved down beside the fields it describes. */
+  body?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded border border-rule/70 bg-surface p-gutter-md">
-      <div className="mb-gutter-sm flex flex-wrap items-baseline justify-between gap-gutter-sm">
-        <div className="max-w-2xl">
-          <h2 className="text-headline-sm text-cacao">{title}</h2>
-          <p className="mt-1 text-body-sm text-on-surface-variant">{body}</p>
-        </div>
-        {/* Where the value actually lives, so "why can't I edit this?" has an
-            answer on the screen rather than in someone's head. */}
-        <code className="shrink-0 rounded-sm bg-surface-container px-2 py-0.5 font-label text-label-sm text-nutmeg">
-          {file}
-        </code>
+      <div className="mb-gutter-sm max-w-2xl">
+        <h2 className="text-headline-sm text-cacao">{title}</h2>
+        {body && <p className="mt-1 text-body-sm text-on-surface-variant">{body}</p>}
       </div>
       {children}
     </section>

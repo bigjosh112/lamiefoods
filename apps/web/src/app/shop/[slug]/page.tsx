@@ -17,6 +17,7 @@ import { applyDiscount, formatKobo } from "@/lib/money";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
 import { isDatabaseConfigured } from "@/config/server-env";
+import { DiscountBadge } from "@/components/product/price";
 import { getProductBySlug, listPublishedProducts } from "@/server/products/repository";
 import { CatalogProvider } from "@/lib/products/catalog-context";
 
@@ -152,13 +153,18 @@ export default async function ProductPage({
                     {product.discountPercent ? "Discounted from" : "Price"}
                   </p>
                   {product.discountPercent && Number.isFinite(cheapest) ? (
-                    <p className="mt-1 flex items-baseline gap-gutter-xs">
+                    <p className="mt-1 flex flex-wrap items-baseline gap-gutter-xs">
                       <span className="font-numeral text-label-md text-nutmeg line-through">
+                        <span className="sr-only">Original price </span>
                         {formatKobo(cheapest)}
                       </span>
                       <span className="font-display text-headline-md text-terracotta">
+                        <span className="sr-only">Discounted price </span>
                         {formatKobo(applyDiscount(cheapest, product.discountPercent))}
                       </span>
+                      {/* Inline rather than cornered: the price block here is
+                          text, with no photograph to pin a badge to. */}
+                      <DiscountBadge percent={product.discountPercent} />
                     </p>
                   ) : (
                     <p className="mt-1 font-display text-headline-md text-terracotta">

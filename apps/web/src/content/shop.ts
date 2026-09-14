@@ -4,12 +4,19 @@ import { BRAND, DELIVERY, ROUTES } from "@lamiefoods/config";
  * Copy for the shop page. Products themselves come from `products.ts`.
  *
  * UNVERIFIED items here, per GAP-004: the batch number and fry date in the
- * header, and the assurance claims about butter and frying method.
+ * header, and the assurance claims about frying method. The header's butter
+ * claim went with the 2026-09-13 rewording of `body`.
  */
 export const SHOP = {
   eyebrow: "Signature confectionery",
   title: "Shop Chinchin",
-  body: "Choose your flavour. Freshly made in small batches with real butter and warm spices.",
+  /*
+    Reworded by the owner 2026-09-13. This drops two specifics the previous
+    sentence asserted — "in small batches" and "real butter" — in favour of
+    "premium ingredients". The butter claim was one of the UNVERIFIED items
+    named in this file's header, so that note is narrower now.
+  */
+  body: "Choose your flavour. Freshly made with premium ingredients and warm spices.",
   /*
     Customer pays delivery. Area fees are admin-managed and selected at
     checkout (added to the order total with products).
@@ -66,24 +73,35 @@ export const ATELIER_LAB = {
   },
 };
 
+/*
+  Owner-supplied, 2026-09-13. Icons unchanged.
+
+  This rewrite retires the last UNVERIFIED claim on the shop page: "100%
+  churned butter / no margarine, no preservatives" asserted a fat composition
+  and a preservative-free product that nobody had confirmed (GAP-004). Column
+  two's "fried in small batches over gentle heat" went the same way. Nothing
+  below states a measurable fact about the food.
+
+  One thing left with it: the CONFIRMED 1–5 day window used to be column
+  three's title. It is still on this page — `PRODUCT_ASSURANCES` carries it
+  onto every product page — but the shop grid itself no longer quotes a
+  timeframe beside the delivery-fee explanation.
+*/
 export const ASSURANCES = [
   {
     icon: "award" as const,
-    /** UNVERIFIED — still an ingredient claim, reworded but not confirmed. */
-    title: "100% churned butter",
-    body: "No margarine, no preservatives — just real dairy butter for a tender, flaky bite.",
+    title: "Made with quality ingredients",
+    body: "Carefully selected ingredients come together to create a deliciously crunchy, flavourful bite.",
   },
   {
     icon: "timer" as const,
-    /** Owner-written process copy, 2026-09-08. */
-    title: "Fried fresh in small batches",
-    body: "Cooked in small batches over gentle heat, for a crisp bite that's never greasy.",
+    title: "Freshly made for you",
+    body: "Prepared with care and packed fresh, so every bite delivers the taste and crunch you love.",
   },
   {
     icon: "truck" as const,
-    /** Delivery window is the CONFIRMED 1–5 days. */
-    title: `${DELIVERY.minDays}–${DELIVERY.maxDays} days nationwide delivery`,
-    body: "You pick a delivery area at checkout — that fee is added to your total and paid with the products. Sealed pouches, shipped from our kitchen.",
+    title: "Nationwide delivery",
+    body: "Choose your delivery area at checkout. Delivery fees are calculated and added to your order, with your chinchin securely sealed and shipped from our kitchen.",
   },
 ];
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ROUTES } from "@lamiefoods/config";
 import type { Product } from "@lamiefoods/types";
+import { DiscountBadge, ProductPrice } from "@/components/product/price";
 import { AddToBag } from "@/components/landing/add-to-bag";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink, StoryLink } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { Eyebrow, Section } from "@/components/ui/section";
 import { ImageSlot } from "@/components/ui/image-slot";
 import { CATEGORY_LABELS } from "@/content/admin-new-product";
 import { FLAVOURS } from "@/content/landing";
-import { applyDiscount, formatKobo } from "@/lib/money";
 
 /**
  * The featured flavours row.
@@ -84,6 +84,13 @@ export function Flavours({ products }: { products: Product[] }) {
                   <span className="absolute top-3 left-3 rounded-sm bg-primary-container px-2 py-1 font-label text-label-sm text-linen">
                     New
                   </span>
+                  {/* Opposite corner to "New", so the two never collide. */}
+                  {product.discountPercent && (
+                    <DiscountBadge
+                      percent={product.discountPercent}
+                      className="absolute top-3 right-3"
+                    />
+                  )}
                 </div>
 
                 {/*
@@ -123,10 +130,12 @@ export function Flavours({ products }: { products: Product[] }) {
 
                   {pack && (
                     <>
-                      <p className="mt-gutter-sm font-numeral text-label-md text-cacao">
-                        {formatKobo(
-                          applyDiscount(pack.price.amount, product.discountPercent),
-                        )}
+                      <p className="mt-gutter-sm">
+                        <ProductPrice
+                          priceKobo={pack.price.amount}
+                          discountPercent={product.discountPercent}
+                          className="text-cacao"
+                        />
                       </p>
 
                       <AddToBag

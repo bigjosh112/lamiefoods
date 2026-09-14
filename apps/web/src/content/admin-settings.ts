@@ -70,8 +70,21 @@ export const SETTINGS_PAGE = {
 
 export const SETTINGS_FULFILMENT = {
   title: "Delivery & payment",
-  body: "Delivery facts are confirmed by the owner and read-only. The WhatsApp number below is shown as a contact on order pages. Bank-account fields remain for any older unpaid bank-transfer orders; new checkout is Paystack-only.",
-  file: "packages/config/src/brand.ts · server/settings/repository.ts",
+  /*
+    MERGE, 2026-09-14. The owner removed this panel's opening paragraph and its
+    source-file tag on 2026-09-13 — a repo path means nothing to the person
+    running the shop, and the guidance belonged beside the fields it describes,
+    not stacked at the top of the page. Both stay removed.
+
+    What DID change on the incoming side is a fact, not presentation: bank
+    transfer is no longer offered at checkout (Paystack-only as of
+    2026-09-14), which made the previous note wrong — it told the owner
+    customers would see "details being confirmed" at a checkout path that no
+    longer exists. Reworded to the new reality, still positioned above the
+    fields.
+  */
+  paymentNote:
+    "Note: new orders are Paystack-only. The bank fields below apply only to older unpaid bank-transfer orders.",
   rows: [
     {
       label: "Delivery window",
@@ -91,7 +104,9 @@ export const SETTINGS_FULFILMENT = {
     },
     {
       label: "Customer bank-transfer account",
-      note: "No longer offered at checkout (Paystack-only as of 2026-09-14). Fields below still apply to any older unpaid bank-transfer orders (GAP-013).",
+      /* Incoming fact kept; the GAP tag stripped, per the owner's 2026-09-13
+         pass removing internal tracking references from this screen. */
+      note: "No longer offered at checkout (Paystack-only as of 2026-09-14). Fields below still apply to any older unpaid bank-transfer orders.",
     },
     {
       label: "Free-delivery threshold",
@@ -111,9 +126,21 @@ export const SETTINGS_FULFILMENT = {
 /* ── Environment & integrations ──────────────────────────────────────────── */
 
 export const SETTINGS_ACCESS = {
+  /*
+    MERGE, 2026-09-14: the incoming side wins outright here.
+
+    This panel used to say "There are no accounts" and "the sign-in form
+    creates no session... every admin route is compiled out of production
+    builds and returns 404". All of that had been untrue since real
+    authentication landed, and it was flagged as needing a backend decision.
+    That decision arrived with this branch: a shared owner login plus a
+    working change-password flow. The old paragraph is gone, not reworded.
+
+    Only the `file: "ADMIN_EMAIL · admin_auth"` tag is dropped, matching the
+    owner's 2026-09-13 removal of source-file tags from this screen.
+  */
   title: "Admin access",
   body: "One shared owner login. Teammate invites and roles are not part of this site.",
-  file: "ADMIN_EMAIL · admin_auth",
   emailLabel: "Sign-in email",
   changePasswordTitle: "Change password",
   changePasswordBody:

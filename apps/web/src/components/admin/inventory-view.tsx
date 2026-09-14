@@ -38,7 +38,8 @@ export function InventoryView({ products }: { products: Product[] }) {
     {
       label: "Low stock",
       value: `${lowStock.length}`,
-      note: lowStock.length > 0 ? lowStock.map((row) => row.label).join(", ") : "Nothing low",
+      note:
+        lowStock.length > 0 ? lowStock.map((row) => row.label).join(", ") : "Nothing low",
       icon: "shield" as const,
       alert: lowStock.length > 0,
     },
@@ -60,8 +61,8 @@ export function InventoryView({ products }: { products: Product[] }) {
         <div className="max-w-2xl">
           <h1 className="text-headline-lg text-cacao">Inventory</h1>
           <p className="mt-gutter-xs text-body-sm text-on-surface-variant">
-            Stock on hand per packaging size. Edit a product to change a size&apos;s
-            stock, SKU, or restock threshold.
+            Stock on hand for each pouch size. Edit a product to update its stock, SKU, or
+            restock threshold.
           </p>
         </div>
       </div>

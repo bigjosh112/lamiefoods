@@ -7,8 +7,8 @@ import type { Product } from "@lamiefoods/types";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { BagIcon } from "@/components/ui/icons";
 import { ImageSlot } from "@/components/ui/image-slot";
-import { applyDiscount, formatKobo } from "@/lib/money";
 import { useCartActions } from "@/lib/cart/use-cart";
+import { DiscountBadge, ProductPrice } from "@/components/product/price";
 
 /**
  * Shop product tile.
@@ -58,6 +58,13 @@ export function ProductCard({ product }: { product: Product }) {
             New
           </span>
         )}
+        {/* Opposite corner to "New"/"Sold out", so the two never collide. */}
+        {product.discountPercent && (
+          <DiscountBadge
+            percent={product.discountPercent}
+            className="absolute top-3 right-3"
+          />
+        )}
       </div>
 
       <div className="mt-gutter-sm flex flex-1 flex-col">
@@ -65,24 +72,13 @@ export function ProductCard({ product }: { product: Product }) {
           <h3 className="text-headline-sm text-cacao group-hover:text-terracotta">
             {product.name}
           </h3>
-          <span className="shrink-0 font-numeral text-label-md text-terracotta">
-            {selectedPack ? (
-              product.discountPercent ? (
-                <span className="flex flex-col items-end">
-                  <span className="text-nutmeg line-through">
-                    {formatKobo(selectedPack.price.amount)}
-                  </span>
-                  {formatKobo(
-                    applyDiscount(selectedPack.price.amount, product.discountPercent),
-                  )}
-                </span>
-              ) : (
-                formatKobo(selectedPack.price.amount)
-              )
-            ) : (
-              ""
-            )}
-          </span>
+          {selectedPack && (
+            <ProductPrice
+              priceKobo={selectedPack.price.amount}
+              discountPercent={product.discountPercent}
+              className="shrink-0 text-terracotta"
+            />
+          )}
         </div>
 
         <p className="mt-gutter-xs flex-1 text-body-sm text-on-surface-variant">

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
+import { ADMIN_ROUTES } from "@lamiefoods/config";
 import { getAdminSession } from "@/server/admin/session";
 import { isDatabaseConfigured } from "@/config/server-env";
-import {
-  chartDayLabel,
-  resolveDashboardDateWindow,
-} from "@/lib/admin/dashboard-range";
+import { chartDayLabel, resolveDashboardDateWindow } from "@/lib/admin/dashboard-range";
 
 export const metadata: Metadata = {
   title: "Admin dashboard",
@@ -19,13 +17,28 @@ export const dynamic = "force-dynamic";
  *
  * Date range comes from `?range=` (today | 7d | 30d | custom&from&to) and
  * scopes the revenue chart plus period revenue/order tiles.
+ *
+ * The gate lives HERE, before anything else, and the dashboard is behind a
+ * dynamic import — both deliberately.
+ *
+ * An earlier version gated in the layout instead. That bounced correctly,
+ * but Next still rendered the page component, and the dashboard tree — names,
+ * addresses, revenue — came back inside the RSC flight payload of that
+ * response. A gate that ships the data anyway is not a gate.
+ *
+ * Returning before the `import()` means the module is never evaluated, so no
+ * data is read and nothing reaches the payload. Verified by fetching /admin
+ * from a production build and grepping the response.
+ *
+ * `getAdminSession()` SUPERSEDES the earlier `NODE_ENV` check (GAP-009) — see
+ * docs/ai-memory/architecture.md's 2026-09-07 decision log.
  */
 export default async function AdminDashboardPage({
   searchParams,
 }: {
   searchParams: Promise<{ range?: string; from?: string; to?: string }>;
 }) {
-  if (!(await getAdminSession())) notFound();
+  if (!(await getAdminSession())) redirect(ADMIN_ROUTES.login);
 
   const params = await searchParams;
   const window = resolveDashboardDateWindow(params);

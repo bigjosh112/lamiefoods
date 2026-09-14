@@ -27,7 +27,7 @@ import { BRAND } from "@lamiefoods/config";
 export const ADMIN_LOGIN = {
   eyebrow: "Staff portal",
   title: `${BRAND.displayName} Admin Portal`,
-  body: "Authorised operations, batch routing and dispatch management only.",
+  body: "For authorised staff only.",
 
   notice: {
     title: "Restricted area",
