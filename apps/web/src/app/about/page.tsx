@@ -4,7 +4,6 @@ import {
   AboutCta,
   AboutHeritage,
   AboutHero,
-  AboutHorizon,
   AboutTenets,
 } from "@/components/about/about-sections";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -42,7 +41,6 @@ export default function AboutPage() {
         <AboutHero />
         <AboutHeritage />
         <AboutTenets />
-        <AboutHorizon />
         <AboutCta />
       </main>
 

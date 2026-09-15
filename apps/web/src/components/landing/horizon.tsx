@@ -36,17 +36,14 @@ export function Horizon() {
         <ul className="mt-gutter-lg">
           {HORIZON.items.map((entry, index) => (
             <li key={entry.title} className="border-t border-rule/70 py-gutter-sm">
-              <Reveal
-                delay={index * 0.08}
-                className="flex flex-wrap items-center gap-gutter-sm"
-              >
-                <span className="w-24 shrink-0 rounded-sm bg-secondary-container px-2 py-1 text-center font-label text-label-sm text-primary">
-                  {entry.status}
-                </span>
-                <div className="min-w-48 flex-1">
-                  <h3 className="text-body-md font-semibold text-cacao">{entry.title}</h3>
-                  <p className="text-body-sm text-on-surface-variant">{entry.body}</p>
-                </div>
+              {/* The status chip that sat left of the name ("In testing", "In
+                  development", "Reserve") was removed on 2026-09-15. Its row was
+                  a flex container with the text in a `flex-1` column beside the
+                  chip; with nothing left to share the row, that wrapper went
+                  too, so the name starts flush at the rule's left edge. */}
+              <Reveal delay={index * 0.08}>
+                <h3 className="text-body-md font-semibold text-cacao">{entry.title}</h3>
+                <p className="text-body-sm text-on-surface-variant">{entry.body}</p>
               </Reveal>
             </li>
           ))}

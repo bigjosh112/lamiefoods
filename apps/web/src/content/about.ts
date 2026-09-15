@@ -28,16 +28,23 @@ export const ABOUT = {
     titleLine1: "Good Food.",
     titleEmphasis: "Thoughtfully",
     titleLine2: "Made.",
-    body: `${BRAND.displayName} is a growing Nigerian food brand, making chinchin the way it deserves to be made — rooted in Lagos, loved everywhere.`,
-    /**
-     * UNVERIFIED — three product claims stated as fact. Reworded by the owner
-     * on 2026-09-10; rewording is not confirming, so the marker stays. A
-     * preservative claim in particular is a consumer-protection matter.
-     */
-    stats: [
-      { value: "100%", label: "Pure butterfat" },
-      { value: "Zero", label: "Preservatives" },
-      { value: "48 hrs", label: "Fresh to pack" },
+    body: `${BRAND.displayName} is a growing Nigerian food brand, making chinchin the way it deserves to be made. Rooted in Lagos, loved everywhere.`,
+    /*
+      Owner-supplied, 2026-09-14. Replaces the three-figure stat row — "100% /
+      Pure butterfat", "Zero / Preservatives", "48 hrs / Fresh to pack" — whose
+      numbers were never measured. Two of those three figures are gone
+      entirely; nothing here quantifies anything.
+
+      "Zero preservatives" survives as a phrase and is STILL UNVERIFIED. A
+      preservative claim is a consumer-protection matter, not marketing copy:
+      dropping the numeral does not confirm it. It needs the owner's explicit
+      confirmation before launch, or it should go the way the other two did.
+    */
+    features: [
+      "Quality Ingredients",
+      "Zero Preservatives",
+      "Freshly Prepared",
+      "Sealed for Freshness",
     ],
     /*
       Lamie Foods' OWN packaging, unlike the third-party mockups still standing
@@ -75,11 +82,24 @@ export const ABOUT = {
       sections at the same phrase.
     */
     eyebrow: "Where it comes from",
-    title: "Made the way it should be.",
-    /* Owner-written, 2026-09-10. */
+    title: "Made with intention. Crafted for good taste.",
+    /*
+      Owner-supplied, 2026-09-14, replacing the 2026-09-10 copy.
+
+      The previous version named ingredients and a method — "real butter, whole
+      nutmeg, and slow frying in small batches" — which the shop page, the
+      footer and the bag all stopped claiming over 2026-09-13/14. This section
+      was the last place on the site still asserting them, so the site now
+      describes its standards consistently rather than contradicting itself
+      page to page.
+
+      Spelling note: this copy says "Chin-chin", hyphenated, where the rest of
+      the site writes "chinchin" as one word. Kept exactly as supplied.
+    */
     body: [
-      "Chin-chin isn't just a snack in Nigerian homes — it's what's on the table at every gathering, wedding, and holiday. Made properly, it's more than crunchy: it's rich, buttery, and full of flavour in every bite.",
-      "At Lamie, we don't cut corners. Real butter, whole nutmeg, and slow frying in small batches — every single time.",
+      "Chin-chin is a timeless Nigerian favourite, a familiar taste woven into celebrations, gatherings, and everyday moments.",
+      "At Lamie, we're reimagining this beloved classic with a focus on quality, flavour, and consistency. Every batch is thoughtfully prepared using carefully selected ingredients and a considered blend of flavours, creating the perfect balance of crunch and indulgence.",
+      "From the first bite to the last, every piece is made to be enjoyed.",
     ],
     image: {
       src: "/images/newchinchin7.jpeg",
@@ -91,21 +111,23 @@ export const ABOUT = {
       "Acoustic metric / The Signature Micro-Crunch" panel whose copy was
       invented for the design mock and which nothing measures.
     */
-    /**
-     * Process claims. Reworded by the owner on 2026-09-10, which is not the
-     * same as confirmed — "slow frying in small batches" and "ground fresh"
-     * are still statements about how the food is made.
-     */
+    /*
+      Owner-supplied, 2026-09-14. Icons unchanged. The UNVERIFIED marker that
+      sat here is gone with the claims that earned it: "small-batch frying",
+      "hand-cut", "whole nutmeg ground fresh for every batch" were all
+      statements about how the food is made that nobody had confirmed. Neither
+      tile states a method or an ingredient now.
+    */
     points: [
       {
         icon: "box" as const,
-        title: "Small-batch frying",
-        body: "Never mass-produced — hand-cut and fried in small batches.",
+        title: "Quality Ingredients",
+        body: "Carefully selected ingredients for great taste and texture.",
       },
       {
         icon: "leaf" as const,
-        title: "Fresh-ground spices",
-        body: "Whole nutmeg, ground fresh for every batch.",
+        title: "Made with Care",
+        body: "Thoughtfully prepared and packed to deliver a satisfying crunch in every bite.",
       },
     ],
   },
@@ -114,72 +136,47 @@ export const ABOUT = {
     eyebrow: "What we stand for",
     title: "How Lamie Foods gets it right.",
     body: "The standards behind every pouch we make.",
-    /**
-     * Reworded by the owner on 2026-09-10 — which is not the same as confirmed.
-     * "Real butter and pure cane sugar", "sealed while it's still warm" and
-     * "small batches" are all still claims about how the food is made, so this
-     * stays UNVERIFIED (GAP-004).
-     *
-     * `note` and `inverted` were dropped with this pass. The notes rendered as
-     * labels rather than links because the mock's destinations do not exist;
-     * `inverted` painted the middle card dark, which the owner removed as an
-     * inconsistency between the three.
-     *
-     * "Pillar", not "Tenet" — the landing page's equivalent section already
-     * numbers its cards that way.
-     */
+    /*
+      Owner-supplied, 2026-09-14. Icons unchanged.
+
+      The `index` field is gone with the "Pillar 01/02/03" labels the owner
+      removed, and the UNVERIFIED marker goes with the claims that earned it:
+      "real butter and pure cane sugar", "made in small batches", "sealed while
+      it's still warm". None of the three tiles states an ingredient or a
+      method now — they describe intent, which needs no confirming.
+
+      `note` and `inverted` were dropped earlier: the notes rendered as labels
+      rather than links because the mock's destinations do not exist, and
+      `inverted` painted the middle card dark, which read as an inconsistency
+      between the three.
+    */
     items: [
       {
         icon: "award" as const,
-        index: "Pillar 01",
-        title: "Real ingredients",
-        body: "No shortcuts, no substitutes. Just real butter and pure cane sugar in every batch.",
+        title: "Taste, First.",
+        body: "We believe great chin-chin should be instantly memorable — crisp, flavourful, and satisfying from the very first bite.",
       },
       {
         icon: "timer" as const,
-        index: "Pillar 02",
-        title: "Always fresh",
-        body: "Made in small batches and sealed while it's still warm, so every pouch tastes freshly made.",
+        title: "Crafted with Intention.",
+        body: "Every ingredient, flavour, and texture is carefully considered to create chin-chin that feels familiar.",
       },
       {
         icon: "sparkle" as const,
-        index: "Pillar 03",
-        title: "Thoughtful Craft",
-        body: "From the pouch to the seal, every detail is built to keep it fresh and crisp, wherever you're enjoying it.",
+        title: "Made to Be Shared.",
+        body: "From everyday cravings to celebrations, we make chin-chin for the moments that bring people together and the ones worth savouring.",
       },
     ],
   },
 
-  horizon: {
-    eyebrow: "What's next",
-    title: "This is just the beginning.",
-    /* Owner-written, 2026-09-10. */
-    body: `We started with chinchin, but that's not where we're stopping. ${BRAND.displayName} is building toward more West African snacks and pantry foods, made with the same care.`,
-    /**
-     * UNVERIFIED — neither product has been announced, dated or priced. The
-     * wording says only that they are in the works, which is the honest framing
-     * for something that does not exist yet.
-     */
-    pipeline: "Next in the works: spiced plantain crisps and honey-glazed treats.",
-    images: [
-      {
-        src: "/images/chinchin5.jpg.png",
-        alt: "A bowl of freshly made Lamie Foods chinchin",
-        note: "Pantry spread",
-      },
-      {
-        src: "/images/newchinchin8.jpeg",
-        alt: "A white bowl of chinchin on a wooden board",
-        note: "Pantry spread",
-      },
-    ] satisfies ImageSlot[],
-    /*
-      `values` — "Integrity First", "Local Sourcing", "Nigerian Pride" — was
-      removed on 2026-09-10. It repeated the pillars section above it, and its
-      supply-chain claims (frying temperatures, direct spice-mill partnerships)
-      were never confirmed.
-    */
-  },
+  /*
+    `horizon` ("This is just the beginning.") was removed on 2026-09-15 at the
+    owner's request, with its pipeline tag and both images. Deleted rather than
+    left dormant. Its pipeline line named two unannounced, undated, unpriced
+    products, so this also takes an UNVERIFIED claim off the About page. The
+    landing page's own "Chinchin is just the beginning" section is separate
+    content in `landing.ts` and is unaffected.
+  */
 
   cta: {
     eyebrow: "Experience the craft",
