@@ -51,7 +51,14 @@ export const HERO = {
   */
   titleLine1: "Crafted for",
   titleLine2: "Good taste.",
-  body: "Nigeria's favorite fried snack, made properly. Small batches, real butter, and whole-milled nutmeg in every bite.",
+  /*
+    Reworded 2026-09-14. The previous sentence named "small batches", "real
+    butter" and "whole-milled nutmeg" — the last ingredient-and-method claims
+    on the landing page. The shop page, footer, bag and About page all dropped
+    their equivalents over 2026-09-13/14, so the hero had been the one place
+    still stating them.
+  */
+  body: "Deliciously made, thoughtfully crafted. Every bite is made with carefully selected ingredients and a whole lot of love.",
   primaryCta: { label: "Shop chinchin", href: ROUTES.shop },
   secondaryCta: { label: "Our story", href: ROUTES.about },
   /** PLACEHOLDER until the brand shoot — see GAP-006. */
@@ -226,24 +233,26 @@ export const HORIZON = {
    * page says only that they are in the works — which is the honest framing for
    * something that does not exist yet. The "Drop 02 / Drop 03" schedule labels
    * were removed, so the page no longer implies a release order nobody set.
+   *
+   * The `status` field ("In testing", "In development", "Reserve") went the
+   * same way on 2026-09-15, removed by the owner. Those labels were progress
+   * claims too — each told a customer how far along a product was, and none
+   * was tracked anywhere.
    */
   items: [
     {
-      status: "In testing",
       title: "Spiced Plantain Crisps",
       body: "Fried green plantains with roasted scotch bonnet and sea salt.",
     },
     {
-      status: "In development",
       title: "Cashew Nut Spread",
       body: "Cashews, stone-ground with wild honey and warm spices.",
     },
     {
-      status: "Reserve",
       title: "Honey Glazed Seasonal Tins",
       body: "A limited holiday batch, made with raw honey from Plateau State.",
     },
-  ] as Unverified<{ status: string; title: string; body: string }[]>,
+  ] as Unverified<{ title: string; body: string }[]>,
   form: {
     label: "Email address",
     placeholder: "Enter your email address",

@@ -1,4 +1,3 @@
-import { cn } from "@lamiefoods/ui";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { ICONS } from "@/components/ui/icons";
@@ -42,21 +41,19 @@ export function AboutHero() {
             {hero.body}
           </p>
 
-          <dl className="mt-gutter-lg flex flex-wrap gap-gutter-lg">
-            {hero.stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="sr-only">{stat.label}</dt>
-                <dd>
-                  <span className="block font-display text-headline-md text-terracotta">
-                    {stat.value}
-                  </span>
-                  <span className="mt-1 block font-label text-label-sm text-nutmeg">
-                    {stat.label}
-                  </span>
-                </dd>
-              </div>
+          {/* Four phrases, no figures. A `<dl>` was right while each item was a
+              value with a label beneath it (hence the `sr-only` `<dt>`); with
+              the numbers gone there is no term/definition pair left, so this is
+              a plain list. Two-up on phones so four items never squeeze onto
+              one line, four across from `sm`, with a tighter gap than the
+              three-column row used. */}
+          <ul className="mt-gutter-lg grid grid-cols-2 gap-x-gutter-md gap-y-gutter-sm sm:grid-cols-4">
+            {hero.features.map((feature) => (
+              <li key={feature} className="font-label text-label-sm text-cacao">
+                {feature}
+              </li>
             ))}
-          </dl>
+          </ul>
         </div>
 
         <Reveal delay={0.1} className="relative md:col-span-5">
@@ -127,18 +124,16 @@ export function AboutTenets() {
   return (
     <Section className="bg-surface-container-low">
       {/*
-        The subheading is a 12-column grid child from `md` so it sits beside the
-        headline; below that the single column stacks it directly underneath,
-        full width, rather than leaving it half-width beside nothing.
+        One stacked block at every width. The subheading used to be a second
+        12-column grid child (`md:col-span-6 md:self-end`), which put it beside
+        the headline on desktop, baseline-aligned to the bottom of a two-line
+        heading and reading as an unrelated fragment. Mobile always stacked it
+        correctly; this now matches that everywhere.
       */}
-      <div className="grid gap-gutter-sm md:grid-cols-12 md:gap-gutter-lg">
-        <div className="md:col-span-6">
-          <Eyebrow className="text-label-sm normal-case">{tenets.eyebrow}</Eyebrow>
-          <h2 className="mt-gutter-sm text-headline-lg text-cacao">{tenets.title}</h2>
-        </div>
-        <p className="text-body-md text-on-surface-variant md:col-span-6 md:self-end">
-          {tenets.body}
-        </p>
+      <div>
+        <Eyebrow className="text-label-sm normal-case">{tenets.eyebrow}</Eyebrow>
+        <h2 className="mt-gutter-sm text-headline-lg text-cacao">{tenets.title}</h2>
+        <p className="mt-gutter-sm text-body-md text-on-surface-variant">{tenets.body}</p>
       </div>
 
       {/*
@@ -155,14 +150,13 @@ export function AboutTenets() {
           const Icon = ICONS[item.icon];
 
           return (
-            <Reveal key={item.index} delay={index * 0.08} className="h-full">
+            <Reveal key={item.title} delay={index * 0.08} className="h-full">
               <li className="flex h-full flex-col">
                 <Icon className="h-6 w-6 text-terracotta" />
 
-                <p className="mt-gutter-sm font-label text-label-sm text-tertiary">
-                  {item.index}
-                </p>
-                <h3 className="mt-1 text-headline-sm text-cacao">{item.title}</h3>
+                {/* The "Pillar 01/02/03" line that sat here was removed by the
+                    owner on 2026-09-14; the title now follows the icon. */}
+                <h3 className="mt-gutter-sm text-headline-sm text-cacao">{item.title}</h3>
                 <p className="mt-gutter-xs flex-1 text-body-sm text-on-surface-variant">
                   {item.body}
                 </p>
@@ -171,43 +165,6 @@ export function AboutTenets() {
           );
         })}
       </ul>
-    </Section>
-  );
-}
-
-export function AboutHorizon() {
-  const { horizon } = ABOUT;
-
-  return (
-    <Section>
-      <div className="grid items-center gap-gutter-xl md:grid-cols-12">
-        <Reveal className="md:col-span-6">
-          <Eyebrow className="text-label-sm normal-case">{horizon.eyebrow}</Eyebrow>
-          <h2 className="mt-gutter-sm text-headline-lg text-cacao">{horizon.title}</h2>
-          <p className="mt-gutter-sm max-w-prose text-body-md text-on-surface-variant">
-            {horizon.body}
-          </p>
-          <p className="mt-gutter-md inline-flex items-center gap-gutter-xs font-label text-label-sm text-cacao">
-            <ICONS.sparkle className="h-4 w-4 text-terracotta" />
-            {horizon.pipeline}
-          </p>
-        </Reveal>
-
-        <Reveal delay={0.1} className="grid grid-cols-2 gap-gutter-sm md:col-span-6">
-          {horizon.images.map((image, index) => (
-            <div
-              key={image.note}
-              className={cn(
-                "relative aspect-3/4 overflow-hidden rounded border border-rule/70",
-                // The design offsets the second image downward on wide screens.
-                index === 1 && "lg:mt-gutter-lg",
-              )}
-            >
-              <ImageSlot slot={image} sizes="(min-width: 1024px) 22vw, 45vw" />
-            </div>
-          ))}
-        </Reveal>
-      </div>
     </Section>
   );
 }
