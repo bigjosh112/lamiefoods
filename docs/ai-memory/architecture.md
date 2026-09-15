@@ -63,10 +63,10 @@ Only the parts that matter for placing new code correctly.
 |---|---|---|
 | `apps/web/src/app/` | Next.js App Router entry, every real route (`/`, `/shop`, `/shop/[slug]`, `/cart`, `/checkout`, `/order-success`, `/about`, `/admin/**`) plus `layout.tsx`, `error.tsx`, `not-found.tsx`, `robots.ts`, `sitemap.ts` | Server Components by default; `"use client"` only where interaction needs it |
 | `apps/web/src/app/api/` | Route Handlers — the backend. `orders/` (create, read-by-token, prepare/verify-payment), `webhooks/paystack/`, `admin/{login,logout,orders/[reference],products,products/[slug],uploads}/`, `products/` doesn't exist as a public GET (see the 2026-09-07 catalogue-fetch decision below for why) | Params are a `Promise` in Next 16 — see `node_modules/next/dist/docs/`. Add one `route.ts` per resource as the API grows |
-| `apps/web/src/server/` | Server-only backend logic: `db/client.ts` (Postgres pool, exports the `Db` type covering both the pool and a `sql.begin` transaction handle), `orders/{pricing,repository,paystack}.ts`, `products/repository.ts`, `email/{send,order-emails}.ts`, `admin/{auth,session}.ts`, `security/rate-limit.ts` | Every file starts with `import "server-only"` — importing one from a Client Component fails the build |
+| `apps/web/src/server/` | Server-only backend logic: `db/client.ts` (Postgres pool, exports the `Db` type covering both the pool and a `sql.begin` transaction handle), `db/prerender-reads.ts` (ISR/sitemap/`generateStaticParams` wrappers that return `[]` if Postgres is unset, unreachable, or unmigrated), `orders/{pricing,repository,paystack}.ts`, `products/repository.ts`, `email/{send,order-emails}.ts`, `admin/{auth,session}.ts`, `security/rate-limit.ts` | Every file starts with `import "server-only"` — importing one from a Client Component fails the build. Route Handlers still call the raw repositories and 503 |
 | `apps/web/src/lib/api/` | **The only place a Client Component talks to the backend.** `apiFetch` gateway + typed error class + one module per resource (`orders.ts`, `admin.ts`, `admin-orders.ts`, `admin-products.ts`) | Server Components call `server/` directly instead — no self-fetch over HTTP |
 | `apps/web/src/lib/products/catalog-context.tsx` | `CatalogProvider`/`useCatalog()` — the published product list, made available to Client Components (cart/checkout pricing) via React context instead of a client-side fetch | Populated by whichever Server Component page already fetched `listPublishedProducts()` — see the Data flow section |
-| `apps/web/migrations/` | Plain SQL migrations (`0001_orders.sql`, `0002_payments_and_admin.sql`, `0003_products.sql`, `0004_seed_existing_products.sql`) | Plain Postgres only — no Supabase-specific SQL, so Railway is a `DATABASE_URL` swap |
+| `apps/web/migrations/` | Plain SQL migrations `0001`–`0010` (`0001_orders.sql` … `0010_delivery_area_state.sql`) | Plain Postgres only — no Supabase-specific SQL, so Railway is a `DATABASE_URL` swap. Not applied by `next build`; run from the **web** Console after the service is Online |
 | `apps/web/src/config/` | `env.ts` (zod-validated **client** env), `server-env.ts` (zod-validated **server** env, `server-only`-guarded), `site.ts` (metadata defaults) | `env.ts` values are public by construction; `server-env.ts` values must never cross into a Client Component |
 | `apps/web/src/styles/globals.css` | **All design tokens** — colour ramps, fluid type/space/radius — under Tailwind v4 `@theme` | PROVISIONAL palette; swap here and nowhere else once brand assets arrive |
 | `apps/web/src/lib/` + `components/seo/` | SEO/structured-data helpers (JSON-LD, canonical URLs) | Only confirmed brand facts go into schema — no invented ratings/addresses |
@@ -77,6 +77,57 @@ Only the parts that matter for placing new code correctly.
 | `packages/eslint-config/`, `packages/typescript-config/` | Shared lint/TS bases | — |
 | `apps/backend/` | **Retired in place, 2026-09-07** — do not add sources here | Scripts stay no-op `echo` stubs. See its README for where server code actually lives now (`apps/web/src/{app/api,server}/`) |
 
+## Production env (Railway `@lamiefoods/web`)
+
+Live origin is `https://shoplamiefoods.com`. Set these on the **web** service
+(not the retired `@lamiefoods/backend` stub, not only the Postgres plugin).
+The storefront **is** the API (`apps/web/src/app/api/`); backend Variables
+are never read. Putting `BLOB_READ_WRITE_TOKEN` (or any other secret) on
+backend leaves `/admin/products/new` showing “Image upload isn’t connected
+yet” with no Add tile.
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` — needed at **runtime** and in a **new** web Console (env is captured when the shell starts) |
+| `NEXT_PUBLIC_SITE_URL` | `https://shoplamiefoods.com` — a literal public origin. Never a Railway `${{VAR}}` self-reference (that resolved to localhost) |
+| `NEXT_PUBLIC_API_URL` | **Leave unset.** `apiFetch` uses `NEXT_PUBLIC_SITE_URL` |
+| `ADMIN_EMAIL` | Sign-in email for `/admin` |
+| `ADMIN_PASSWORD_HASH` | `salt:hash` from `server/admin/auth.ts` (bootstrap into `admin_auth` on first login after `0009`) |
+| `ADMIN_SESSION_SECRET` | Random string, at least 16 characters |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob **read-write** token (`vercel_blob_rw_…`) from a Vercel Storage → Blob store. Railway does not mint this. Without it on **web**, the photo Add tile stays hidden |
+| `PAYSTACK_SECRET_KEY` | `sk_…` if online payment should work |
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | `pk_…` — baked into the image at **build** time; changing it requires a rebuild |
+| `RESEND_API_KEY` | `re_…` if order email should send |
+| `ORDER_EMAIL_FROM` | Mailbox on a Resend-verified domain, with angle brackets |
+| `ORDER_EMAIL_TO` | Optional shop notification inbox |
+
+`NEXT_PUBLIC_*` are inlined at image build. Server-only vars (`BLOB_READ_WRITE_TOKEN`, `DATABASE_URL`, `ADMIN_*`) take effect on the next web restart/redeploy.
+
+Railway's image build cannot reach `postgres.railway.internal`. ISR pages
+therefore go through `prerender-reads.ts` so `next build` still succeeds when
+the URL is set but Postgres is unreachable.
+
+Schema is not applied by the deploy. After web is **Online**, new Console on
+**web**:
+
+```bash
+echo "${DATABASE_URL:+set}"   # must print: set
+apt-get update -y && apt-get install -y postgresql-client
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0001_orders.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0002_payments_and_admin.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0003_products.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0004_seed_existing_products.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0005_settings.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0006_correct_seeded_catalogue.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0007_pack_stock_and_order_sku.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0008_delivery_areas.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0009_admin_auth.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/web/migrations/0010_delivery_area_state.sql
+```
+
+If `0001` says already exists, continue from the first file that is new
+(`0009` / `0010` if 0001–0008 already ran).
+
 ## Data flow
 
 **The catalogue** (browsing `/`, `/shop`, `/shop/[slug]`) is real now — Postgres via
@@ -86,8 +137,11 @@ Only the parts that matter for placing new code correctly.
 and `sitemap.ts` all set `export const revalidate = 60` — a raw Postgres query is
 NOT a Next Request-time API the way `cookies()` is, so Next won't auto-detect it
 and mark the route dynamic; left unset, any of these would bake stale prices into
-the build forever. See the Gotchas entry on this from the admin-auth static-cache
-bug — same root cause, different trigger.
+the build forever. Those pages call `listPublishedProductsForPage` /
+`listActiveDeliveryAreasForPage` / `getProductBySlugForPage` (not the raw
+repositories) so an unreachable or unmigrated database at `next build` yields
+an empty catalogue instead of a failed image. See the Gotchas entry on this from
+the admin-auth static-cache bug — same root cause, different trigger.
 
 **The cart** is 100% client-side for its lines: a zustand store persisted to
 `localStorage` (`lib/cart/cart-store.ts`), holding only `{slug, pack, quantity}`
@@ -203,6 +257,7 @@ rest of the form — no image bytes ever pass through this app's own server.
 | 2026-09-14 | Cancelling an order emails the customer (and the shop when `ORDER_EMAIL_TO` is set) via `justCancelled`; admin confirm is an in-page panel, not `window.confirm`. Cancel copy never invents a refund. `ORDER_EMAIL_FROM` must be a mailbox on a Resend-verified domain | Owner expected a customer cancel email and a branded confirm, not a native alert. Resend 422s personal FROM addresses even with a valid API key after a domain is merely added in the dashboard | Native `confirm()`; skip cancel mail; send FROM gmail.com |
 | 2026-09-14 | Nigerian state lives on `delivery_areas.state` (migration `0010`). Checkout no longer collects State / region; `POST /api/orders` overwrites `orders.city` and `orders.state` from the selected area. Fee-grouping `region` stays `lagos` or `interstate` | Owner: picking Ibadan then Osun was a real mismatch; fee already comes from the area | Keep an independent 36-state dropdown on checkout |
 | 2026-09-14 | **SUPERSEDES 2026-09-07 “Paystack primary; bank transfer fallback”.** New orders are Paystack-only. Checkout and order-success no longer offer a manual bank-transfer option. `whatsapp_transfer` stays on the type/DB check for historical orders; admin can still mark those paid | Owner asked to remove the checkout Bank transfer card | Keep the two-way chooser |
+| 2026-09-14 | ISR storefront reads use `prerender-reads.ts`: if Postgres is unset, unreachable, or unmigrated, they log and return `[]` so `next build` can finish. `/api/*` still 503s. | Railway `@lamiefoods/web` image build cannot reach `postgres.railway.internal` once `DATABASE_URL` is set; prerender was crashing the deploy | Require Postgres during Docker build; `force-dynamic` on every catalogue page |
 | 2026-09-07 | Every `/admin/**` page (and its layout) explicitly exports `dynamic = "force-dynamic"`, in addition to calling `getAdminSession()` | A real, reproduced bug: with `ADMIN_SESSION_SECRET` unset, `getAdminSession()` used to return early *before* calling `cookies()`, so Next never detected a Request-time API on that path and baked every admin page as a **permanently cached static 404** at build time — see the Gotchas entry below and GAP-009's 2026-09-07 update in `gaps.md`. `force-dynamic` makes this impossible regardless of what any function happens to call | Rely on `cookies()` usage alone to keep the route dynamic |
 | 2026-09-07 | Admin order screens (`/admin/orders`, `/admin/orders/[id]`) keep their real, working parts (stat cards, status tabs/counts, table, header, items, totals, address, status/payment controls) and **drop** the fictional ones (Kitchen & Dispatch Timeline, Delivery & Geolocation map, Internal Atelier Notes, Patron Dossier link) rather than wiring them to fake data | None of the four dropped panels have a real data source (no notes table, no courier-location feed); inventing one would repeat the exact mistake this codebase already refused to make for delivery fees and the settlement account in Settings | Keep the panels and populate them with placeholder-but-labelled content |
 | 2026-09-07 | Real product catalog: products move from static `content/products.ts` to Postgres (`products`/`product_packs`/`product_images`), matching the ADMIN FORM's field set (teaser/narrative/pairings/ingredients/allergens/packs/images/discount), not the old design's richer "proof"/"provenance" narrative structure | The admin form never had fields for `proof`/`provenance`/`tagline`/`atelier` — that content was always hardcoded, never editable. Carrying it forward as DB content nobody could change would repeat the exact "fake permanence" mistake already refused for admin panels | Preserve the full narrative schema and add admin fields to match it |
@@ -235,6 +290,11 @@ rest of the form — no image bytes ever pass through this app's own server.
   re-evaluates modules on every hot reload; without the cache, each edit during
   development opens another pool and leaks connections until the database starts
   refusing new ones. — `apps/web/src/server/db/client.ts`
+- **Railway `@lamiefoods/web` image build cannot reach `postgres.railway.internal`.**
+  Setting `DATABASE_URL` makes `isDatabaseConfigured()` true during `next build`,
+  so ISR pages used to throw (ENOTFOUND / timeout / missing relation) and fail
+  the image. `db/prerender-reads.ts` catches that and returns `[]`; Route
+  Handlers still 503. — `apps/web/src/server/db/prerender-reads.ts`
 - **postgres.js types a transaction handle (`sql.begin(async (tx) => ...)`'s
   `tx`) as `TransactionSql`, a DIFFERENT, structurally-incompatible interface
   from `Sql`** (the type of `db()`'s return value), even though both are

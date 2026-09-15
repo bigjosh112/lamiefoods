@@ -60,7 +60,11 @@
 
 - **Base URL:** same-origin. `NEXT_PUBLIC_API_URL` is checked first for a
   genuinely external backend; when unset (the normal case), `apiFetch` resolves
-  against this app's own `siteUrl` (`config/env.ts`).
+  against this app's own `siteUrl` (`config/env.ts`). On Railway
+  `@lamiefoods/web` leave `NEXT_PUBLIC_API_URL` unset and set
+  `NEXT_PUBLIC_SITE_URL=https://shoplamiefoods.com` (literal — not a Railway
+  variable self-reference). `DATABASE_URL` is `${{Postgres.DATABASE_URL}}` on
+  that same web service.
 - **Auth scheme:** none. Guest checkout only — no accounts exist (owner
   confirmed, Q12/Q13). Reading an order back is gated by a random 32-byte
   `access_token` in the URL, not a session.
@@ -710,9 +714,12 @@ template.
   anything `handleUpload` itself rejects (wrong content type, over the 8MB
   cap — both enforced in `onBeforeGenerateToken`'s returned options, not
   just client-side).
-- **Quirks:** `onUploadCompleted` is omitted. The uploaded URL is already
-  returned directly to the browser by `upload()`, which is what actually
-  attaches it to a product on save (`POST`/`PATCH /api/admin/products`).
+- **Quirks:** On Railway the token must be on `@lamiefoods/web`. Setting it
+  only on `@lamiefoods/backend` leaves `isBlobStorageConfigured()` false, so
+  the admin Add tile never renders. `onUploadCompleted` is omitted. The
+  uploaded URL is already returned directly to the browser by `upload()`,
+  which is what actually attaches it to a product on save
+  (`POST`/`PATCH /api/admin/products`).
   Passing even an empty completion callback makes the SDK demand a public
   webhook URL (`VERCEL_BLOB_CALLBACK_URL`) that localhost and Railway
   cannot serve; nothing here needs that webhook. `BLOB_STORE_ID` is unused

@@ -8,9 +8,7 @@ import { ImageSlot } from "@/components/ui/image-slot";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { CHECKOUT } from "@/content/checkout";
 import { buildMetadata } from "@/lib/seo";
-import { isDatabaseConfigured } from "@/config/server-env";
-import { listPublishedProducts } from "@/server/products/repository";
-import { listActiveDeliveryAreas } from "@/server/delivery/repository";
+import { listPublishedProductsForPage, listActiveDeliveryAreasForPage } from "@/server/db/prerender-reads";
 import { CatalogProvider } from "@/lib/products/catalog-context";
 import { CheckoutDeliveryProvider } from "@/lib/checkout/delivery-context";
 
@@ -33,10 +31,9 @@ export const metadata: Metadata = buildMetadata({
  * order record (products + selected delivery fee).
  */
 export default async function CheckoutPage() {
-  const dbConfigured = isDatabaseConfigured();
   const [products, deliveryAreas] = await Promise.all([
-    dbConfigured ? listPublishedProducts() : Promise.resolve([]),
-    dbConfigured ? listActiveDeliveryAreas() : Promise.resolve([]),
+    listPublishedProductsForPage(),
+    listActiveDeliveryAreasForPage(),
   ]);
   const guaranteeImage =
     products[0]?.images.find((image) => image.role === "hero") ?? products[0]?.images[0];

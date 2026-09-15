@@ -7,8 +7,7 @@ import { CartView } from "@/components/cart/cart-view";
 import { Eyebrow, Section } from "@/components/ui/section";
 import { CART } from "@/content/cart";
 import { buildMetadata } from "@/lib/seo";
-import { isDatabaseConfigured } from "@/config/server-env";
-import { listPublishedProducts } from "@/server/products/repository";
+import { listPublishedProductsForPage } from "@/server/db/prerender-reads";
 import { CatalogProvider } from "@/lib/products/catalog-context";
 
 // `listPublishedProducts()` is a raw Postgres query, not a Next Request-time
@@ -40,7 +39,7 @@ export const metadata: Metadata = buildMetadata({
  * products live in Postgres. See `lib/products/catalog-context.tsx`.
  */
 export default async function CartPage() {
-  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+  const products = await listPublishedProductsForPage();
 
   return (
     <CatalogProvider products={products}>

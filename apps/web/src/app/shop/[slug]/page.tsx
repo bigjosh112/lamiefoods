@@ -16,9 +16,11 @@ import { PRODUCT_ASSURANCES } from "@/content/shop";
 import { applyDiscount, formatKobo } from "@/lib/money";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/structured-data";
-import { isDatabaseConfigured } from "@/config/server-env";
 import { DiscountBadge } from "@/components/product/price";
-import { getProductBySlug, listPublishedProducts } from "@/server/products/repository";
+import {
+  getProductBySlugForPage,
+  listPublishedProductsForPage,
+} from "@/server/db/prerender-reads";
 import { CatalogProvider } from "@/lib/products/catalog-context";
 
 /**
@@ -28,8 +30,7 @@ import { CatalogProvider } from "@/lib/products/catalog-context";
  * comment for why ISR fits this catalogue better than `force-dynamic`.
  */
 export async function generateStaticParams() {
-  if (!isDatabaseConfigured()) return [];
-  const products = await listPublishedProducts();
+  const products = await listPublishedProductsForPage();
   return products.map((product) => ({ slug: product.slug }));
 }
 
@@ -41,8 +42,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  if (!isDatabaseConfigured()) return {};
-  const product = await getProductBySlug(slug);
+  const product = await getProductBySlugForPage(slug);
   if (!product) return {};
 
   const hero = product.images.find((image) => image.role === "hero") ?? product.images[0];
@@ -80,11 +80,9 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  if (!isDatabaseConfigured()) notFound();
-
   const [product, allProducts] = await Promise.all([
-    getProductBySlug(slug),
-    listPublishedProducts(),
+    getProductBySlugForPage(slug),
+    listPublishedProductsForPage(),
   ]);
   if (!product) notFound();
 

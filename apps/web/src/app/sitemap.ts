@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { ROUTES } from "@lamiefoods/config";
 import { absoluteUrl } from "@/lib/seo";
-import { isDatabaseConfigured } from "@/config/server-env";
-import { listPublishedProducts } from "@/server/products/repository";
+import { listPublishedProductsForPage } from "@/server/db/prerender-reads";
 
 /**
  * Only routes that actually render today. Advertising a page before it exists
@@ -16,7 +15,7 @@ export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
-  const products = isDatabaseConfigured() ? await listPublishedProducts() : [];
+  const products = await listPublishedProductsForPage();
 
   return [
     { url: absoluteUrl(ROUTES.home), lastModified, priority: 1 },
