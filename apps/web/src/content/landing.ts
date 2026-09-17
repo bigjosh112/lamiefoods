@@ -61,10 +61,20 @@ export const HERO = {
   body: "Deliciously made, thoughtfully crafted. Every bite is made with carefully selected ingredients and a whole lot of love.",
   primaryCta: { label: "Shop chinchin", href: ROUTES.shop },
   secondaryCta: { label: "Our story", href: ROUTES.about },
-  /** PLACEHOLDER until the brand shoot — see GAP-006. */
+  /*
+    REAL brand photography as of 2026-09-16 — the owner's own shoot, replacing
+    the `newchinchin2.jpeg` stand-in. This slot is no longer part of GAP-006.
+
+    Note the pouches are legible here, and they print "Rich in Fiber", "For
+    healthy Heart" and "Rich in Vitamins". Those are the same regulated health
+    claims flagged against the About page's packaging shot: putting them on the
+    page as pixels states them just as surely as copy would, and no text-level
+    check can catch it. Net weight reads 100g, which does match the confirmed
+    range.
+  */
   image: {
-    src: "/images/newchinchin2.jpeg",
-    alt: "A tray of freshly fried chinchin with a small serving bowl",
+    src: "/images/shoot4.jpeg",
+    alt: "Lamie Foods chin chin range — Cinnamon Velvet, Milky Velvet, Coco Velvet.",
     note: "Hero photography",
   } satisfies ImageSlot,
 };
@@ -180,9 +190,20 @@ export const CRUNCH = {
   titleLine1: "Then comes",
   titleLine2: "the crunch.",
   body: "You'll hear it before you taste it. A sharp golden crunch gives way to a soft, buttery crumb, warmed through with real nutmeg.",
+  /*
+    REAL brand photography as of 2026-09-16, replacing the `newchinchin.jpeg`
+    stand-in.
+
+    The composition matters to the markup: the bowl sits hard right (roughly
+    x 54%-97%) with the left of the frame empty. This slot is a SQUARE box and
+    the photo is 1.499 landscape, so `object-cover` drops a third of the width.
+    A default centre crop would cut the right side off the bowl, which is why
+    `crunch.tsx` pins the crop to the right edge. Re-check that if this image
+    is ever swapped for a differently-composed one.
+  */
   image: {
-    src: "/images/newchinchin.jpeg",
-    alt: "A plate piled with golden chin chin cubes",
+    src: "/images/shoot2.jpeg",
+    alt: "Chinchin piled in a carved coconut bowl on a wooden table",
     note: "Product photography",
   } satisfies ImageSlot,
   /*

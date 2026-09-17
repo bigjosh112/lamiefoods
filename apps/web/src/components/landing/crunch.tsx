@@ -25,8 +25,18 @@ export function Crunch() {
     <Section className="lg:py-section-xl">
       <div className="grid items-center gap-gutter-lg md:grid-cols-12">
         <Reveal className="relative md:col-span-6">
+          {/* `object-right`, not the default centre. This box is square and the
+              photograph is 1.499 landscape, so `object-cover` keeps only the
+              middle 66.7% of the width. The bowl sits at roughly x 54%-97%, so
+              centring would slice off its right edge; the empty wood is all on
+              the left, so pinning the crop right keeps the subject whole and
+              throws away only negative space. */}
           <div className="relative aspect-square overflow-hidden rounded border border-rule/70">
-            <ImageSlot slot={CRUNCH.image} sizes="(min-width: 1024px) 45vw, 100vw" />
+            <ImageSlot
+              slot={CRUNCH.image}
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="object-right"
+            />
           </div>
         </Reveal>
 

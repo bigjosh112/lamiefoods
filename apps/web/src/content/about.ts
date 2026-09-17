@@ -101,9 +101,20 @@ export const ABOUT = {
       "At Lamie, we're reimagining this beloved classic with a focus on quality, flavour, and consistency. Every batch is thoughtfully prepared using carefully selected ingredients and a considered blend of flavours, creating the perfect balance of crunch and indulgence.",
       "From the first bite to the last, every piece is made to be enjoyed.",
     ],
+    /*
+      REAL brand photography as of 2026-09-16, replacing the `newchinchin7.jpeg`
+      stand-in.
+
+      Same caveat as the hero shot on this page: both Coco Velvet pouches are
+      legible and print "Rich in Fiber", "For healthy Heart" and "Rich in
+      Vitamins". Those are regulated health claims, stated as surely in pixels
+      as in copy, and no text-level check can catch them — see the GAP-006 note
+      on `hero.image` above. The net weights read 300g and 100g, both of which
+      ARE in the confirmed range.
+    */
     image: {
-      src: "/images/newchinchin7.jpeg",
-      alt: "Chinchin piled in a glass dish",
+      src: "/images/shoot3.jpeg",
+      alt: "Two Coco Velvet chinchin pouches with a coconut and scattered chinchin on a wooden table",
       note: "Kitchen craft",
     } satisfies ImageSlot,
     /*
