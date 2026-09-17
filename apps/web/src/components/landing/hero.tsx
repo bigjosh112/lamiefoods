@@ -76,8 +76,15 @@ export function Hero() {
       </div>
 
       {/* Above the copy on phones, right-hand column from 768px. Contained and
-          cropped to 4:3 rather than bled off the edge — this is placeholder
-          photography, so it should not be load-bearing for the layout. */}
+          cropped to 4:3 rather than bled off the edge.
+
+          The photograph is real brand work now, not a stand-in. It is landscape
+          (1280x854, 1.50) against this 1.333 box, so `object-cover` matches the
+          height and trims ~11% of the width, ~5.5% a side. The three pouches
+          sit well inside that, so the default centre crop keeps all of them and
+          no `object-position` override is needed. Vertical overflow is zero at
+          this ratio, which is also why nudging `object-position` up or down
+          would do nothing here. */}
       <div className="order-first md:order-none md:col-span-6">
         <div className="relative aspect-4/3 overflow-hidden rounded-lg border border-rule/70 bg-surface-container">
           <ImageSlot slot={HERO.image} sizes="(min-width: 768px) 50vw, 100vw" priority />
